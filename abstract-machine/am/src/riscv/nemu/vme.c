@@ -29,6 +29,7 @@ bool vme_init(void* (*pgalloc_f)(int), void (*pgfree_f)(void*)) {
   pgfree_usr = pgfree_f;
 
   kas.ptr = pgalloc_f(PGSIZE);
+  kas.pgsize = PGSIZE;
 
   int i;
   for (i = 0; i < LENGTH(segments); i ++) {
@@ -67,8 +68,34 @@ void __am_switch(Context *c) {
 }
 
 void map(AddrSpace *as, void *va, void *pa, int prot) {
+  if (!prot) pa = va;
+  uint32_t vaddr = (uint32_t)va;
+  uint32_t paddr = (uint32_t)pa;
+
+  PTE *pt = (PTE *)as->ptr;
+  uint32_t vpn[2];
+  vpn[0] = (vaddr >> 12) & 0x3ff;
+  vpn[1] = (vaddr >> 22) & 0x3ff;
+  
+  
+  uint32_t v = pt[vpn[1]] & 0x1;
+  uint32_t ppa;
+  if (!v) {
+    ppa = (uint32_t)pgalloc_usr(as->pgsize) & ~(as->pgsize - 1);
+    pt[vpn[1]] = (ppa >> 2) | 0x1;
+  } else {
+    ppa = (pt[vpn[1]] & ~0x3ff) << 2;
+  }
+  pt = (uint32_t *)ppa;
+  pt[vpn[0]] = ((paddr & ~(as->pgsize - 1)) >> 2) | 0xf;
 }
 
 Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
-  return NULL;
+  Context *context = (Context *)(kstack.end - sizeof(Context));
+  context->mepc = (uintptr_t)entry - 4;
+  context->mstatus = 0x1800 | (1 << 3) | (1 << 7);
+  context->pdir = as->ptr;
+  context->privilege = USER;
+  context->gpr[2] = (uintptr_t)context;
+  return context;
 }

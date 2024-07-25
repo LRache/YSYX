@@ -13,9 +13,10 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
-#include <cpu/cpu.h>
-#include <cpu/decode.h>
-#include <cpu/difftest.h>
+#include "cpu/cpu.h"
+#include "cpu/decode.h"
+#include "cpu/difftest.h"
+#include "tracer.h"
 #include <locale.h>
 
 /* The assembly code of instructions executed is only output to the screen
@@ -25,25 +26,46 @@
  */
 #define MAX_INST_TO_PRINT 10
 
-CPU_state cpu = {};
+CPU_state cpu = { .mstatus=0x1800 };
 uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
 static bool g_print_step = false;
+static uint32_t debug_last_pc = 0;
 
 void device_update();
+bool watchpoint_triggered();
 
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #ifdef CONFIG_ITRACE_COND
   if (ITRACE_COND) { log_write("%s\n", _this->logbuf); }
+  IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
+
+  trace_ins(_this);
+  trace_function(_this);
 #endif
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
-  IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
+
+#ifdef CONFIG_WATCHPOINTS
+  if (watchpoint_triggered()) {
+    nemu_state.state = NEMU_STOP;
+  }
+#endif
+}
+
+static void nemu_intr(Decode *s) {
+  vaddr_t dnpc = isa_raise_intr(nemu_state.halt_ret, nemu_state.halt_pc);
+  s->dnpc = dnpc;
+  nemu_state.state = NEMU_RUNNING;
 }
 
 static void exec_once(Decode *s, vaddr_t pc) {
   s->pc = pc;
   s->snpc = pc;
   isa_exec_once(s);
+  if (nemu_state.state == NEMU_INTR) {
+      nemu_intr(s);
+  }
+  debug_last_pc = cpu.pc;
   cpu.pc = s->dnpc;
 #ifdef CONFIG_ITRACE
   char *p = s->logbuf;
@@ -79,6 +101,11 @@ static void execute(uint64_t n) {
     trace_and_difftest(&s, cpu.pc);
     if (nemu_state.state != NEMU_RUNNING) break;
     IFDEF(CONFIG_DEVICE, device_update());
+    word_t intr = isa_query_intr();
+    if (intr != INTR_EMPTY) {
+      word_t dnpc = isa_raise_intr(intr, cpu.pc-4);
+      cpu.pc = dnpc;
+    }
   }
 }
 
@@ -92,7 +119,7 @@ static void statistic() {
 }
 
 void assert_fail_msg() {
-  isa_reg_display();
+  Log("Last pc=0x%x", debug_last_pc);
   statistic();
 }
 
@@ -116,7 +143,8 @@ void cpu_exec(uint64_t n) {
   switch (nemu_state.state) {
     case NEMU_RUNNING: nemu_state.state = NEMU_STOP; break;
 
-    case NEMU_END: case NEMU_ABORT:
+    case NEMU_END: 
+    case NEMU_ABORT:
       Log("nemu: %s at pc = " FMT_WORD,
           (nemu_state.state == NEMU_ABORT ? ANSI_FMT("ABORT", ANSI_FG_RED) :
            (nemu_state.halt_ret == 0 ? ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN) :

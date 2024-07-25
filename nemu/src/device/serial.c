@@ -14,6 +14,7 @@
 ***************************************************************************************/
 
 #include <utils.h>
+#include <stdio.h>
 #include <device/map.h>
 
 /* http://en.wikibooks.org/wiki/Serial_Programming/8250_UART_Programming */
