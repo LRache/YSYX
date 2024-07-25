@@ -29,7 +29,6 @@ void init_audio();
 void init_disk();
 void init_sdcard();
 void init_alarm();
-void init_local();
 
 void send_key(uint8_t, bool);
 void vga_update_screen();
@@ -85,7 +84,6 @@ void init_device() {
   IFDEF(CONFIG_HAS_AUDIO, init_audio());
   IFDEF(CONFIG_HAS_DISK, init_disk());
   IFDEF(CONFIG_HAS_SDCARD, init_sdcard());
-  IFDEF(CONFIG_HAS_LOCAL, init_local());
 
   IFNDEF(CONFIG_TARGET_AM, init_alarm());
 }
