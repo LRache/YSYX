@@ -1,12 +1,2 @@
-*.*
-*
-!*/
-!Makefile
-!*.mk
-!*.[cSh]
-!*.v
-!*.cc
-!*.cpp
-!.gitignore
-!README.md
-build/
+!csrc/*/*.cpp
+!vsrc/*/*.v
