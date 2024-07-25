@@ -21,7 +21,9 @@ enum {
   SYS_unlink,
   SYS_wait,
   SYS_times,
-  SYS_gettimeofday
+  SYS_gettimeofday,
+  SYS_ioe_read,
+  SYS_ioe_write
 };
 
 #endif

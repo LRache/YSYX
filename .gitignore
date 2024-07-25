@@ -11,3 +11,4 @@
 include/config
 include/generated
 /fceux-am
+/am-kernels
