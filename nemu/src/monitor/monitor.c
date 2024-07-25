@@ -13,8 +13,17 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
-#include <isa.h>
-#include <memory/paddr.h>
+#include <elf.h>
+#include "isa.h"
+#include "memory/paddr.h"
+#include "tracer.h"
+
+enum IMG_TYEP{
+  IMG_IMAGE, IMG_ELF
+};
+
+int imgType = IMG_IMAGE;
+static const char ELF_MAGIC_NUMBER[] = {0x7f, 'E', 'L', 'F'};
 
 void init_rand();
 void init_log(const char *log_file);
@@ -32,8 +41,6 @@ static void welcome() {
   Log("Build time: %s, %s", __TIME__, __DATE__);
   printf("Welcome to %s-NEMU!\n", ANSI_FMT(str(__GUEST_ISA__), ANSI_FG_YELLOW ANSI_BG_RED));
   printf("For help, type \"help\"\n");
-  Log("Exercise: Please remove me in the source code and compile NEMU again.");
-  assert(0);
 }
 
 #ifndef CONFIG_TARGET_AM
@@ -44,14 +51,10 @@ void sdb_set_batch_mode();
 static char *log_file = NULL;
 static char *diff_so_file = NULL;
 static char *img_file = NULL;
+static char *img_file_type = NULL;
 static int difftest_port = 1234;
 
-static long load_img() {
-  if (img_file == NULL) {
-    Log("No image is given. Use the default build-in image.");
-    return 4096; // built-in image size
-  }
-
+static long load_normal_image() {
   FILE *fp = fopen(img_file, "rb");
   Assert(fp, "Can not open '%s'", img_file);
 
@@ -68,6 +71,88 @@ static long load_img() {
   return size;
 }
 
+static long load_elf() {
+  Log("Loading elf file");
+  FILE *fp = fopen(img_file, "rb");
+  Assert(fp, "Can not open '%s'", img_file);
+
+  Elf32_Ehdr elfHeader;
+  int r = fread(&elfHeader, sizeof(elfHeader), 1, fp);
+  Assert(r == 1, "Read error.");
+  Assert(memcmp(ELF_MAGIC_NUMBER, elfHeader.e_ident, 4) == 0, "Bad elf head");
+  Assert(elfHeader.e_ident[EI_CLASS] == ELFCLASS32, "Bad elf class");
+  Assert(elfHeader.e_machine == EM_RISCV, "Bad isa");
+  
+  // Elf32_Phdr programHeaderArray[elfHeader.e_phnum];
+  // r = fread(programHeaderArray, sizeof(Elf32_Phdr), elfHeader.e_phnum, fp);
+  // Assert(r == elfHeader.e_phnum, "Read error.");
+  
+  fseek(fp, elfHeader.e_shoff, SEEK_SET);
+  Elf32_Shdr sectionHeaderArray[elfHeader.e_shnum];
+  r = fread(sectionHeaderArray, sizeof(Elf32_Shdr), elfHeader.e_shnum, fp);
+  Assert(r == elfHeader.e_shnum, "Read error.");
+
+  char *stringTable = NULL;
+  for (int i = 0; i < elfHeader.e_shnum; i++) {
+    Elf32_Shdr shdr = sectionHeaderArray[i];
+    if (shdr.sh_type == SHT_STRTAB) {
+      long offset = shdr.sh_offset;
+      fseek(fp, offset, SEEK_SET);
+      stringTable = malloc(shdr.sh_size);
+      r = fread(stringTable, shdr.sh_size, 1, fp);
+      Assert(r == 1, "Read string table error");
+      break;
+    }
+  }
+  
+  memset(guest_to_host(RESET_VECTOR), 0, CONFIG_MSIZE);
+  long size = 0;
+  for (int i = 0; i < elfHeader.e_shnum; i++) {
+    Elf32_Shdr shdr = sectionHeaderArray[i];
+    if (shdr.sh_flags & SHF_ALLOC) {
+      size += shdr.sh_size;
+      if (shdr.sh_type == SHT_PROGBITS) {
+        fseek(fp, shdr.sh_offset, SEEK_SET);
+        r = fread(guest_to_host(shdr.sh_addr), shdr.sh_size, 1, fp);
+        Assert(r == 1, "Read error.");
+      }
+    } else if (shdr.sh_type == SHT_SYMTAB) {
+      fseek(fp, shdr.sh_offset, SEEK_SET);
+      int count = shdr.sh_size / shdr.sh_entsize;
+      for (int i = 0; i < count; i++) {
+        Elf32_Sym entry;
+        r = fread(&entry, sizeof(entry), 1, fp);
+        Assert(r == 1, "Read error.");
+        if (ELF32_ST_TYPE(entry.st_info) == STT_FUNC) {
+          add_sym_table_entry(entry.st_value, entry.st_size, &stringTable[entry.st_name]);
+        }
+      }
+    }
+  }
+  
+  fclose(fp);
+  free(stringTable);
+  return size;
+}
+
+static long load_img() {
+  if (img_file == NULL) {
+    Log("No image is given. Use the default build-in image.");
+    return 4096; // built-in image size
+  }
+
+  long size = 0;
+  if (img_file_type == NULL) {
+    size = load_normal_image();
+  } else if (strcmp(img_file_type, "elf") == 0) {
+    size = load_elf();
+  } else {
+    panic("Invalid type of image file.");
+  }
+  
+  return size;
+}
+
 static int parse_args(int argc, char *argv[]) {
   const struct option table[] = {
     {"batch"    , no_argument      , NULL, 'b'},
@@ -75,16 +160,19 @@ static int parse_args(int argc, char *argv[]) {
     {"diff"     , required_argument, NULL, 'd'},
     {"port"     , required_argument, NULL, 'p'},
     {"help"     , no_argument      , NULL, 'h'},
+    {"type"     , required_argument, NULL, 't'},
     {0          , 0                , NULL,  0 },
   };
+
   int o;
-  while ( (o = getopt_long(argc, argv, "-bhl:d:p:", table, NULL)) != -1) {
+  while ( (o = getopt_long(argc, argv, "-bhl:d:p:t", table, NULL)) != -1) {
     switch (o) {
       case 'b': sdb_set_batch_mode(); break;
       case 'p': sscanf(optarg, "%d", &difftest_port); break;
       case 'l': log_file = optarg; break;
       case 'd': diff_so_file = optarg; break;
-      case 1: img_file = optarg; return 0;
+      case 't': img_file_type = optarg; break;
+      case 1: img_file = optarg; break;
       default:
         printf("Usage: %s [OPTION...] IMAGE [args]\n\n", argv[0]);
         printf("\t-b,--batch              run with batch mode\n");

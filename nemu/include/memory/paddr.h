@@ -22,6 +22,26 @@
 #define PMEM_RIGHT ((paddr_t)CONFIG_MBASE + CONFIG_MSIZE - 1)
 #define RESET_VECTOR (PMEM_LEFT + CONFIG_PC_RESET_OFFSET)
 
+#define MEM_TRACER_MAX 128
+
+enum MEM_OP_TYPE {
+  MEM_READ, MEM_WRITE, MEM_EXCUTE
+};
+
+typedef struct {
+  struct
+  {
+    paddr_t addr;
+    int len;
+    int type;
+    word_t pc;
+  } mem[128];
+  int head;
+  int tail;
+} MemTracer;
+
+void mem_trace_display();
+
 /* convert the guest physical address in the guest program to host virtual address in NEMU */
 uint8_t* guest_to_host(paddr_t paddr);
 /* convert the host virtual address in NEMU to guest physical address in the guest program */

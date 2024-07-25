@@ -24,16 +24,44 @@ static uint8_t *pmem = NULL;
 static uint8_t pmem[CONFIG_MSIZE] PG_ALIGN = {};
 #endif
 
+MemTracer memTracer = {};
+
+static void trace_mem(paddr_t addr, int len, int type) {
+  memTracer.mem[memTracer.tail].addr = addr;
+  memTracer.mem[memTracer.tail].type = type;
+  memTracer.mem[memTracer.tail].len = len;
+  memTracer.mem[memTracer.tail].pc = cpu.pc;
+  memTracer.tail = (memTracer.tail + 1) % MEM_TRACER_MAX;
+  if (memTracer.tail == memTracer.head) 
+  memTracer.head = (memTracer.head + 1) % MEM_TRACER_MAX;
+}
+
+void mem_trace_display() {
+  int p = memTracer.head;
+  while (p != memTracer.tail) {
+    printf(
+      "pc=" FMT_WORD " %s addr=" FMT_PADDR " %d bytes\n",
+      memTracer.mem[p].pc,
+      memTracer.mem[p].type == MEM_READ ? " read" : "write",
+      memTracer.mem[p].addr,
+      memTracer.mem[p].len
+    );
+    p = (p + 1) % MEM_TRACER_MAX;
+  }
+}
+
 uint8_t* guest_to_host(paddr_t paddr) { return pmem + paddr - CONFIG_MBASE; }
 paddr_t host_to_guest(uint8_t *haddr) { return haddr - pmem + CONFIG_MBASE; }
 
 static word_t pmem_read(paddr_t addr, int len) {
   word_t ret = host_read(guest_to_host(addr), len);
+  trace_mem(addr, len, MEM_READ);
   return ret;
 }
 
 static void pmem_write(paddr_t addr, int len, word_t data) {
   host_write(guest_to_host(addr), len, data);
+  trace_mem(addr, len, MEM_WRITE);
 }
 
 static void out_of_bound(paddr_t addr) {
