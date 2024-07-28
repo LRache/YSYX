@@ -1,6 +1,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <stdint.h>
 #include <assert.h>
 #include <time.h>
 #include "syscall.h"
@@ -60,42 +62,61 @@ void _exit(int status) {
   while (1);
 }
 
+void _yield() {
+  _syscall_(SYS_yield, 0, 0, 0);
+}
+
 int _open(const char *path, int flags, mode_t mode) {
-  _exit(SYS_open);
-  return 0;
+  return _syscall_(SYS_open, (intptr_t)path, flags, mode);
 }
 
 int _write(int fd, void *buf, size_t count) {
-  _exit(SYS_write);
-  return 0;
+  return _syscall_(SYS_write, fd, (intptr_t)buf, count);
 }
 
+extern char end;  
 void *_sbrk(intptr_t increment) {
-  return (void *)-1;
+  static char *brk = &end;
+  if (brk == &end) {
+    _syscall_(SYS_brk, (intptr_t)brk, 0, 0);
+  }
+  int ret = _syscall_(SYS_brk, (intptr_t)(brk + increment), increment, 0);
+  if (ret == 0) {
+    char *oldBrk = brk;
+    brk += increment;
+    return oldBrk;
+  } else {
+    return (void *)-1;
+  }
 }
 
 int _read(int fd, void *buf, size_t count) {
-  _exit(SYS_read);
-  return 0;
+  return _syscall_(SYS_read, fd, (intptr_t)buf, count);
 }
 
 int _close(int fd) {
-  _exit(SYS_close);
-  return 0;
+  return _syscall_(SYS_close, fd, 0, 0);
 }
 
 off_t _lseek(int fd, off_t offset, int whence) {
-  _exit(SYS_lseek);
-  return 0;
+  return _syscall_(SYS_lseek, fd, offset, whence);
 }
 
 int _gettimeofday(struct timeval *tv, struct timezone *tz) {
-  _exit(SYS_gettimeofday);
-  return 0;
+  return _syscall_(SYS_gettimeofday, (intptr_t)tv, (intptr_t)tz, 0);
 }
 
 int _execve(const char *fname, char * const argv[], char *const envp[]) {
-  _exit(SYS_execve);
+  return _syscall_(SYS_execve, (uintptr_t)fname, (uintptr_t)argv, (uintptr_t)envp);
+}
+
+int _ioe_read(int reg, void *buf) {
+  _syscall_(SYS_ioe_read, reg, (uintptr_t)buf, 0);
+  return 0;
+}
+
+int _ioe_write(int reg, void *buf) {
+  _syscall_(SYS_ioe_write, reg, (uintptr_t)buf, 0);
   return 0;
 }
 

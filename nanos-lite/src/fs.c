@@ -91,6 +91,7 @@ int fs_open(const char *pathname, int flags, int mode) {
 }
 
 size_t fs_read(int fd, void *buf, size_t len) {
+  //Log("%d", fd);
   if (fd >= 128) {
     fd -= 128;
     size_t n;

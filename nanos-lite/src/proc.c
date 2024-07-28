@@ -99,10 +99,10 @@ void init_proc() {
   char *const argv[] = {"/bin/hplayer", "/home/rache/Music/xitiejie44100.pcm", "44100", NULL};
   char *const empty[] = {NULL};
   context_uload(&pcb[0], argv[0], argv, empty);
-  //context_uload(&pcb[1], "/bin/hello", empty, empty);
+  context_uload(&pcb[1], "/bin/hello", empty, empty);
   running[0] = &pcb[0];
-  //running[1] = &pcb[1];
-  runningCount = 1;
+  running[1] = &pcb[1];
+  runningCount = 2;
 }
 
 void proc_exit(int r) {
@@ -128,11 +128,5 @@ Context* schedule(Context *prev) {
     runningIndex = (runningIndex + 1) % runningCount;
     current = running[runningIndex];
   }
-  // uint32_t ksp;
-  // if (current->cp->privilege == KERNEL) ksp = 0;
-  // else ksp = (uintptr_t)(current->cp->ksp);
-  // set_mscratch(ksp);
-  // Log("Change to %d, %p", runningIndex, current->cp);
-  // Log("pri=%d", current->cp->privilege);
   return current->cp;
 }

@@ -17,6 +17,7 @@ typedef struct {
 
 #define SDL_MIX_MAXVOLUME  128
 
+void CallbackHelper();
 int SDL_OpenAudio(SDL_AudioSpec *desired, SDL_AudioSpec *obtained);
 void SDL_CloseAudio();
 void SDL_PauseAudio(int pause_on);

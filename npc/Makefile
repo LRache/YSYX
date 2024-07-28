@@ -1,43 +1,37 @@
-VERILATOR= verilator
-VERILATOR_CFLAGS += -MMD --build -cc -O3 --trace-fst
-INC_PATH ?=
+BUILD_DIR = ./build
 
-TOP=top
-PNAME?=$(TOP)
-CSRC_DIR = $(abspath ./csrc/$(PNAME))
-VSRC_DIR = $(abspath ./vsrc/$(PNAME))
-OBJ_DIR	 = $(CSRC_DIR)/obj
-SIM_DIR  = $(abspath ./sim/$(PNAME))
-SIM_EXE  = $(SIM_DIR)/$(PNAME)
-TEMP_DIR = $(abspath ./temp)
-TEMP_EXE = $(TEMP_DIR)/V$(PNAME)
+PRJ = playground
 
-VSRCS = $(shell find $(abspath $(VSRC_DIR)) -name "*.v")
-CSRCS = $(shell find $(abspath $(CSRC_DIR)) -name "*.c" -or -name "*.cc" -or -name "*.cpp" | grep -v "^${OBJ_DIR}/")
+test:
+	mill -i $(PRJ).test
 
-include $(NVBOARD_HOME)/scripts/nvboard.mk
+verilog:
+	$(call git_commit, "generate verilog")
+	mkdir -p $(BUILD_DIR)
+	mill -i $(PRJ).runMain Elaborate --target-dir $(BUILD_DIR)
 
-INCFLAGS = $(addprefix -I, $(INC_PATH))
-CXXFLAGS += $(INCFLAGS)
+help:
+	mill -i $(PRJ).runMain Elaborate --help
 
-cpp: $(OBJ_DIR)/V$(TOP).mk
+reformat:
+	mill -i __.reformat
 
-$(OBJ_DIR)/V$(TOP).mk: $(VSRCS)
-	mkdir -p $(OBJ_DIR)
-	$(VERILATOR) --cc $(VSRCS) --Mdir $(OBJ_DIR) --trace-fst --top-module $(TOP)
+checkformat:
+	mill -i __.checkFormat
 
-all: sim
+bsp:
+	mill -i mill.bsp.BSP/install
 
-run: sim
+idea:
+	mill -i mill.idea.GenIdea/idea
 
-.PHONY sim: $(SIM_EXE)
-	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!
-	cd $(SIM_DIR) && $(abspath $(SIM_EXE))
+clean:
+	-rm -rf $(BUILD_DIR)
 
-$(SIM_EXE): $(CSRCS) $(VSRCS) $(NVBOARD_ARCHIVE)
-	@rm -rf $(OBJ_DIR)
-	mkdir -p $(SIM_DIR)
-	$(VERILATOR) $(VERILATOR_CFLAGS) --top-module $(TOP) $^ $(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) --Mdir $(OBJ_DIR) --exe -o $(abspath $(SIM_EXE))
-	# make -C $(OBJ_DIR) -f V$(TOP).mk V$(TOP)
+.PHONY: test verilog help reformat checkformat clean
 
-include ../Makefile
+sim:
+	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
+	@echo "Write this Makefile by yourself."
+
+-include ../Makefile

@@ -3,16 +3,61 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>\
+
+extern void CallbackHelper();
 
 void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_Rect *dstrect) {
   assert(dst && src);
   assert(dst->format->BitsPerPixel == src->format->BitsPerPixel);
+  if (srcrect == NULL && dstrect == NULL) {
+    memcpy(dst->pixels, src->pixels, src->h * src->w * sizeof(uint32_t));
+  } else {
+    int height, width, sx, sy, dx, dy;
+    if (srcrect == NULL) { 
+      height = src->h; width = src->w;
+      sx = 0; sy = 0;
+    }
+    else { 
+      height = srcrect->h; width = srcrect->w; 
+      sx = srcrect->x; sy = srcrect->y;
+    }
+    if (dstrect == NULL) {dx = 0; dy = 0; }
+    else {dx = dstrect->x; dy = dstrect->y; }
+    for (int h = 0; h < height; h++) {
+      for (int w = 0; w < width; w++) {
+        *((uint32_t *)dst->pixels + (dy + h) * dst->w + (dx + w)) = *((uint32_t *)src->pixels + (sy + h) * src->w + (sx + w));
+      }
+    }
+  }
+  CallbackHelper();
 }
 
 void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
+  if (dstrect == NULL) {
+    int count = dst->w * dst->h;
+    for (int i = 0; i < count; i++) {
+      *((uint32_t *)(dst->pixels) +i) = color;
+    }
+  } else {
+    for (int y = dstrect->y; y < dstrect->y + dstrect->h; y++) {
+      for (int x = dstrect->x; x < dstrect->x + dstrect->w; x++) {
+        *((uint32_t *)(dst->pixels) + y * dstrect->w + x) = color;
+      }
+    }
+  }
+  CallbackHelper();
 }
 
 void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
+  if (x == 0 && y == 0 && w == 0 && h == 0) {
+    NDL_DrawRect((uint32_t *)s->pixels, 0, 0, 0, 0);
+  } else {
+    for (int i = y; i < y+h; i++) {
+      NDL_DrawRect((uint32_t *)s->pixels + y * w + x, x, i, w, 1);
+    }
+  }
+  CallbackHelper();
 }
 
 // APIs below are already implemented.

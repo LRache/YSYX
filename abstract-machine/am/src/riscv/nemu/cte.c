@@ -39,7 +39,6 @@ void __am_switch(Context *c);
 static Context* (*user_handler)(Event, Context*) = NULL;
 
 Context* __am_irq_handle(Context *c) {
-  // printf("__am_irq_handle ENTER, c.mcause=0x%x\n", c->mcause);
   __am_get_cur_as(c);
   if (user_handler) {
     Event ev = {0};
@@ -51,16 +50,7 @@ Context* __am_irq_handle(Context *c) {
       default: 
         ev.event = EVENT_SYSCALL;   break;
     }
-    // printf("ev.event=%u\n", ev.event);
-    // printf("current.usp=0x%x\n", c->usp);
-    // printf("current.pri=%d\n", c->privilege);
-    // printf("current=%p\n", c);
-    // printf("\ncall user_handler\n\n");
     c = user_handler(ev, c);
-    // printf("current=%p\n", c);
-    // printf("current.usp=0x%x\n", c->usp);
-    // printf("current.pri=%d\n", c->privilege);
-    // printf("RET\n\n");
     assert(c != NULL);
   }
 
@@ -68,7 +58,6 @@ Context* __am_irq_handle(Context *c) {
   return c;
 }
 
-uint32_t ksp = 0;
 extern void __am_asm_trap(void);
 
 bool cte_init(Context*(*handler)(Event, Context*)) {
