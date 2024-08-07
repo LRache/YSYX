@@ -50,6 +50,7 @@ Context* __am_irq_handle(Context *c) {
       default: 
         ev.event = EVENT_SYSCALL;   break;
     }
+    c->mepc += 4;
     c = user_handler(ev, c);
     assert(c != NULL);
   }
@@ -69,11 +70,12 @@ bool cte_init(Context*(*handler)(Event, Context*)) {
 }
 
 Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
-  Context *context = (Context *)(kstack.end - sizeof(Context));
-  context->mepc = (uintptr_t)entry - 4;
+  Context *context = (Context *)(kstack.end - sizeof(Context) - sizeof(Context *));
+  *(Context **)(kstack.end - sizeof(Context)) = context;
+  context->mepc = (uintptr_t)entry;
   context->mstatus = 0x1800 | (1 << 3) | (1 << 7);
   context->gpr[10] = (uintptr_t)arg;
-  context->gpr[2] = (uintptr_t)kstack.end;
+  context->gpr[2] = (uintptr_t)context;
   context->privilege = KERNEL;
   return context;
 }
