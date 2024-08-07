@@ -96,10 +96,12 @@ void init_proc() {
   Log("Initializing processes...");
 
   // load program here
-  char *const argv[] = {"/bin/hplayer", "/home/rache/Music/xitiejie44100.pcm", "44100", NULL};
-  char *const empty[] = {NULL};
-  context_uload(&pcb[0], argv[0], argv, empty);
-  context_uload(&pcb[1], "/bin/hello", empty, empty);
+  // char *const argv[] = {"/bin/hplayer", "/home/rache/Music/xitiejie44100.pcm", "44100", NULL};
+  // char *const empty[] = {NULL};
+  // context_uload(&pcb[0], argv[0], argv, empty);
+  // context_uload(&pcb[1], "/bin/hello", empty, empty);
+  context_kload(&pcb[0], hello_fun, (void*)1);
+  context_kload(&pcb[0], hello_fun, (void*)2);
   running[0] = &pcb[0];
   running[1] = &pcb[1];
   runningCount = 2;

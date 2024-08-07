@@ -24,6 +24,8 @@
 # define EXPECT_ISA EM_386
 #elif defined(__ISA_RISCV32__)
 # define EXPECT_ISA EM_RISCV
+#elif defined(__ISA_RISCV32E__)
+# define EXPECT_ISA EM_RISCV
 #endif
 
 static const char ELF_MAGIC_NUMBER[] = {0x7f, 'E', 'L', 'F'};
