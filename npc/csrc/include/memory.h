@@ -12,4 +12,7 @@ void    mem_write(addr_t addr, word_t data, int len);
 extern "C" void mrom_read(addr_t addr, word_t *data);
 void set_rom(addr_t addr, word_t data);
 
+extern "C" void flash_read(addr_t addr, word_t *data);
+void set_flash(addr_t addr, word_t data);
+
 #endif

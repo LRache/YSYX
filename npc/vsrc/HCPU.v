@@ -1751,61 +1751,66 @@ module LSU(	// ssrc/cpu/lsu/lsu.scala:16:7
 
   wire        _mem_rdata_T_54 = io_in_bits_exu_result[1:0] == 2'h2;	// ssrc/cpu/lsu/lsu.scala:16:7, :24:24, :28:96
   wire        _mem_rdata_T_52 = io_in_bits_exu_result[1:0] == 2'h0;	// ssrc/cpu/lsu/lsu.scala:16:7, :24:24, :34:96
-  wire        _mem_rdata_T_60 = io_in_bits_mem_type == 3'h1;	// ssrc/cpu/lsu/lsu.scala:28:50, :42:41
-  wire        _mem_rdata_T_58 = io_in_bits_mem_type == 3'h2;	// ssrc/cpu/lsu/lsu.scala:34:19, :42:41
-  wire        _mem_rdata_T_62 = io_in_bits_mem_type == 3'h3;	// ssrc/cpu/lsu/lsu.scala:34:50, :42:41
-  wire        _mem_rdata_T_64 = io_in_bits_mem_type == 3'h4;	// ssrc/cpu/lsu/lsu.scala:28:96, :42:41
-  wire [2:0]  _size_T_9 =
-    _mem_rdata_T_64
-      ? 3'h4
-      : {1'h0,
-         _mem_rdata_T_62 | _mem_rdata_T_58
-           ? 2'h2
-           : {1'h0, _mem_rdata_T_60 | ~(|io_in_bits_mem_type)}};	// ssrc/cpu/lsu/lsu.scala:16:7, :28:{19,96}, :42:41, :51:37
-  reg  [1:0]  state;	// ssrc/cpu/lsu/lsu.scala:60:24
-  wire        w_valid = io_in_valid & io_in_bits_mem_wen & ~(|state);	// ssrc/cpu/lsu/lsu.scala:60:24, :63:50, :83:{27,36}
-  wire        io_mem_bready_0 = state == 2'h1;	// ssrc/cpu/lsu/lsu.scala:16:7, :60:24, :90:28
-  wire        mem_ren = io_in_valid & io_in_bits_mem_ren;	// ssrc/cpu/lsu/lsu.scala:92:31
-  reg  [31:0] mem_rdata;	// ssrc/cpu/lsu/lsu.scala:98:28
+  wire [3:0]  wmask =
+    ~(|io_in_bits_mem_type) | io_in_bits_mem_type == 3'h1
+      ? ((&(io_in_bits_exu_result[1:0]))
+           ? 4'h8
+           : {1'h0,
+              _mem_rdata_T_54
+                ? 3'h4
+                : {1'h0, io_in_bits_exu_result[1:0] == 2'h1 ? 2'h2 : 2'h1}})
+      : io_in_bits_mem_type == 3'h2 | io_in_bits_mem_type == 3'h3
+          ? (_mem_rdata_T_54 ? 4'hC : {2'h0, {2{_mem_rdata_T_52}}})
+          : {4{io_in_bits_mem_type == 3'h4}};	// src/main/scala/chisel3/util/Mux.scala:126:16, ssrc/cpu/lsu/lsu.scala:16:7, :24:24, :28:{19,38,50,96}, :34:{19,38,50,96}, :38:19
+  wire        _mem_rdata_T_58 = io_in_bits_mem_type == 3'h2;	// ssrc/cpu/lsu/lsu.scala:34:19, :60:37
+  wire        _mem_rdata_T_62 = io_in_bits_mem_type == 3'h3;	// ssrc/cpu/lsu/lsu.scala:34:50, :60:37
+  wire        _mem_rdata_T_64 = io_in_bits_mem_type == 3'h4;	// ssrc/cpu/lsu/lsu.scala:28:96, :60:37
+  wire [2:0]  size =
+    {1'h0, _mem_rdata_T_64 ? 2'h2 : {1'h0, _mem_rdata_T_62 | _mem_rdata_T_58}};	// ssrc/cpu/lsu/lsu.scala:16:7, :60:{10,37}
+  reg  [1:0]  state;	// ssrc/cpu/lsu/lsu.scala:69:24
+  wire        w_valid = io_in_valid & io_in_bits_mem_wen & ~(|state);	// ssrc/cpu/lsu/lsu.scala:69:24, :72:50, :92:{27,36}
+  wire        io_mem_bready_0 = state == 2'h1;	// ssrc/cpu/lsu/lsu.scala:16:7, :69:24, :99:28
+  wire        mem_ren = io_in_valid & io_in_bits_mem_ren;	// ssrc/cpu/lsu/lsu.scala:101:31
+  reg  [31:0] mem_rdata;	// ssrc/cpu/lsu/lsu.scala:107:28
   always @(posedge clock) begin	// ssrc/cpu/lsu/lsu.scala:16:7
     if (reset) begin	// ssrc/cpu/lsu/lsu.scala:16:7
-      state <= 2'h0;	// ssrc/cpu/lsu/lsu.scala:16:7, :60:24
-      mem_rdata <= 32'h0;	// ssrc/cpu/lsu/lsu.scala:98:28
+      state <= 2'h0;	// ssrc/cpu/lsu/lsu.scala:16:7, :69:24
+      mem_rdata <= 32'h0;	// ssrc/cpu/lsu/lsu.scala:107:28
     end
     else begin	// ssrc/cpu/lsu/lsu.scala:16:7
       if (io_in_valid) begin	// ssrc/cpu/lsu/lsu.scala:17:16
         if (io_in_bits_mem_ren) begin	// ssrc/cpu/lsu/lsu.scala:17:16
-          if (state == 2'h2)	// ssrc/cpu/lsu/lsu.scala:16:7, :60:24, :63:50
-            state <= 2'h0;	// ssrc/cpu/lsu/lsu.scala:16:7, :60:24
-          else if (state == 2'h1)	// ssrc/cpu/lsu/lsu.scala:16:7, :60:24, :63:50
-            state <= io_mem_rvalid ? 2'h2 : 2'h1;	// ssrc/cpu/lsu/lsu.scala:16:7, :60:24, :65:38
-          else	// ssrc/cpu/lsu/lsu.scala:63:50
-            state <= {1'h0, ~(|state) & io_mem_arready};	// ssrc/cpu/lsu/lsu.scala:16:7, :60:24, :63:50, :64:39
+          if (state == 2'h2)	// ssrc/cpu/lsu/lsu.scala:16:7, :69:24, :72:50
+            state <= 2'h0;	// ssrc/cpu/lsu/lsu.scala:16:7, :69:24
+          else if (state == 2'h1)	// ssrc/cpu/lsu/lsu.scala:16:7, :69:24, :72:50
+            state <= io_mem_rvalid ? 2'h2 : 2'h1;	// ssrc/cpu/lsu/lsu.scala:16:7, :69:24, :74:38
+          else	// ssrc/cpu/lsu/lsu.scala:72:50
+            state <= {1'h0, ~(|state) & io_mem_arready};	// ssrc/cpu/lsu/lsu.scala:16:7, :69:24, :72:50, :73:39
         end
         else if (io_in_bits_mem_wen) begin	// ssrc/cpu/lsu/lsu.scala:17:16
-          if (state == 2'h2)	// ssrc/cpu/lsu/lsu.scala:16:7, :60:24, :69:50
-            state <= 2'h0;	// ssrc/cpu/lsu/lsu.scala:16:7, :60:24
-          else if (state == 2'h1)	// ssrc/cpu/lsu/lsu.scala:16:7, :60:24, :69:50
-            state <= io_mem_bvalid ? 2'h2 : 2'h1;	// ssrc/cpu/lsu/lsu.scala:16:7, :60:24, :71:38
-          else	// ssrc/cpu/lsu/lsu.scala:69:50
-            state <= {1'h0, ~(|state) & io_mem_awready & io_mem_wready};	// ssrc/cpu/lsu/lsu.scala:16:7, :60:24, :63:50, :69:50, :70:39
+          if (state == 2'h2)	// ssrc/cpu/lsu/lsu.scala:16:7, :69:24, :78:50
+            state <= 2'h0;	// ssrc/cpu/lsu/lsu.scala:16:7, :69:24
+          else if (state == 2'h1)	// ssrc/cpu/lsu/lsu.scala:16:7, :69:24, :78:50
+            state <= io_mem_bvalid ? 2'h2 : 2'h1;	// ssrc/cpu/lsu/lsu.scala:16:7, :69:24, :80:38
+          else	// ssrc/cpu/lsu/lsu.scala:78:50
+            state <= {1'h0, ~(|state) & io_mem_awready & io_mem_wready};	// ssrc/cpu/lsu/lsu.scala:16:7, :69:24, :72:50, :78:50, :79:39
         end
         else	// ssrc/cpu/lsu/lsu.scala:17:16
-          state <= {state != 2'h2, 1'h0};	// ssrc/cpu/lsu/lsu.scala:16:7, :60:24, :75:{25,32}
+          state <= {state != 2'h2, 1'h0};	// ssrc/cpu/lsu/lsu.scala:16:7, :69:24, :84:{25,32}
       end
       else	// ssrc/cpu/lsu/lsu.scala:17:16
-        state <= 2'h0;	// ssrc/cpu/lsu/lsu.scala:16:7, :60:24
-      if (io_mem_bready_0 & mem_ren) begin	// ssrc/cpu/lsu/lsu.scala:90:28, :92:31, :99:32
+        state <= 2'h0;	// ssrc/cpu/lsu/lsu.scala:16:7, :69:24
+      if (io_mem_bready_0 & mem_ren) begin	// ssrc/cpu/lsu/lsu.scala:99:28, :101:31, :108:32
         automatic logic [3:0][31:0] _GEN =
           {{{{24{io_mem_rdata[31]}}, io_mem_rdata[31:24]}},
            {{{24{io_mem_rdata[23]}}, io_mem_rdata[23:16]}},
            {{{24{io_mem_rdata[15]}}, io_mem_rdata[15:8]}},
-           {{{24{io_mem_rdata[7]}}, io_mem_rdata[7:0]}}};	// ssrc/cpu/lsu/lsu.scala:28:96, :101:54, :102:{27,32,49,68}, :103:{27,32,49,68}, :104:{27,32,49,68}, :105:{27,32,49,68}
+           {{{24{io_mem_rdata[7]}}, io_mem_rdata[7:0]}}};	// ssrc/cpu/lsu/lsu.scala:28:96, :110:54, :111:{27,32,49,68}, :112:{27,32,49,68}, :113:{27,32,49,68}, :114:{27,32,49,68}
         automatic logic [3:0][7:0]  _GEN_0 =
           {{io_mem_rdata[31:24]},
            {io_mem_rdata[23:16]},
            {io_mem_rdata[15:8]},
-           {io_mem_rdata[7:0]}};	// ssrc/cpu/lsu/lsu.scala:28:96, :102:68, :103:68, :104:68, :105:68, :111:54, :112:27, :113:27, :114:27, :115:27
+           {io_mem_rdata[7:0]}};	// ssrc/cpu/lsu/lsu.scala:28:96, :111:68, :112:68, :113:68, :114:68, :120:54, :121:27, :122:27, :123:27, :124:27
         mem_rdata <=
           _mem_rdata_T_64
             ? io_mem_rdata
@@ -1813,7 +1818,7 @@ module LSU(	// ssrc/cpu/lsu/lsu.scala:16:7
                 ? (_mem_rdata_T_54
                      ? {16'h0, io_mem_rdata[31:16]}
                      : _mem_rdata_T_52 ? {16'h0, io_mem_rdata[15:0]} : 32'h0)
-                : _mem_rdata_T_60
+                : io_in_bits_mem_type == 3'h1
                     ? {24'h0, _GEN_0[io_in_bits_exu_result[1:0]]}
                     : _mem_rdata_T_58
                         ? (_mem_rdata_T_54
@@ -1823,7 +1828,7 @@ module LSU(	// ssrc/cpu/lsu/lsu.scala:16:7
                                  : 32'h0)
                         : (|io_in_bits_mem_type)
                             ? 32'h0
-                            : _GEN[io_in_bits_exu_result[1:0]];	// ssrc/cpu/lsu/lsu.scala:24:24, :28:{19,96}, :34:96, :42:41, :98:28, :100:46, :101:54, :102:32, :103:49, :105:49, :107:54, :108:{27,32,68}, :109:{27,32,68}, :111:54, :112:27, :113:27, :114:27, :115:27, :117:54, :118:27, :119:27
+                            : _GEN[io_in_bits_exu_result[1:0]];	// ssrc/cpu/lsu/lsu.scala:24:24, :28:{19,50,96}, :34:96, :50:24, :51:24, :60:37, :107:28, :109:46, :110:54, :112:49, :114:49, :116:54, :117:{27,32,68}, :118:{27,32,68}, :120:54, :121:27, :122:27, :123:27, :124:27, :126:54, :127:27, :128:27
       end
     end
   end // always @(posedge)
@@ -1840,16 +1845,16 @@ module LSU(	// ssrc/cpu/lsu/lsu.scala:16:7
         for (logic [1:0] i = 2'h0; i < 2'h2; i += 2'h1) begin
           _RANDOM[i[0]] = `RANDOM;	// ssrc/cpu/lsu/lsu.scala:16:7
         end	// ssrc/cpu/lsu/lsu.scala:16:7
-        state = _RANDOM[1'h0][1:0];	// ssrc/cpu/lsu/lsu.scala:16:7, :60:24
-        mem_rdata = {_RANDOM[1'h0][31:2], _RANDOM[1'h1][1:0]};	// ssrc/cpu/lsu/lsu.scala:16:7, :60:24, :98:28
+        state = _RANDOM[1'h0][1:0];	// ssrc/cpu/lsu/lsu.scala:16:7, :69:24
+        mem_rdata = {_RANDOM[1'h0][31:2], _RANDOM[1'h1][1:0]};	// ssrc/cpu/lsu/lsu.scala:16:7, :69:24, :107:28
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL	// ssrc/cpu/lsu/lsu.scala:16:7
       `FIRRTL_AFTER_INITIAL	// ssrc/cpu/lsu/lsu.scala:16:7
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_out_valid = state == 2'h2;	// ssrc/cpu/lsu/lsu.scala:16:7, :60:24, :127:27
-  assign io_out_bits_mem_rdata = mem_rdata;	// ssrc/cpu/lsu/lsu.scala:16:7, :98:28
+  assign io_out_valid = state == 2'h2;	// ssrc/cpu/lsu/lsu.scala:16:7, :69:24, :137:27
+  assign io_out_bits_mem_rdata = mem_rdata;	// ssrc/cpu/lsu/lsu.scala:16:7, :107:28
   assign io_out_bits_pc_sel = io_in_bits_pc_sel;	// ssrc/cpu/lsu/lsu.scala:16:7
   assign io_out_bits_exu_result = io_in_bits_exu_result;	// ssrc/cpu/lsu/lsu.scala:16:7
   assign io_out_bits_rd = io_in_bits_rd;	// ssrc/cpu/lsu/lsu.scala:16:7
@@ -1867,38 +1872,30 @@ module LSU(	// ssrc/cpu/lsu/lsu.scala:16:7
   assign io_out_bits_dnpc = io_in_bits_dnpc;	// ssrc/cpu/lsu/lsu.scala:16:7
   assign io_out_bits_is_brk = io_in_bits_is_brk;	// ssrc/cpu/lsu/lsu.scala:16:7
   assign io_out_bits_is_ivd = io_in_bits_is_ivd;	// ssrc/cpu/lsu/lsu.scala:16:7
-  assign io_mem_awvalid = w_valid;	// ssrc/cpu/lsu/lsu.scala:16:7, :83:27
+  assign io_mem_awvalid = w_valid;	// ssrc/cpu/lsu/lsu.scala:16:7, :92:27
   assign io_mem_awaddr = io_in_bits_exu_result;	// ssrc/cpu/lsu/lsu.scala:16:7
-  assign io_mem_awsize = _size_T_9;	// ssrc/cpu/lsu/lsu.scala:16:7, :51:37
-  assign io_mem_wvalid = w_valid;	// ssrc/cpu/lsu/lsu.scala:16:7, :83:27
+  assign io_mem_awsize = size;	// ssrc/cpu/lsu/lsu.scala:16:7, :60:10
+  assign io_mem_wvalid = w_valid;	// ssrc/cpu/lsu/lsu.scala:16:7, :92:27
   assign io_mem_wdata =
-    _mem_rdata_T_64
+    (&wmask)
       ? io_in_bits_rs2
-      : _mem_rdata_T_62
-          ? {2{io_in_bits_rs2[15:0]}}
-          : _mem_rdata_T_58
-              ? {2{io_in_bits_rs2[15:0]}}
-              : _mem_rdata_T_60
-                  ? {2{{2{io_in_bits_rs2[7:0]}}}}
-                  : (|io_in_bits_mem_type)
-                      ? io_in_bits_rs2
-                      : {2{{2{io_in_bits_rs2[7:0]}}}};	// ssrc/cpu/lsu/lsu.scala:16:7, :28:19, :42:41, :43:{32,39}, :44:32, :45:{32,39}, :46:32
-  assign io_mem_wstrb =
-    ~(|io_in_bits_mem_type) | io_in_bits_mem_type == 3'h1
-      ? ((&(io_in_bits_exu_result[1:0]))
-           ? 4'h8
-           : {1'h0,
-              _mem_rdata_T_54
-                ? 3'h4
-                : {1'h0, io_in_bits_exu_result[1:0] == 2'h1 ? 2'h2 : 2'h1}})
-      : io_in_bits_mem_type == 3'h2 | io_in_bits_mem_type == 3'h3
-          ? (_mem_rdata_T_54 ? 4'hC : {2'h0, {2{_mem_rdata_T_52}}})
-          : {4{io_in_bits_mem_type == 3'h4}};	// src/main/scala/chisel3/util/Mux.scala:126:16, ssrc/cpu/lsu/lsu.scala:16:7, :24:24, :28:{19,38,50,96}, :34:{19,38,50,96}, :38:19
-  assign io_mem_bready = io_mem_bready_0;	// ssrc/cpu/lsu/lsu.scala:16:7, :90:28
-  assign io_mem_arvalid = mem_ren & ~(|state);	// ssrc/cpu/lsu/lsu.scala:16:7, :60:24, :63:50, :83:36, :92:31, :94:31
+      : wmask == 4'hC
+          ? {io_in_bits_rs2[15:0], 16'h0}
+          : wmask == 4'h3
+              ? {16'h0, io_in_bits_rs2[15:0]}
+              : wmask == 4'h8
+                  ? {io_in_bits_rs2[7:0], 24'h0}
+                  : wmask == 4'h4
+                      ? {8'h0, io_in_bits_rs2[7:0], 16'h0}
+                      : wmask == 4'h2
+                          ? {16'h0, io_in_bits_rs2[7:0], 8'h0}
+                          : wmask == 4'h1 ? {24'h0, io_in_bits_rs2[7:0]} : io_in_bits_rs2;	// src/main/scala/chisel3/util/Mux.scala:126:16, ssrc/cpu/lsu/lsu.scala:16:7, :28:96, :34:96, :49:38, :50:{24,39}, :51:24, :52:24, :53:24, :54:{24,39}, :55:24
+  assign io_mem_wstrb = wmask;	// src/main/scala/chisel3/util/Mux.scala:126:16, ssrc/cpu/lsu/lsu.scala:16:7
+  assign io_mem_bready = io_mem_bready_0;	// ssrc/cpu/lsu/lsu.scala:16:7, :99:28
+  assign io_mem_arvalid = mem_ren & ~(|state);	// ssrc/cpu/lsu/lsu.scala:16:7, :69:24, :72:50, :92:36, :101:31, :103:31
   assign io_mem_araddr = io_in_bits_exu_result;	// ssrc/cpu/lsu/lsu.scala:16:7
-  assign io_mem_arsize = _size_T_9;	// ssrc/cpu/lsu/lsu.scala:16:7, :51:37
-  assign io_mem_rready = mem_ren & io_mem_bready_0;	// ssrc/cpu/lsu/lsu.scala:16:7, :90:28, :92:31, :96:31
+  assign io_mem_arsize = size;	// ssrc/cpu/lsu/lsu.scala:16:7, :60:10
+  assign io_mem_rready = mem_ren & io_mem_bready_0;	// ssrc/cpu/lsu/lsu.scala:16:7, :99:28, :101:31, :105:31
 endmodule
 
 module WBU(	// ssrc/cpu/wbu/wbu.scala:10:7

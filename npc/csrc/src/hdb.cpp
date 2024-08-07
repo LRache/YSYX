@@ -19,7 +19,7 @@ static uint64_t instCount = 0;
 static uint64_t timer = 0;
 static uint64_t clockCount = 0;
 
-#define IMG_NAME test_img_fun
+#define IMG_NAME test_img_uart
 
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
@@ -33,7 +33,6 @@ void load_img_from_file(std::string path) {
         f.read((char *)&buf, 4);
         mem_write(addr, buf, 4);
         set_rom(addr, buf);
-        // Log("Load " FMT_WORD " to " FMT_WORD, buf, addr);
         difftest_memcpy(addr, &buf, 4, DIFFTEST_TO_REF);
         addr += 4;
     }
@@ -64,13 +63,20 @@ void hdb_init(std::string imgPath) {
         load_img_from_file(imgPath);
         std::cout << "Load IMG " << imgPath << std::endl;
     }
+    char str[28] = "Hello World! from flash.\n";
+    addr_t addr = FLASH_BASE;
+    for (int i = 0; i < 7; i++) {
+        set_flash(addr, *((word_t *)str + i));
+        addr += 4;
+    }
+
     cpu.running = true;
     instCount = 0;
     timer = 0;
     clockCount = 0;
 
     top.reset = 1;
-    for (int i = 0; i < 10; i++) exec_once();
+    for (int i = 0; i < 16; i++) exec_once();
     top.reset = 0;
     Log("Reset.");
     
@@ -198,9 +204,5 @@ extern "C" {
 
     void invalid_inst() {
         hdb_invalid_inst();
-    }
-
-    void flash_read(int32_t addr, int32_t *data) { 
-        // assert(0); 
     }
 }

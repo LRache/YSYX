@@ -158,9 +158,7 @@ static uint32_t test_img_sram[] = {
 
 static uint32_t test_img_uart[] = {
     0x100007b7, // lui a5,0x10000
-    0x00178793, // addi a5, a5, 1
-    0x04100713, // li a4, 65
-    0x00e78023, // sb a4,0(a5)
+    0x0037c683, // lbu a3,3(a5)
 
     GOOD_TRAP
 };
@@ -192,7 +190,7 @@ static uint32_t test_img_csrrw[] = {
 
 static uint32_t test_img_fun[] = {
     0xef002117, // auipc sp,0xef002
-    0xffb10113, // addi	sp,sp,-5 # f001fff
+    0xffc10113, // addi	sp,sp,-5 # f001fff
     0xff010113, // addi	sp,sp,-16
     0x00010513, // mv	a0,sp
     0x0aa00793, // li	a5,170

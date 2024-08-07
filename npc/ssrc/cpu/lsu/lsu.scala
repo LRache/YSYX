@@ -39,21 +39,30 @@ class LSU extends Module {
     ))
 
     val rs2 = io.in.bits.rs2
-    val wdata = MuxLookup(mem_type, rs2)(Seq (
-        MemType. B.id.U -> Fill(4, rs2( 7, 0)),
-        MemType.BU.id.U -> Fill(4, rs2( 7, 0)),
-        MemType. H.id.U -> Fill(2, rs2(15, 0)),
-        MemType.HU.id.U -> Fill(2, rs2(15, 0)),
-        MemType. W.id.U -> rs2
+    // val wdata = MuxLookup(mem_type, rs2)(Seq (
+    //     MemType. B.id.U -> Fill(4, rs2( 7, 0)),
+    //     MemType.BU.id.U -> Fill(4, rs2( 7, 0)),
+    //     MemType. H.id.U -> Fill(2, rs2(15, 0)),
+    //     MemType.HU.id.U -> Fill(2, rs2(15, 0)),
+    //     MemType. W.id.U -> rs2
+    // ))
+    val wdata = MuxLookup(wmask, rs2)(Seq (
+        0b0001.U -> Cat(0.U(24.W), rs2( 7, 0)           ),
+        0b0010.U -> Cat(0.U(16.W), rs2( 7, 0), 0.U( 8.W)),
+        0b0100.U -> Cat(0.U( 8.W), rs2( 7, 0), 0.U(16.W)),
+        0b1000.U -> Cat(           rs2( 7, 0), 0.U(24.W)),
+        0b0011.U -> Cat(0.U(16.W), rs2(15, 0)           ),
+        0b1100.U -> Cat(           rs2(15, 0), 0.U(16.W)),
+        0b1111.U -> rs2
     ))
 
-    val size = Wire(UInt(4.W))
+    val size = Wire(UInt(3.W))
     size := MuxLookup(mem_type, 0.U)(Seq (
-        MemType. B.id.U -> 1.U,
-        MemType.BU.id.U -> 1.U,
-        MemType. H.id.U -> 2.U,
-        MemType.HU.id.U -> 2.U,
-        MemType. W.id.U -> 4.U
+        MemType. B.id.U -> 0.U,
+        MemType.BU.id.U -> 0.U,
+        MemType. H.id.U -> 1.U,
+        MemType.HU.id.U -> 1.U,
+        MemType. W.id.U -> 2.U
     ))
 
     val s_wait_rv :: s_wait_mem :: s_valid :: Nil = Enum(3)
@@ -120,6 +129,7 @@ class LSU extends Module {
             )),
             MemType. W.id.U -> io.mem.rdata
         ))
+        // mem_rdata := io.mem.rdata
     }
     io.out.bits.mem_rdata := mem_rdata
 

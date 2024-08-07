@@ -11,6 +11,10 @@
 #define ROM_BASE 0x20000000
 #define ROM_SIZE 0x1000
 
-#define DIFFTEST
+#define HAS_FLASH
+#define FLASH_BASE 0x30000000
+#define FLASH_SIZE 0x10000000
+
+// #define DIFFTEST
 
 #endif
