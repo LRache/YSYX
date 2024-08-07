@@ -24,6 +24,15 @@
 
 #define MEM_TRACER_MAX 128
 
+#define MROM_SIZE 0x1000
+#define MROM_BASE 0x20000000
+
+#define SRAM_SIZE 0x2000
+#define SRAM_BASE 0x0f000000
+
+#define UART_SIZE 0x1000
+#define UART_BASE 0x10000000
+
 enum MEM_OP_TYPE {
   MEM_READ, MEM_WRITE, MEM_EXCUTE
 };
@@ -49,6 +58,18 @@ paddr_t host_to_guest(uint8_t *haddr);
 
 static inline bool in_pmem(paddr_t addr) {
   return addr - CONFIG_MBASE < CONFIG_MSIZE;
+}
+
+static inline bool in_mrom(paddr_t addr) {
+  return addr - MROM_BASE < MROM_SIZE;
+}
+
+static inline bool in_sram(paddr_t addr) {
+  return addr - SRAM_BASE < SRAM_SIZE;
+}
+
+static inline bool in_uart(paddr_t addr) {
+  return addr - UART_BASE < UART_SIZE;
 }
 
 word_t paddr_read(paddr_t addr, int len);

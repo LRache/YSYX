@@ -120,11 +120,18 @@ static int decode_exec(Decode *s) {
   INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal    , J, R(rd) = s->snpc; s->dnpc = s->pc + imm;);
 
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10)));
+  #ifdef TARGET_SHARE
+  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, NEMUINTR(s->pc, R(15)));
+  #else
   INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, NEMUINTR(s->pc, R(17)));
+  #endif
   INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw  , C, R(rd) = CSR(csr); if (!rs1_is_x0) CSR(csr) = src1;);
   INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs  , C, R(rd) = CSR(csr); CSR(csr) = src1 | CSR(csr););
-  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , I, s->dnpc = cpu.mepc+4; uint32_t mpie = (cpu.mstatus >> 7) & 0x1; cpu.mstatus = (cpu.mstatus & ~(1 << 3)) | (mpie << 3); cpu.mstatus |= 1 << 7;);
-  
+  #ifdef TARGET_SHARE
+  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , I, s->dnpc = cpu.mepc;);
+  #else
+  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , I, s->dnpc = cpu.mepc; uint32_t mpie = (cpu.mstatus >> 7) & 0x1; cpu.mstatus = (cpu.mstatus & ~(1 << 3)) | (mpie << 3); cpu.mstatus |= 1 << 7;);
+  #endif
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
   INSTPAT_END();
 

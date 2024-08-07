@@ -13,6 +13,8 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#ifndef TARGET_SHARE
+
 #include <elf.h>
 #include "isa.h"
 #include "memory/paddr.h"
@@ -247,4 +249,6 @@ void am_init_monitor() {
   IFDEF(CONFIG_DEVICE, init_device());
   welcome();
 }
+#endif
+
 #endif

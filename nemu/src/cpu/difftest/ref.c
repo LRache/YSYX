@@ -18,23 +18,87 @@
 #include <difftest-def.h>
 #include <memory/paddr.h>
 
-__EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) {
+extern void execute(uint64_t n);
+
+bool difftest_skip = false;
+
+void set_difftest_skip(bool skip) {
+  difftest_skip = skip;
+}
+
+__EXPORT void nemu_difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) {
+  if (direction == DIFFTEST_TO_DUT) {
+    uint8_t *dest = buf;
+    for (int i = 0; i < n; i++) {
+      dest[i] = (uint8_t) paddr_read(addr + i, 1);
+    }
+  } else {
+    uint8_t *src = buf;
+    for (int i = 0; i < n; i++) {
+      paddr_write(addr+i, 1, src[i]);
+    }
+  }
+}
+
+__EXPORT void nemu_difftest_skip(bool *skip, bool direction) {
+  if (direction == DIFFTEST_TO_DUT) {
+    *skip = difftest_skip;
+  } else {
+    difftest_skip = *skip;
+  }
+}
+
+__EXPORT void nemu_difftest_regcpy(void *reg, bool direction) {
+  if (direction == DIFFTEST_TO_DUT) {
+    uint32_t *dest = reg;
+    for (int i = 0; i < 32; i++) {
+      dest[i] = cpu.gpr[i];
+    }
+  } else {
+    uint32_t *src = reg;
+    for (int i = 0; i < 32; i++) {
+      cpu.gpr[i] = src[i];
+    }
+  }
+}
+
+__EXPORT void nemu_difftest_csrcpy(void *reg, bool direction) {
+  if (direction == DIFFTEST_TO_DUT) {
+    uint32_t *dest = reg;
+    dest[0] = cpu.mcause;
+    dest[1] = cpu.mepc;
+    dest[2] = cpu.mscratch;
+    dest[3] = cpu.mstatus;
+    dest[4] = cpu.mtvec;
+    dest[5] = cpu.satp;
+  } else {
+    uint32_t *src = reg;
+    cpu.mcause = src[0];
+    cpu.mepc = src[1];
+    cpu.mscratch = src[2];
+    cpu.mstatus = src[3];
+    cpu.mtvec = src[4];
+    cpu.satp = src[5];
+  }
+}
+
+__EXPORT void nemu_difftest_pc(uint32_t *pc, bool direction) {
+  if (direction == DIFFTEST_TO_DUT) {
+    *pc = cpu.pc;
+  } else {
+    cpu.pc = *pc;
+  }
+}
+
+__EXPORT void nemu_difftest_exec(uint64_t n) {
+  execute(n);
+}
+
+__EXPORT void nemu_difftest_raise_intr(word_t NO) {
   assert(0);
 }
 
-__EXPORT void difftest_regcpy(void *dut, bool direction) {
-  assert(0);
-}
-
-__EXPORT void difftest_exec(uint64_t n) {
-  assert(0);
-}
-
-__EXPORT void difftest_raise_intr(word_t NO) {
-  assert(0);
-}
-
-__EXPORT void difftest_init(int port) {
+__EXPORT void nemu_difftest_init(int port) {
   void init_mem();
   init_mem();
   /* Perform ISA dependent initialization. */

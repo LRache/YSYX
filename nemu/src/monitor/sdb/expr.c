@@ -13,6 +13,8 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#ifndef TARGET_SHARE
+
 #include <isa.h>
 #include "memory/vaddr.h"
 
@@ -368,3 +370,5 @@ word_t expr(char *e, bool *success) {
 
   return result;
 }
+
+#endif

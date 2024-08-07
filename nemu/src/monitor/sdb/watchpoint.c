@@ -13,6 +13,8 @@
  * See the Mulan PSL v2 for more details.
  ***************************************************************************************/
 
+#ifndef TARGET_SHARE
+
 #include "sdb.h"
 
 #define NR_WP 32
@@ -132,3 +134,5 @@ void watchopint_display()
     node = node->next;
   }
 }
+
+#endif

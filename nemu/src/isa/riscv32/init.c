@@ -18,13 +18,13 @@
 
 // this is not consistent with uint8_t
 // but it is ok since we do not access the array directly
-static const uint32_t img [] = {
-  0xffe00513,  // add a0, x0, -2
-  0xfff00593,  // add a1, x0, -1
-  0x02b54633,  // lbu a0,16(t0)
-  0x00100073,  // ebreak (used as nemu_trap)
-  0xdeadbeef,  // some data
-};
+// static const uint32_t img [] = {
+//   0xffe00513,  // add a0, x0, -2
+//   0xfff00593,  // add a1, x0, -1
+//   0x02b54633,  // lbu a0,16(t0)
+//   0x00100073,  // ebreak (used as nemu_trap)
+//   0xdeadbeef,  // some data
+// };
 
 static void restart() {
   /* Set the initial program counter. */
@@ -36,7 +36,7 @@ static void restart() {
 
 void init_isa() {
   /* Load built-in image. */
-  memcpy(guest_to_host(RESET_VECTOR), img, sizeof(img));
+  // memcpy(guest_to_host(RESET_VECTOR), img, sizeof(img));
 
   /* Initialize this virtual computer system. */
   restart();

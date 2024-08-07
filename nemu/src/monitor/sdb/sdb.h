@@ -16,6 +16,8 @@
 #ifndef __SDB_H__
 #define __SDB_H__
 
+#ifndef TARGET_SHARE
+
 #include <common.h>
 
 typedef struct watchpoint {
@@ -33,5 +35,7 @@ WP* wp_head();
 int delete_wp(int n);
 int free_wp(WP *wp);
 void watchopint_display();
+
+#endif
 
 #endif

@@ -13,6 +13,8 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#ifndef TARGET_SHARE
+
 #include <readline/readline.h>
 #include <readline/history.h>
 
@@ -281,3 +283,5 @@ void init_sdb() {
   /* Initialize the watchpoint pool. */
   init_wp_pool();
 }
+
+#endif

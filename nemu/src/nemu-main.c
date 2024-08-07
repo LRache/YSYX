@@ -13,6 +13,8 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#ifndef TARGET_SHARE
+
 #include <common.h>
 
 void init_monitor(int, char *[]);
@@ -33,3 +35,5 @@ int main(int argc, char *argv[]) {
 
   return is_exit_status_bad();
 }
+
+#endif

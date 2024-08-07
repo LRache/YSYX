@@ -13,6 +13,8 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#ifndef TARGET_SHARE
+
 #include <cpu/cpu.h>
 
 void sdb_mainloop();
@@ -25,3 +27,5 @@ void engine_start() {
   sdb_mainloop();
 #endif
 }
+
+#endif
