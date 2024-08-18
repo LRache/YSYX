@@ -1,0 +1,6 @@
+[submodule "nvboard"]
+	path = nvboard
+	url = git@github.com:NJU-ProjectN/nvboard.git
+[submodule "ysyxSoC/rocket-chip"]
+	path = ysyxSoC/rocket-chip
+	url = git@github.com:chipsalliance/rocket-chip.git

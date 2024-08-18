@@ -20,17 +20,23 @@ extern "C" {
     void nemu_difftest_init(int port);
 }
 
-void difftest_memcpy(uint32_t addr, uint32_t *buf, size_t n, bool direction);
+namespace difftest {
+    enum { TO_DUT, TO_REF };
+    
+    void memcpy(uint32_t addr, uint32_t *buf, size_t n, bool direction);
 
-void difftest_write_mem(uint32_t addr, int len);
+    void write_mem(addr_t addr, int len);
 
-void difftest_init();
-void difftest_pc();
-void difftest_regs();
-void difftest_mem();
-void difftest_step();
-void difftest_end();
+    void init();
+    void pc();
+    void regs();
+    void csr();
+    void mem();
+    void end();
+    void set_skip();
 
-void difftest_set_skip();
+    void step();
+}
+
 
 #endif

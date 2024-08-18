@@ -1,3 +1,6 @@
+#include <fstream>
+#include <iostream>
+
 #include "memory.h"
 #include "debug.h"
 #include "difftest.h"
@@ -9,13 +12,13 @@
 
 uint8_t mem[MEM_SIZE];
 
-void valid(word_t addr, bool isRead) {
+static inline void valid(addr_t addr, bool isRead) {
     if (addr < MEM_BASE or addr > MEM_BASE + MEM_SIZE) {
         panic("%s: addr=" FMT_WORD " is out of bound at " FMT_WORD " (inst=" FMT_WORD ").", isRead? "MemRead" : "MemWrite", addr, cpu.pc, cpu.inst);
     }
 }
 
-word_t mem_read(word_t addr, int len) {
+word_t mem_read(addr_t addr, int len) {
     valid(addr, true);
     if (addr < MEM_BASE or addr > MEM_BASE + MEM_SIZE) return 0;
     word_t rdata;
@@ -29,7 +32,7 @@ word_t mem_read(word_t addr, int len) {
     return rdata;
 }
 
-void mem_write(word_t addr, word_t data, int len) {
+void mem_write(addr_t addr, word_t data, int len) {
     valid(addr,false);
     switch (len)
     {
@@ -38,8 +41,31 @@ void mem_write(word_t addr, word_t data, int len) {
         case 4: *(uint32_t *)(mem + addr - MEM_BASE) = (uint32_t)data; break;
         default: panic("Invalid len=%d", len);
     }
-    // Log("Memory write: addr=0x%08x, data=%d(0x%08x), len=%d", addr, data, data, len);
-    // Log("Data in mem: 0x%08x", *(uint32_t *)(mem + addr - MEM_BASE));
+}
+
+void load_img_to_mem_from_file(const std::string &path) {
+    if (path.empty()) return ;
+    std::ifstream f;
+    f.open(path, std::ios::binary);
+    addr_t addr = 0;
+    while (!f.eof()) {
+        uint32_t buf;
+        f.read((char *)buf, 4);
+        *(uint32_t *)(mem + addr) = buf;
+        addr += 4;
+    }
+    difftest::memcpy(MEM_BASE, (uint32_t *)mem, addr, difftest::TO_REF);
+    f.close();
+
+    std::cout << "Load img to mem from file " << path << std::endl;
+}
+
+void load_img_to_mem_from_mem(const uint32_t *img, size_t length) {
+    int i = 0;
+    for (addr_t addr = 0; addr < length; addr+=4) {
+        *(uint32_t *)(mem + addr) = *(img + i);
+        i++;
+    }
 }
 
 bool mmio_read(addr_t addr, word_t *data) {
@@ -50,20 +76,20 @@ bool mmio_write(addr_t addr, word_t data, int len) {
     if (addr == 0xa00003f8) {
         putchar(data);
         fflush(stdout);
-        difftest_set_skip();
+        difftest::set_skip();
         return true;
     }
     return false;
 }
 
 void sim_pmem_read(addr_t addr, word_t *data, int size) {
-    // Log("PMEM Read: [" FMT_WORD "]", addr);
+    // ERROR!
     if (mmio_read(addr, data)) return;
     *data = mem_read(addr, size);
-    // Log("PMEM Read: [" FMT_WORD "] = " FMT_WORD, addr, *data);
 }
 
 void sim_pmem_write(addr_t addr, word_t data, uint8_t mask) {
+    // ERROR !
     int len;
     switch (mask)
     {
@@ -74,10 +100,7 @@ void sim_pmem_write(addr_t addr, word_t data, uint8_t mask) {
     }
     if (mmio_write(addr, data, len)) return ;
     mem_write(addr, data, len);
-    // Log("PMEM Write: [" FMT_WORD "] = " FMT_WORD, addr, data);
-    #ifdef DIFFTEST
-    difftest_write_mem(addr, len);
-    #endif
+    difftest::write_mem(addr, len);
 }
 
 extern "C" {
@@ -98,5 +121,7 @@ extern "C" {
 
 word_t  mem_read (addr_t addr, int len) {return 0;}
 void    mem_write(addr_t addr, word_t data, int len) {}
+void load_img_to_mem_from_file(const std::string &path) {}
+void load_img_to_mem_from_mem(const uint32_t *img, size_t length) {}
 
 #endif

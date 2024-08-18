@@ -39,13 +39,6 @@ class LSU extends Module {
     ))
 
     val rs2 = io.in.bits.rs2
-    // val wdata = MuxLookup(mem_type, rs2)(Seq (
-    //     MemType. B.id.U -> Fill(4, rs2( 7, 0)),
-    //     MemType.BU.id.U -> Fill(4, rs2( 7, 0)),
-    //     MemType. H.id.U -> Fill(2, rs2(15, 0)),
-    //     MemType.HU.id.U -> Fill(2, rs2(15, 0)),
-    //     MemType. W.id.U -> rs2
-    // ))
     val wdata = MuxLookup(wmask, rs2)(Seq (
         0b0001.U -> Cat(0.U(24.W), rs2( 7, 0)           ),
         0b0010.U -> Cat(0.U(16.W), rs2( 7, 0), 0.U( 8.W)),
@@ -65,28 +58,51 @@ class LSU extends Module {
         MemType. W.id.U -> 2.U
     ))
 
-    val s_wait_rv :: s_wait_mem :: s_valid :: Nil = Enum(3)
+    val s_wait_rv :: s_wait_mem :: s_valid :: s_error :: Nil = Enum(4)
     val state = RegInit(s_wait_rv)
-    when (io.in.valid) {
-        when (io.in.bits.mem_ren) {
-            state := MuxLookup(state, s_wait_rv) (Seq (
-                    s_wait_rv   -> Mux(io.mem.arready, s_wait_mem, s_wait_rv),
-                    s_wait_mem -> Mux(io.mem. rvalid, s_valid, s_wait_mem),
-                    s_valid     -> s_wait_rv
-                ))
-        } .elsewhen(io.in.bits.mem_wen) {
-            state := MuxLookup(state, s_wait_rv) (Seq (
+    // when (io.in.valid) {
+    //     when (io.in.bits.mem_ren) {
+    //         state := MuxLookup(state, s_wait_rv) (Seq (
+    //                 s_wait_rv   -> Mux(io.mem.arready, s_wait_mem, s_wait_rv),
+    //                 s_wait_mem -> Mux(io.mem. rvalid, s_valid, s_wait_mem),
+    //                 s_valid     -> s_wait_rv
+    //             ))
+    //     } .elsewhen(io.in.bits.mem_wen) {
+    //         state := MuxLookup(state, s_valid) (Seq (
+    //                 s_wait_rv   -> Mux(io.mem.awready && io.mem.wready, s_wait_mem, s_wait_rv),
+    //                 s_wait_mem  -> Mux(io.mem.bvalid, s_valid, s_wait_mem),
+    //                 s_valid     -> s_wait_rv
+    //             ))
+    //         // printf("%x\n", state)
+    //         // assert(state === s_valid)
+    //     } .otherwise {
+    //         state := Mux(state === s_valid, s_wait_rv, s_valid)
+    //     }
+    // }
+    // .otherwise {
+    //     state := s_wait_rv
+    // }
+    state := Mux(
+        io.in.valid,
+        Mux(
+            io.in.bits.mem_ren,
+            MuxLookup(state, s_wait_rv) (Seq (
+                s_wait_rv   -> Mux(io.mem.arready, s_wait_mem, s_wait_rv),
+                s_wait_mem -> Mux(io.mem. rvalid, s_valid, s_wait_mem),
+                s_valid     -> s_wait_rv
+            )),
+            Mux(
+                io.in.bits.mem_wen,
+                MuxLookup(state, s_valid) (Seq (
                     s_wait_rv   -> Mux(io.mem.awready && io.mem.wready, s_wait_mem, s_wait_rv),
-                    s_wait_mem -> Mux(io.mem.bvalid, s_valid, s_wait_mem),
+                    s_wait_mem  -> Mux(io.mem.bvalid, s_valid, s_wait_mem),
                     s_valid     -> s_wait_rv
-                ))
-        } .otherwise {
-            state := Mux(state === s_valid, s_wait_rv, s_valid)
-        }
-    }
-    .otherwise {
-        state := s_wait_rv
-    }
+                )),
+                Mux(state === s_valid, s_wait_rv, s_valid)
+            )
+        ),
+        s_wait_rv
+    )
 
     val mem_wen = io.in.valid && io.in.bits.mem_wen
     val w_valid = mem_wen && state === s_wait_rv
@@ -105,8 +121,9 @@ class LSU extends Module {
     io.mem.rready  := mem_ren && state === s_wait_mem
 
     val mem_rdata = RegInit(0.U(32.W))
-    when (state === s_wait_mem && mem_ren) {
-        mem_rdata := MuxLookup(mem_type, 0.U)(Seq (
+    mem_rdata := Mux(
+        state === s_wait_mem && mem_ren,
+        MuxLookup(mem_type, 0.U)(Seq (
             MemType. B.id.U -> MuxLookup(offset, 0.U)(Seq (
                 0.U -> Cat(Fill(24, io.mem.rdata( 7)), io.mem.rdata( 7,  0)),
                 1.U -> Cat(Fill(24, io.mem.rdata(15)), io.mem.rdata(15,  8)),
@@ -128,9 +145,8 @@ class LSU extends Module {
                 2.U -> Cat(0.U(16.W), io.mem.rdata(31, 16)),
             )),
             MemType. W.id.U -> io.mem.rdata
-        ))
-        // mem_rdata := io.mem.rdata
-    }
+        )),
+        mem_rdata)
     io.out.bits.mem_rdata := mem_rdata
 
     io. in.ready := io.out.ready

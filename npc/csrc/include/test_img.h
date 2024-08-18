@@ -1,42 +1,46 @@
 #define __EBREAK 0x00100073
 #define GOOD_TRAP 0x00000513, 0x00100073
 
+static uint32_t test_img_ebreak[] = {
+    __EBREAK
+};
+
 static uint32_t test_img_athrimatic[] =  {
-    0x00a00093, // addi x1, x0, 10
-    0x00008133, // add x2, x1, x0
-    0x00000413, // addi x10,  x0, 15   
+    0x00a00093, // 00 addi x1, x0, 10
+    0x00008133, // 04 add x2, x1, x0
+    0x00000413, // 08 addi x10,  x0, 15   
     0x01b00593, // addi x11,  x0, 27    
-    0x00b50633, // add  x12, x10, x11  
-    0x40b50633, // sub  x12, x10, x11  
-    0x00b57633, // and  x12, x10, x11 
-    0x00b56633, // or   x12, x10, x11   
-    0x00b54633, // xor  x12, x10, x11   
-    0x00300693, // addi x13,  x0,  3    
-    0x00d00713, // addi x14,  x0, 13    
-    0x00d717b3, // sll  x15, x14, x13   
-    0x00d757b3, // srl  x15, x14, x13   
-    0x40d757b3, // sra  x15, x14, x13   
-    0x00d727b3, // slt  x15, x14, x13
-    0x06300413, // addi x8, x0, 99
-    0x08247613, // andi x12, x8, 130
-    0x00f00613, // slti x12, x0, 15     
-    0x00f00693, // addi x13, x0, 15     
-    0x00f00713, // andi x14, x0, 15     
-    0x00f00793, // ori  x15, x0, 15     
-    0x00f00813, // xori x16, x0, 15     
-    0x00100893, // slli x17, x1, 1      
-    0x00100913, // srli x18, x1, 1     
-    0x40100913, // srai x18, x1, 1
+    // 0x00b50633, // add  x12, x10, x11  
+    // 0x40b50633, // sub  x12, x10, x11  
+    // 0x00b57633, // and  x12, x10, x11 
+    // 0x00b56633, // or   x12, x10, x11   
+    // 0x00b54633, // xor  x12, x10, x11   
+    // 0x00300693, // addi x13,  x0,  3    
+    // 0x00d00713, // addi x14,  x0, 13    
+    // 0x00d717b3, // sll  x15, x14, x13   
+    // 0x00d757b3, // srl  x15, x14, x13   
+    // 0x40d757b3, // sra  x15, x14, x13   
+    // 0x00d727b3, // slt  x15, x14, x13
+    // 0x06300413, // addi x8, x0, 99
+    // 0x08247613, // andi x12, x8, 130
+    // 0x00f00613, // slti x12, x0, 15     
+    // 0x00f00693, // addi x13, x0, 15     
+    // 0x00f00713, // andi x14, x0, 15     
+    // 0x00f00793, // ori  x15, x0, 15     
+    // 0x00f00813, // xori x16, x0, 15     
+    // 0x00100893, // slli x17, x1, 1      
+    // 0x00100913, // srli x18, x1, 1     
+    // 0x40100913, // srai x18, x1, 1
     
     GOOD_TRAP 
 };                                       
 
 static uint32_t test_img_branch[] {
-    0x00f00513, // addi x10, x0, 15
-    0x01b00593, // addi x11, x0, 27
-    0x00b50633, // add  x12, x10, x11
-    0x00f52693, // addi x13, x10, 15
-    0x02000793, // addi x15, x0, 32
+    0x00f00513, // 00 addi x10, x0, 15
+    0x01b00593, // 04 addi x11, x0, 27
+    0x00b50633, // 08 add  x12, x10, x11
+    0x00f52693, // 0c addi x13, x10, 15
+    0x02000793, // 10 addi x15, x0, 32
     
     0x00b70063, // beq  x14, x11, 16 (offset = 4 instructions)
     0x00a00713, // addi x14, x0, 10 (will be skipped if beq is taken)
@@ -163,6 +167,24 @@ static uint32_t test_img_uart[] = {
     GOOD_TRAP
 };
 
+static uint32_t test_img_flash[] ={
+    0x30000537, // lui x10, 0x30000
+    0x00054583, // lbu x11, 0(x10)
+    0x00154583, // lbu x11, 1(x10)
+    0x00254583, // lbu x11, 2(x10)
+    0x00354583, // lbu x11, 3(x10)
+
+    GOOD_TRAP
+};
+
+static uint32_t test_img_spi[] ={
+    0x10001537, // lui x10, 0x10001
+    0x00a00593, // li x11, 10
+    0x00b52023, // sw x11, 0(x10)
+
+    GOOD_TRAP
+};
+
 static uint32_t test_img_dummy[] = {
     0x00000413,
     0x00009117,
@@ -211,5 +233,36 @@ static uint32_t test_img_ecall[] = {
     0x30200073, // mret
     0x34201673, // csrrw x12, mcause, x0
 
+    GOOD_TRAP
+};
+
+static uint32_t test_img_psram[] = {
+    0x800000b7, // 00 lui x1, 0x80000
+    0x12300113, // 04 li x2, 0x123
+    // 0x00208223, // sb x2, 4(x1)
+    // 0x00209223, // sh x2, 4(x1)
+    0x00208223, // 08 sb x2, 4(x1)
+    0x0040a183, // 0c lw x3, 4(x1)
+
+    GOOD_TRAP
+};
+
+static uint32_t test_img_sdram[] = {
+    0xa00000b7, // 00 lui x1, 0xa0000
+    0xa20001b7, // 04 lui x3, 0xa2000
+    0xffc18193, // 08 addi x3, x3, -4
+    0x12345137, // 0c lui x2, 0x12345
+    0x67810113, // 10 addi x2, x2, 0x678
+    0x0021a023, // 14 sw x2, 0(x3)
+    // 0x0021a023, // 18 sw x2, 0(x3)
+    0x0100a203, // 1c lw x4, 0x10(x1)
+
+    GOOD_TRAP
+};
+
+static uint32_t test_img_gpio[] = {
+    0x100020b7, // 00 lui x1, 0x10002
+    // 0x00100113, // 04 addi x2, x0, 1
+    0x0020a023, // 04 sw x2, 0(x1)
     GOOD_TRAP
 };

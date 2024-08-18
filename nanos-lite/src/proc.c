@@ -84,7 +84,8 @@ void execve(const char *filename, char *const argv[], char *const envp[]) {
 void hello_fun(void *arg) {
   int j = 1;
   while (1) {
-    Log("Hello World from Nanos-lite with arg '%p' for the %dth time!", (uintptr_t)arg, j);
+    // Log("Hello World from Nanos-lite with arg '%p' for the %dth time!", (uintptr_t)arg, j);
+    printf("Hello World from Nanos-lite with arg '%p' for the %dth time!\n", (uintptr_t)arg, j);
     j ++;
     yield();
   }
@@ -101,7 +102,7 @@ void init_proc() {
   // context_uload(&pcb[0], argv[0], argv, empty);
   // context_uload(&pcb[1], "/bin/hello", empty, empty);
   context_kload(&pcb[0], hello_fun, (void*)1);
-  context_kload(&pcb[0], hello_fun, (void*)2);
+  context_kload(&pcb[1], hello_fun, (void*)2);
   running[0] = &pcb[0];
   running[1] = &pcb[1];
   runningCount = 2;

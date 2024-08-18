@@ -308,4 +308,13 @@ int vsnprintf(char *out, size_t n, const char *fmt, va_list ap) {
   panic("Not implemented");
 }
 
+int puts(const char *str) {
+  int c = 0;
+  for (; str[c]; c++) {
+    putch(str[c]);
+  }
+  return c;
+}
+
+
 #endif

@@ -1,5 +1,5 @@
-import "DPI-C" function void pmem_read (input int addr, output int word, input int  size);
-import "DPI-C" function void pmem_write(input int addr, input  int word, input byte wmask);
+// import "DPI-C" function void pmem_read (input int addr, output int word, input int  size);
+// import "DPI-C" function void pmem_write(input int addr, input  int word, input byte wmask);
 
 module Memory(
     input  [31:0] waddr,
@@ -14,10 +14,10 @@ module Memory(
 );
     always @(waddr or raddr or wen or ren or reset) begin
         if (!reset && wen) begin
-            pmem_write(waddr, wdata, wmask);
+            // pmem_write(waddr, wdata, wmask);
         end
         if (!reset && ren) begin
-            pmem_read(raddr, rdata, {29'b0, rsize});
+            // pmem_read(raddr, rdata, {29'b0, rsize});
         end
     end
 endmodule

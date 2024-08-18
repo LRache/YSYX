@@ -10,6 +10,8 @@ object CSRWSel extends Enumeration {
 }
 
 object CSRAddr {
+    val MVENDORID= 0x100.U(12.W)
+    val MARCHID  = 0x101.U(12.W)
     val SATP     = 0x180.U(12.W)
     val MSTATUS  = 0x300.U(12.W)
     val MTVEC    = 0x305.U(12.W)
@@ -40,6 +42,8 @@ class CSR extends Module {
         val dbg     = Output(UInt(32.W))
     })
 
+    val mvendorid = RegInit(0x79737938.U(32.W))
+    val marchid = RegInit(0.U(12.W))
     val mcause  = RegInit(0.U(32.W))
     val mepc    = RegInit(0.U(32.W))
     val mscratch= RegInit(0.U(32.W))
@@ -50,6 +54,8 @@ class CSR extends Module {
     io.dbg := mstatus
 
     io.rdata := MuxLookup(io.raddr, 0.U(32.W))(Seq (
+        CSRAddr.MVENDORID -> mvendorid,
+        CSRAddr.MARCHID -> marchid,
         CSRAddr.SATP    -> satp,
         CSRAddr.MSTATUS -> mstatus,
         CSRAddr.MTVEC   -> mtvec,
@@ -65,6 +71,8 @@ class CSR extends Module {
         .elsewhen (io.waddr1 === CSRAddr.MSCRATCH) { mscratch := io.wdata1 }
         .elsewhen (io.waddr1 === CSRAddr.MEPC)     { mepc     := io.wdata1 }
         .elsewhen (io.waddr1 === CSRAddr.MCAUSE)   { mcause   := io.wdata1 }
+        .elsewhen (io.waddr1 === CSRAddr.MVENDORID){ mvendorid:= io.wdata1 }
+        .elsewhen (io.waddr1 === CSRAddr.MARCHID)  { marchid  := io.wdata1 }
     }
 
     when (io.wen2) {
@@ -74,6 +82,8 @@ class CSR extends Module {
         .elsewhen (io.waddr2 === CSRAddr.MSCRATCH) { mscratch := io.wdata2 }
         .elsewhen (io.waddr2 === CSRAddr.MEPC)     { mepc     := io.wdata2 }
         .elsewhen (io.waddr2 === CSRAddr.MCAUSE)   { mcause   := io.wdata2 }
+        .elsewhen (io.waddr2 === CSRAddr.MVENDORID){ mvendorid:= io.wdata2 }
+        .elsewhen (io.waddr2 === CSRAddr.MARCHID)  { marchid  := io.wdata2 }
     }
 
     val debugger = Module(new CSRDebugger())

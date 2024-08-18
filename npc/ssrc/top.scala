@@ -5,7 +5,7 @@ import bus.AXI4SRAM
 
 class Top extends Module {
     val sram = Module(new AXI4SRAM)
-    val cpu = Module(new HCPU)
+    val cpu = Module(new HCPU(BigInt(0x30000000)))
     cpu.io.master <> sram.io
 
     // Unused

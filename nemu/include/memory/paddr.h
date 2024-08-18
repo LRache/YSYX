@@ -33,6 +33,15 @@
 #define UART_SIZE 0x1000
 #define UART_BASE 0x10000000
 
+#define FLASH_SIZE 0x1000000
+#define FLASH_BASE 0x30000000
+
+#define PSRAM_SIZE 0x400000
+#define PSRAM_BASE 0x80000000
+
+#define SDRAM_SIZE 0x2000000
+#define SDRAM_BASE 0xa0000000
+
 enum MEM_OP_TYPE {
   MEM_READ, MEM_WRITE, MEM_EXCUTE
 };
@@ -70,6 +79,18 @@ static inline bool in_sram(paddr_t addr) {
 
 static inline bool in_uart(paddr_t addr) {
   return addr - UART_BASE < UART_SIZE;
+}
+
+static inline bool in_flash(paddr_t addr) {
+  return addr - FLASH_BASE < FLASH_SIZE;
+}
+
+static inline bool in_psram(paddr_t addr) {
+  return addr - PSRAM_BASE < PSRAM_SIZE;
+}
+
+static inline bool in_sdram(paddr_t addr) {
+  return addr - SDRAM_BASE < SDRAM_SIZE;
 }
 
 word_t paddr_read(paddr_t addr, int len);

@@ -1,0 +1,130 @@
+{
+    "configurations": [
+        {
+            "name": "Nemu",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64",
+            "includePath": [
+                "${workspaceFolder}/nemu/include",
+                "${workspaceFolder}/nemu/include/config",
+                "${workspaceFolder}/nemu/include/cpu",
+                "${workspaceFolder}/nemu/include/device",
+                "${workspaceFolder}/nemu/include/memory",
+                "${workspaceFolder}/nemu/src/monitor/sdb",
+                "${workspaceFolder}/nemu/src/isa/riscv32/**"
+            ],
+            "defines": [
+                "__GUEST_ISA__=riscv32",
+                "ITRACE_COND=true"
+            ],
+            "compilerPath": "/usr/bin/gcc"
+        },
+        {
+            "name": "Abstract-machine",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64",
+            "includePath": [
+                "${workspaceFolder}/abstract-machine/am/include",
+                "${workspaceFolder}/abstract-machine/am/include/arch",
+                "${workspaceFolder}/abstract-machine/am/src/",
+                "${workspaceFolder}/abstract-machine/am/src/platform/nemu/include",
+                "${workspaceFolder}/abstract-machine/klib/include"
+            ],
+            "defines": [
+                "ARCH=riscv32-nemu",
+                "ARCH_H=\"arch/riscv.h\"",
+                "ISA_H=\"riscv/riscv.h\""
+            ],
+            "compilerPath": "/usr/bin/gcc"
+        },
+        {
+            "name": "Am-kernels",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64",
+            "includePath": [
+                "${workspaceFolder}/abstract-machine/am/include",
+                "${workspaceFolder}/abstract-machine/am/include/arch",
+                "${workspaceFolder}/abstract-machine/am/src/",
+                "${workspaceFolder}/abstract-machine/am/src/platform/nemu/include",
+                "${workspaceFolder}/abstract-machine/klib/include",
+                "${workspaceFolder}/am-kernels/tests/am-tests/include",
+                "${workspaceFolder}/am-kernels/tests/cpu-tests/include"
+            ],
+            "defines": [
+                "ARCH=riscv32-nemu",
+                "ARCH_H=\"arch/riscv.h\"",
+                "ISA_H=\"riscv/riscv.h\"",
+                "__ISA__=\"riscv32e\""
+            ],
+            "compilerPath": "/usr/bin/gcc"
+        },
+        {
+            "name": "Nanos",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64",
+            "includePath": [
+                "${workspaceFolder}/abstract-machine/am/include",
+                "${workspaceFolder}/abstract-machine/am/include/arch",
+                "${workspaceFolder}/abstract-machine/am/src/",
+                "${workspaceFolder}/abstract-machine/am/src/platform/nemu/include",
+                "${workspaceFolder}/abstract-machine/klib/include",
+                "${workspaceFolder}/nanos-lite/include"
+            ],
+            "defines": [
+                "ARCH=riscv32-nemu",
+                "ARCH_H=\"arch/riscv.h\""
+            ],
+            "compilerPath": "/usr/bin/gcc"
+        },
+        {
+            "name": "Navy-apps",
+            "includePath": [
+                "${workspaceFolder}/navy-apps/libs/**",
+            ],
+            "defines": [
+                "${myDefines}",
+                "__NAVY__"
+            ],
+            "compilerPath": "/usr/bin/riscv64-linux-gnu-gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x86",
+            "compilerArgs": ["-nostdlib"]
+        },
+        {
+            "name": "Verilator",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "linux-gcc-x64",
+            "includePath": [
+                "/usr/local/share/verilator/include",
+                "/usr/local/share/verilator/include/vltstd",
+                "${workspaceFolder}/nvboard/usr/include/"
+            ],
+            "compilerPath": "/usr/bin/gcc"
+        },
+        {
+            "name": "Npc",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "linux-gcc-x64",
+            "includePath": [
+                "/usr/local/share/verilator/include",
+                "/usr/local/share/verilator/include/vltstd",
+                "${workspaceFolder}/nvboard/usr/include/",
+                "${workspaceFolder}/npc/csrc/include",
+                "${workspaceFolder}/npc/obj"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "defines": [
+                "VTop=VysyxSoCFull",
+                "VTopHeader=\"VysyxSoCFull/VysyxSoCFull.h\""
+            ]
+        }
+    ],
+    "version": 4
+}

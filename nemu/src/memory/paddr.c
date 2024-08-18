@@ -24,6 +24,9 @@ static uint8_t *pmem = NULL;
 // static uint8_t pmem[CONFIG_MSIZE] PG_ALIGN = {};
 static uint8_t mrom[MROM_SIZE] PG_ALIGN = {};
 static uint8_t sram[SRAM_SIZE] PG_ALIGN = {};
+static uint8_t flash[FLASH_SIZE] PG_ALIGN = {};
+static uint8_t psram[PSRAM_SIZE] PG_ALIGN = {};
+static uint8_t sdram[SDRAM_SIZE] PG_ALIGN = {};
 #endif
 
 void set_difftest_skip(bool skip);
@@ -65,6 +68,9 @@ word_t paddr_read(paddr_t addr, int len) {
   // IFDEF(CONFIG_DEVICE, return mmio_read(addr, len));
   if (likely(in_mrom(addr))) return host_read(mrom + addr - MROM_BASE, len);
   if (likely(in_sram(addr))) return host_read(sram + addr - SRAM_BASE, len);
+  if (likely(in_flash(addr))) return host_read(flash + addr - FLASH_BASE, len);
+  if (likely(in_psram(addr))) return host_read(psram + addr - PSRAM_BASE, len);
+  if (likely(in_sdram(addr))) return host_read(sdram + addr - SDRAM_BASE, len);
   if (likely(in_uart(addr))) {set_difftest_skip(true); return 0;}
   out_of_bound(addr);
   return 0;
@@ -75,6 +81,9 @@ void paddr_write(paddr_t addr, int len, word_t data) {
   // IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); return);
   if (likely(in_mrom(addr))) { host_write(mrom + addr - MROM_BASE, len, data); return ;}
   if (likely(in_sram(addr))) { host_write(sram + addr - SRAM_BASE, len, data); return ;}
+  if (likely(in_flash(addr))) { host_write(flash + addr - FLASH_BASE, len, data); return ;}
+  if (likely(in_psram(addr))) { host_write(psram + addr - PSRAM_BASE, len, data); return ;}
+  if (likely(in_sdram(addr))) {host_write(sdram + addr - SDRAM_BASE, len, data); return ;}
   if (likely(in_uart(addr))) { set_difftest_skip(true); return ;}
   out_of_bound(addr);
 }

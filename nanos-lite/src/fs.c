@@ -58,21 +58,21 @@ static Finfo file_table[] __attribute__((used)) = {
 
 void sbctl_init();
 void init_fs() {
-  char s[32];
-  dispinfo_read(s, 0, 32);
-  int width = 0;
-  int height = 0;
-  int i = 0;
-  for (; s[i] != ' '; i++) {
-    width = width * 10 + s[i] - '0';
-  }
-  i++;
-  for (; s[i] != '\0'; i++) {
-    height = height * 10 + s[i] - '0';
-  }
-  file_table[FD_FB].size = width * height * 4;
+  // char s[32];
+  // dispinfo_read(s, 0, 32);
+  // int width = 0;
+  // int height = 0;
+  // int i = 0;
+  // for (; s[i] != ' '; i++) {
+  //   width = width * 10 + s[i] - '0';
+  // }
+  // i++;
+  // for (; s[i] != '\0'; i++) {
+  //   height = height * 10 + s[i] - '0';
+  // }
+  // file_table[FD_FB].size = width * height * 4;
 
-  sbctl_init();
+  // sbctl_init();
 }
 
 int fs_open(const char *pathname, int flags, int mode) {

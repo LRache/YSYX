@@ -38,10 +38,11 @@
 #define ANSI_BG_WHITE   "\33[1;47m"
 #define ANSI_NONE       "\33[0m"
 
+extern FILE* log_fp;
+
 #define ANSI_FMT(str, fmt) fmt str ANSI_NONE
 
 #define log_write(...) do { \
-    extern FILE* log_fp; \
     if (log_enable()) { \
       fprintf(log_fp, __VA_ARGS__); \
       fflush(log_fp); \

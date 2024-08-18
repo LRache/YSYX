@@ -13,8 +13,14 @@ TOP=$(lastword $(subst ., ,$(m)))
 mainModule=$(m)
 endif
 
-ifneq ($(img),)
-SIM_FLAGS+=-i $(img)
+ifneq ($(mem),)
+SIM_FLAGS += -m $(abspath $(mem))
+endif
+ifneq ($(rom),)
+SIM_FLAGS += -r $(abspath $(rom))
+endif
+ifneq ($(flash),)
+SIM_FLAGS += -f $(abspath $(flash))
 endif
 
 SSRC_DIR = $(abspath ./ssrc)
@@ -27,7 +33,7 @@ TEMP_DIR = $(abspath ./temp)
 TEMP_EXE = $(TEMP_DIR)/V$(TOP)
 
 SSRCS = $(abspath $(shell find $(SSRC_DIR) -name "*.scala"))
-VSRCS = $(abspath $(shell find $(VSRC_DIR) -name "*.v"))
+VSRCS = $(abspath $(shell find $(VSRC_DIR) -name "*.v" -or -name "*.sv"))
 CSRCS = $(abspath $(shell find $(CSRC_DIR) -name "*.c" -or -name "*.cc" -or -name "*.cpp"))
 
 ifeq ($(m),soc)
@@ -62,7 +68,7 @@ verilog: $(SSRCS)
 	mill -i $(PRJ).runMain $(mainModule) --target-dir $(VSRC_DIR) --target verilog
 
 help:
-	mill -i $(PRJ).runMain Elaborate --help
+	mill -i $(PRJ).runMain mainModule --help
 
 reformat:
 	mill -i __.reformat
@@ -99,5 +105,8 @@ all: npc
 
 npc: $(SIM_EXE)
 	$(call git_commit, "compile RTL")
+
+.PHONY sta:
+	cd $(abspath ../yosys-sta/) && make -f $(abspath ../yosys-sta/Makefile) sta SDC_FILE=$(abspath ./vsrc/hcpu.sdc) RTL_FILES="$(VSRCS)" CLK_FREQ_MHZ=100 DESIGN=ysyxSoCFull
 
 -include ../Makefile

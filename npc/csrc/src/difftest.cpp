@@ -16,19 +16,22 @@ uint32_t memAddr = 0;
 int memLen = 0;
 
 bool skip = false;
+extern uint32_t lastPC;
+extern uint32_t lastInst;
 
-void difftest_memcpy(uint32_t addr, uint32_t *buf, size_t n, bool direction) {
+void difftest::memcpy(uint32_t addr, uint32_t *buf, size_t n, bool direction) {
     nemu_difftest_memcpy(addr, buf, n, direction);
 }
 
-void difftest_init() {
+void difftest::init() {
     nemu_difftest_init(0);
     uint32_t initRegs[DIFFTEST_COMMON_REG_COUNT];
     for (int i = 0; i < DIFFTEST_COMMON_REG_COUNT; i++) {
         initRegs[i] = 0;
     }
+    nemu_difftest_regcpy(initRegs, difftest::TO_REF);
     uint32_t pc = INST_START;
-    nemu_difftest_pc(&pc, DIFFTEST_TO_REF);
+    nemu_difftest_pc(&pc, difftest::TO_REF);
 
     difftestCount = 0;
 }
@@ -42,7 +45,7 @@ static void inline reg_cmp(int i, uint32_t dut) {
     }
 }
 
-void difftest_regs() {
+void difftest::regs() {
     nemu_difftest_regcpy(refRegs, DIFFTEST_TO_DUT);
     for (int i = 0; i < DIFFTEST_COMMON_REG_COUNT; i++) {
         reg_cmp(i, cpu.gpr[i]);
@@ -54,7 +57,7 @@ void difftest_regs() {
     ", dut=" FMT_WORD " at pc=" FMT_WORD "(inst=" FMT_WORD ")", \
     #name, refCSR[i], cpu.name, cpu.pc, cpu.inst);
 
-void difftest_csr() {
+void difftest::csr() {
     nemu_difftest_csrcpy(refCSR, DIFFTEST_TO_DUT);
     csr_cmp(0, mcause);
     csr_cmp(1, mepc);
@@ -64,12 +67,12 @@ void difftest_csr() {
     csr_cmp(5, satp)
 }
 
-void difftest_write_mem(uint32_t addr, int len) {
+void difftest::write_mem(uint32_t addr, int len) {
     memAddr = addr;
     memLen = len;
 }
 
-void difftest_mem() {
+void difftest::mem() {
     if (memLen != 0)
     {
         uint32_t ref = 0;
@@ -77,15 +80,13 @@ void difftest_mem() {
         uint32_t dut = mem_read(memAddr, memLen);
         if (ref != dut) {
             panic("Difftest FAILED.\nDifferent memory: [0x%08x] dut=0x%08x, ref=0x%08x\ndut.pc=0x%08x(inst=0x%08x)\n", memAddr, dut, ref, cpu.pc, cpu.inst);
-        } else {
-            // Log("Difftest mem");
         }
         memAddr = 0;
         memLen = 0;
     }
 }
 
-void difftest_pc() {
+void difftest::pc() {
     if (skip) {
         nemu_difftest_pc(&cpu.pc, DIFFTEST_TO_REF);
         skip = false;
@@ -93,47 +94,48 @@ void difftest_pc() {
         uint32_t refPC;
         nemu_difftest_pc(&refPC, DIFFTEST_TO_DUT);
         if (refPC != cpu.pc) {
-            extern uint32_t lastPC;
-            extern uint32_t lastInst;
-            panic("Difftest FAILED.\ndut.pc=0x%08x, ref.pc=0x%08x\nlastPC=" FMT_WORD "(inst=" FMT_WORD ")", cpu.pc, refPC, lastPC, lastInst);
+            panic("Difftest FAILED.\ndut.pc=" FMT_WORD ", ref.pc=" FMT_WORD "\nlastPC=" FMT_WORD "(inst=" FMT_WORD ")", cpu.pc, refPC, lastPC, lastInst);
         }
     }
 }
 
-void difftest_step() {
+void difftest::step() {
+    nemu_difftest_exec(1);
     bool nemu_skip;
-    // nemu_difftest_skip(&nemu_skip, DIFFTEST_TO_DUT);
+    nemu_difftest_skip(&nemu_skip, DIFFTEST_TO_DUT);
     if (skip || nemu_skip) {
-        // nemu_difftest_regcpy(cpu.gpr, DIFFTEST_TO_REF);
-        // nemu_difftest_pc(&cpu.pc, DIFFTEST_TO_REF);
+        // Log("Difftest skip");
         skip = false;
         nemu_skip = false;
-        // nemu_difftest_skip(&nemu_skip, DIFFTEST_TO_REF);
+        nemu_difftest_regcpy(cpu.gpr, DIFFTEST_TO_REF);
+        nemu_difftest_pc(&cpu.pc, DIFFTEST_TO_REF);
+        nemu_difftest_skip(&nemu_skip, DIFFTEST_TO_REF);
     } else {
-        nemu_difftest_exec(1);
-        difftest_regs();
-        difftest_csr();
-        difftest_mem();
-        difftest_pc();
+        regs();
+        csr();
+        mem();
+        pc();
     }
     difftestCount++;
 }
 
-void difftest_set_skip() {
+void difftest::set_skip() {
     skip = true;
 }
 
-void difftest_end() {
-    Log(ANSI_FG_GREEN "Difftest PASS. count=%d", difftestCount);
+void difftest::end() {
+    Log(ANSI_FG_GREEN "Difftest PASS. "  ANSI_FG_BLUE "count=%d", difftestCount);
 }
 
 #else
-void difftest_memcpy(uint32_t addr, uint32_t *buf, size_t n, bool direction) {}
-void difftest_init(){}
-void difftest_pc(){}
-void difftest_regs(){}
-void difftest_step(){}
-void difftest_end(){}
-void difftest_set_skip(){}
+void difftest::memcpy(uint32_t addr, uint32_t *buf, size_t n, bool direction) {}
+void difftest::write_mem(addr_t addr, int len) {}
+void difftest::init(){}
+void difftest::pc(){}
+void difftest::regs(){}
+void difftest::csr(){}
+void difftest::step(){}
+void difftest::end(){}
+void difftest::set_skip(){}
 
 #endif

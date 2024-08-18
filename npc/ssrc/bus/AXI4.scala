@@ -62,15 +62,11 @@ class AXI4Arbiter extends Module {
         state := io1_valid || io2_valid
         when (io1_valid) {
             select := 0.U
-            // printf("Select io1\n")
         } .elsewhen(io2_valid) {
             select := 1.U
         }
     } .otherwise {
         state := Mux(arbite_finished, s_wait_in, s_arbite)
-        when (arbite_finished) {
-            // printf("Arbite end\n")
-        }
     }
 
     val arbiting = state === s_arbite

@@ -27,19 +27,14 @@ class RegFile extends Module {
         val rdata2  = Output(UInt(32.W))
     })
 
-    val registers = Reg(Vec(32, UInt(32.W)))
+    val raddr1 = io.raddr1(3,0)
+    val raddr2 = io.raddr2(3,0)
+    val waddr  = io.waddr (3,0)
 
-    // init
-    when (reset.asBool) {
-        registers.foreach(_ := 0.U)
-    }
-
-    when (io.wen & ~(io.waddr === 0.U(5.W))) {
-        registers(io.waddr) := io.wdata
-    }
-
-    io.rdata1 := registers(io.raddr1)
-    io.rdata2 := registers(io.raddr2)
+    val registers = RegInit(VecInit(Seq.fill(16)(0.U(32.W))))
+    registers(waddr) := Mux(io.waddr.orR && io.wen, io.wdata, registers(waddr))
+    io.rdata1 := registers(raddr1)
+    io.rdata2 := registers(raddr2)
 
     val debugger = Module(new RegFileDebugger())
     debugger.io.clk   := clock

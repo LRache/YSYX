@@ -1,10 +1,3 @@
-import "DPI-C" function void env_break();
-import "DPI-C" function void invalid_inst();
-import "DPI-C" function void update_reset(input byte reset);
-import "DPI-C" function void update_pc(input int pc);
-import "DPI-C" function void update_inst(input int inst);
-import "DPI-C" function void update_valid(input byte valid);
-
 module Dbg(
     input clk,
     input reset,
@@ -14,6 +7,13 @@ module Dbg(
     input [31:0] inst,
     input valid
 );
+    import "DPI-C" function void env_break();
+    import "DPI-C" function void invalid_inst();
+    import "DPI-C" function void update_reset(input byte reset);
+    import "DPI-C" function void update_pc(input int pc);
+    import "DPI-C" function void update_inst(input int inst);
+    import "DPI-C" function void update_valid(input byte valid);
+
     always @(posedge clk) 
     begin
         if (is_ebreak)  env_break();

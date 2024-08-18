@@ -23,13 +23,24 @@ typedef struct
     bool running;
     bool valid;
     uint32_t inst;
+    uint64_t clockCount;
 } CPU;
 
 extern CPU cpu;
 extern VTop top;
 
-void hdb_init(std::string imgPath="");
-void hdb_step();
-int hdb_run(uint64_t n = 0);
+namespace hdb
+{
+    void init(const std::string &memImgPath="", const std::string &romImgPath="", const std::string &flashImgPath="");
+    void step();
+    int run(uint64_t n = 0);
+} // namespace hdb
+
+namespace nvboard
+{
+    void init();
+    void update();
+    void quit();
+} // namespace nvboard
 
 #endif

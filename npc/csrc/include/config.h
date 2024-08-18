@@ -1,7 +1,7 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-#define INST_START 0x20000000
+#define HAS_NVBOARD
 
 // #define HAS_MEM
 #define MEM_BASE 0x80000000
@@ -13,7 +13,21 @@
 
 #define HAS_FLASH
 #define FLASH_BASE 0x30000000
-#define FLASH_SIZE 0x10000000
+#define FLASH_SIZE 0x1000000
+
+#define HAS_PSRAM
+#define PSRAM_BASE 0x80000000
+#define PSRAM_SIZE 0x400000
+
+#define HAS_SDRAM
+
+#define HAS_VGA
+#define VGA_ROW_COUNT 480
+#define VGA_COL_COUNT 640
+#define VGA_BASE 0x21000000
+#define VGA_BUFFER_SIZE (VGA_ROW_COUNT * VGA_COL_COUNT * 3)
+
+#define INST_START FLASH_BASE
 
 // #define DIFFTEST
 
