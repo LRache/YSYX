@@ -4,3 +4,4 @@
 [submodule "ysyxSoC/rocket-chip"]
 	path = ysyxSoC/rocket-chip
 	url = git@github.com:chipsalliance/rocket-chip.git
+	branch = master
