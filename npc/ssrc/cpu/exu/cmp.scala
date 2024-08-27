@@ -25,14 +25,14 @@ class Cmp extends Module {
     val cmp_ltu = io.a < io.b
     val cmp_geu = !cmp_ltu
 
-    io.res := MuxLookup(io.sel, 1.B)(Seq(
+    io.res := MuxLookup(io.sel, true.B)(Seq(
         CmpSel. EQ.id.U -> cmp_eq,
         CmpSel. NE.id.U -> cmp_ne,
         CmpSel. LT.id.U -> cmp_lt,
         CmpSel.LTU.id.U -> cmp_ltu,
         CmpSel. GE.id.U -> cmp_ge,
         CmpSel.GEU.id.U -> cmp_geu,
-        CmpSel.  N.id.U -> 0.B,
-        CmpSel.  Y.id.U -> 1.B
+        CmpSel.  N.id.U -> false.B,
+        CmpSel.  Y.id.U -> true.B
     ))
 }

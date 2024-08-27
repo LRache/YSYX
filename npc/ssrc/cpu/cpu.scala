@@ -2,7 +2,7 @@ package cpu
 
 import chisel3._
 
-import cpu.reg.RegFile
+import cpu.reg.GPR
 import cpu.reg.CSR
 import cpu.ifu.IFU
 import cpu.idu.IDU
@@ -12,6 +12,7 @@ import cpu.wbu.WBU
 
 import bus.AXI4Arbiter
 import bus.AXI4IO
+import cpu.ifu.ICache
 
 class HCPU(instStart : BigInt) extends Module {
     val io = IO(new Bundle {
@@ -20,8 +21,10 @@ class HCPU(instStart : BigInt) extends Module {
         val interrupt = Input(Bool())
     })
     
-    val regFile = Module(new RegFile)
+    val gpr = Module(new GPR(4))
     val csr = Module(new CSR)
+
+    val icache = Module(new ICache(8, 0, 2))
     
     val arbiter = Module(new AXI4Arbiter)
     arbiter.io.sel <> io.master
@@ -38,13 +41,14 @@ class HCPU(instStart : BigInt) extends Module {
     ifu.io.in <> wbu.io.out
 
     // IFU
-    ifu.io.mem <> arbiter.io.io1
+    icache.io.mem <> arbiter.io.io1
+    ifu.io.cache <> icache.io.io
 
     // IDU
-    regFile.io.raddr1 := idu.io.reg_raddr1
-    regFile.io.raddr2 := idu.io.reg_raddr2
-    idu.io.reg_rdata1 := regFile.io.rdata1
-    idu.io.reg_rdata2 := regFile.io.rdata2
+    gpr.io.raddr1 := idu.io.gpr_raddr1
+    gpr.io.raddr2 := idu.io.gpr_raddr2
+    idu.io.gpr_rdata1 := gpr.io.rdata1
+    idu.io.gpr_rdata2 := gpr.io.rdata2
     csr.io.raddr      := idu.io.csr_raddr
     idu.io.csr_rdata  := csr.io.rdata
 
@@ -53,14 +57,16 @@ class HCPU(instStart : BigInt) extends Module {
 
     // WBU
     csr.io.waddr1 := wbu.io.csr_waddr1
-    csr.io.waddr2 := wbu.io.csr_waddr2
+    csr.io.is_ecall := exu.io.is_ecall
+    // csr.io.waddr2 := wbu.io.csr_waddr2
     csr.io.wdata1 := wbu.io.csr_wdata1
-    csr.io.wdata2 := wbu.io.csr_wdata2
+    // csr.io.wdata2 := wbu.io.csr_wdata2
+    csr.io.wdata2 := exu.io.csr_wdata2
     csr.io.wen1   := wbu.io.csr_wen1
-    csr.io.wen2   := wbu.io.csr_wen2
-    regFile.io.waddr := wbu.io.reg_waddr
-    regFile.io.wdata := wbu.io.reg_wdata
-    regFile.io.wen   := wbu.io.reg_wen
+    // csr.io.wen2   := wbu.io.csr_wen2
+    gpr.io.waddr := wbu.io.reg_waddr
+    gpr.io.wdata := wbu.io.reg_wdata
+    gpr.io.wen   := wbu.io.reg_wen
 
     val debugger = Module(new Dbg())
     debugger.io.clk         := clock
@@ -73,6 +79,9 @@ class HCPU(instStart : BigInt) extends Module {
 
     val counter = Module(new PerfCounter())
     counter.io.ifu_valid := ifu.io.out.valid
+    counter.io.icache <> icache.io.perf
+    counter.io.lsu <> lsu.io.perf
+    counter.io.reset := reset
 
     io.slave := DontCare
 }

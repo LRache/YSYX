@@ -1,9 +1,8 @@
-PROJ_PATH = $(abspath ../npc/vsrc)
-
 DESIGN ?= HCPU
-SDC_FILE ?= $(PROJ_PATH)/hcpu.sdc
-RTL_FILES ?= $(shell find $(PROJ_PATH) -name "*.v" -or -name "*.sv")
-export CLK_FREQ_MHZ ?= 500
+SDC_FILE ?= $(abspath ../npc/sdc/hcpu.sdc)
+RTL_FILES += $(abspath ../npc/sdc/empty.v)
+RTL_FILES += $(abspath ../npc/build/HCPU.v)
+export CLK_FREQ_MHZ ?= 100
 
 RESULT_DIR = ./result/$(DESIGN)-$(CLK_FREQ_MHZ)MHz
 SCRIPT_DIR = ./scripts

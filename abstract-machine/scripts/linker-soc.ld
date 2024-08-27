@@ -1,5 +1,4 @@
 ENTRY(_start)
-/* PHDRS { text PT_LOAD; data PT_LOAD; } */
 
 MEMORY {
   MROM : ORIGIN = 0x20000000, LENGTH = 4K
@@ -9,16 +8,16 @@ MEMORY {
 }
 
 SECTIONS {
-  /* _pmem_start and _entry_offset are defined in LDFLAGS */
-  . = _pmem_start + _entry_offset;
+  . = ORIGIN(SDRAM);
   .entry : 
   {
+    /* . = ORIGIN(FLASH); */
     *(.entry)
-  } AT> FLASH
+  } > FLASH AT > FLASH
 
   .bootloader :
   {
-    . = ALIGN(0x4);
+    /* . = ORIGIN(SDRAM); */
     _bootloader_start = .;
     *(.bootloader)
     . = ALIGN(0x4);
@@ -26,17 +25,13 @@ SECTIONS {
 
   .text :
   {
-    . = ALIGN(0x4);
     _text_start = .;
     *(.text*)
     . = ALIGN(0x4);
   } > SDRAM AT> FLASH
-  /* etext = .;
-  _etext = .; */
 
   .rodata ALIGN(0x4) :
   {
-    . = ALIGN(0x4);
     _rodata_start = .;
     *(.rodata*)
     *(.srodata*)
@@ -45,7 +40,6 @@ SECTIONS {
   
   .data ALIGN(0x4) :
   {
-    . = ALIGN(0x4);
     _data_start = .;
     *(.data*)
     *(.sdata*)
@@ -69,13 +63,5 @@ SECTIONS {
     *(.scommon)
     . = ALIGN(0x4);
   } > SDRAM AT> FLASH
-
   _heap_start = ALIGN(0x1000);
-  /* _stack_top = ALIGN(0x1000);
-  . = _stack_top + 0x8000;
-  end = .;
-  _end = .;
-   */
-   /* _stack_pointer = 0x0f002000; */
-   _stack_pointer = 0xa2000000;
 }

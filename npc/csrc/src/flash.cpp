@@ -13,18 +13,18 @@
 uint8_t flash[FLASH_SIZE];
 
 extern "C" void flash_read(addr_t addr, word_t *data) {
-    *data = *(word_t *)(flash + (addr & ~0x3));
-    // Log("Read flash [" FMT_WORD "]=" FMT_WORD " at clock=%ld", FLASH_BASE + addr, *data, cpu.clockCount);
+    word_t d = *(word_t *)(flash + (addr & ~0x3));
+    word_t rdata = 0;
+    rdata |= (d & 0x000000ff) << 24;
+    rdata |= (d & 0x0000ff00) <<  8;
+    rdata |= (d & 0x00ff0000) >>  8;
+    rdata |= (d & 0xff000000) >> 24;
+    *data = rdata;
+    // Log("Read flash [" FMT_WORD "]=" FMT_WORD, addr, d);
 }
 
 void set_flash(addr_t addr, word_t data) {
-    // difftest::memcpy(addr, buf, )
-    word_t wdata = 0;
-    wdata |= (data & 0x000000ff) << 24;
-    wdata |= (data & 0x0000ff00) <<  8;
-    wdata |= (data & 0x00ff0000) >>  8;
-    wdata |= (data & 0xff000000) >> 24;
-    *(word_t *)(flash + addr - FLASH_BASE) = wdata;
+    *(word_t *)(flash + addr - FLASH_BASE) = data;
 }
 
 void load_img_to_flash_from_file(const std::string &path) {

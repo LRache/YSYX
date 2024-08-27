@@ -24,6 +24,7 @@ typedef struct
     bool valid;
     uint32_t inst;
     uint64_t clockCount;
+    uint64_t instCount;
 } CPU;
 
 extern CPU cpu;
@@ -31,9 +32,14 @@ extern VTop top;
 
 namespace hdb
 {
-    void init(const std::string &memImgPath="", const std::string &romImgPath="", const std::string &flashImgPath="");
+    void init(
+        const std::string &memImgPath="", const std::string &romImgPath="", 
+        const std::string &flashImgPath="", const std::string &outputDir="./"
+        );
     void step();
     int run(uint64_t n = 0);
+    
+    extern std::string outputDir;
 } // namespace hdb
 
 namespace nvboard

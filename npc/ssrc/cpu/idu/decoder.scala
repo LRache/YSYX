@@ -7,14 +7,14 @@ import chisel3.util.experimental.decode._
 import cpu.exu.AluSel
 import cpu.exu.CmpSel
 import cpu.lsu.MemType
-import cpu.reg.RegWSel
+import cpu.reg.GPRWSel
 import cpu.reg.CSRWSel
 
 import AluSel.AluSel
 import CmpSel.CmpSel
-import MemType.MemType
-import RegWSel.RegWSel
+import GPRWSel.GPRWSel
 import CSRWSel.CSRWSel
+import cpu.idu.CSRAddrSel.Ins
 
 object InstType extends Enumeration {
     type InstType = Value
@@ -51,15 +51,12 @@ object Encode {
         val CmpSel  = BSel + BoolLen
         val CmpSelL = 3
 
-        val RegWSel = CmpSel + CmpSelL
-        val RegWSelL= 3
+        val GPRWSel = CmpSel + CmpSelL
+        val GPRWSelL= 2
 
-        val RegWen  = RegWSel + RegWSelL
+        val GPRWen  = GPRWSel + GPRWSelL
 
-        val MemType = RegWen + BoolLen
-        val MemTypeL= 3
-
-        val MemWen  = MemType + MemTypeL
+        val MemWen  = GPRWen + BoolLen
         val MemRen  = MemWen + BoolLen
         val IsJmp   = MemRen + BoolLen
         val IsBrk   = IsJmp + BoolLen
@@ -69,6 +66,10 @@ object Encode {
         val CSRWSel = CSRWen + BoolLen
         val CSRWSelL= 3
 
+        // val Rs1Sel = CSRWSel + CSRWSelL
+        // val Rs2Sel = Rs1Sel + BoolLen
+
+        // val DNPCSel = Rs2Sel + BoolLen
         val DNPCSel = CSRWSel + CSRWSelL
 
         val CSRWAddrSel = DNPCSel + BoolLen
@@ -82,57 +83,67 @@ object Encode {
     def toInt(boolValue: Boolean): Int = if(boolValue) 1 else 0
     
     def encode (
-        inst_type: InstType, 
+        instType: InstType, 
         _alu_sel:   AluSel,
         _cmp_sel:   CmpSel,
-        _mem_type:  MemType,
         _csr_sel:   CSRWSel,
         ): BitPat = {
             var alu_sel = _alu_sel.id
             val cmp_sel = _cmp_sel.id
-            val mem_type = _mem_type.id
             
-            val is_brk  = toInt(inst_type == InstType.EB)
+            val is_brk  = toInt(instType == InstType.EB)
             val is_jmp  = toInt(
-                (inst_type == InstType.IJ) || 
-                (inst_type == InstType. J) || 
-                (inst_type == InstType.EC) ||
-                (inst_type == InstType. B) ||
-                (inst_type == InstType.MR)
+                (instType == InstType.IJ) || 
+                (instType == InstType. J) || 
+                (instType == InstType.EC) ||
+                (instType == InstType. B) ||
+                (instType == InstType.MR)
             )
-            val mem_wen = toInt((inst_type == InstType. S))
-            val mem_ren = toInt((inst_type == InstType.IL))
-            val reg_ws = inst_type match {
-                case InstType. R => RegWSel.EXU.id
-                case InstType.IA => RegWSel.EXU.id
-                case InstType.IU => RegWSel.EXU.id
-                case InstType.IL => RegWSel.MEM.id
-                case InstType.IJ => RegWSel. SN.id
-                case InstType. J => RegWSel. SN.id
-                case InstType.UL => RegWSel.EXU.id
-                case InstType.UA => RegWSel.EXU.id
-                case InstType. C => RegWSel.CSR.id
-                case _           => RegWSel.DIS.id
+            val mem_wen = toInt((instType == InstType. S))
+            val mem_ren = toInt((instType == InstType.IL))
+            val reg_ws = instType match {
+                case InstType. R => GPRWSel.EXU.id
+                case InstType.IA => GPRWSel.EXU.id
+                case InstType.IU => GPRWSel.EXU.id
+                case InstType.IL => GPRWSel.MEM.id
+                case InstType.IJ => GPRWSel. SN.id
+                case InstType. J => GPRWSel. SN.id
+                case InstType.UL => GPRWSel.EXU.id
+                case InstType.UA => GPRWSel.EXU.id
+                // case InstType.CR => GPRWSel.CSR.id
+                case InstType.C  => GPRWSel.CSR.id
+                case _           => GPRWSel.EXU.id
             }
-            val reg_wen = toInt(reg_ws != RegWSel.DIS.id)
-            val is_invalid = toInt(inst_type == InstType.IVD)
+            val REG_WEN_SEQ = Seq(
+                InstType. R,
+                InstType.IA,
+                InstType.IU,
+                InstType.IL,
+                InstType.IJ,
+                InstType. J,
+                InstType.UL,
+                InstType.UA,
+                InstType. C
+            )
+            val reg_wen = toInt(REG_WEN_SEQ.contains(instType))
+            val is_invalid = toInt(instType == InstType.IVD)
             val a_sel = toInt(
-                (inst_type == InstType. J) ||
-                (inst_type == InstType. B) ||
-                (inst_type == InstType.UA)
+                (instType == InstType. J) ||
+                (instType == InstType. B) ||
+                (instType == InstType.UA)
             )
             val b_sel = toInt(
-                (inst_type == InstType.IA) ||
-                (inst_type == InstType.IU) ||
-                (inst_type == InstType.IL) ||
-                (inst_type == InstType.IJ) ||
-                (inst_type == InstType. S) ||
-                (inst_type == InstType. J) ||
-                (inst_type == InstType. B) ||
-                (inst_type == InstType.UA) ||
-                (inst_type == InstType.UL)
+                (instType == InstType.IA) ||
+                (instType == InstType.IU) ||
+                (instType == InstType.IL) ||
+                (instType == InstType.IJ) ||
+                (instType == InstType. S) ||
+                (instType == InstType. J) ||
+                (instType == InstType. B) ||
+                (instType == InstType.UA) ||
+                (instType == InstType.UL)
             )
-            val imm_type = inst_type match {
+            val imm_type = instType match {
                 case InstType.IA => ImmType. I.id
                 case InstType.IJ => ImmType. I.id
                 case InstType.IL => ImmType. I.id
@@ -144,21 +155,28 @@ object Encode {
                 case InstType. J => ImmType. J.id
                 case _           => ImmType. N.id
             }
-            val csr_wen = toInt(inst_type == InstType.C) 
+            // val csr_wen = toInt(instType == InstType.CR || instType == InstType.CI)
+            val csr_wen = toInt(instType == InstType.C)
             val csr_wsel = _csr_sel.id
-            val dnpc_sel = toInt((inst_type == InstType.EC) || (inst_type == InstType.MR))
-            val csr_waddr_sel = inst_type match {
+            val dnpc_sel = toInt(instType == InstType.EC || instType == InstType.MR)
+            val csr_waddr_sel = instType match {
                 case InstType.EC => CSRAddrSel.EPC.id
+                // case InstType.CR => CSRAddrSel.Ins.id
+                // case InstType.CI => CSRAddrSel.Ins.id
                 case InstType. C => CSRAddrSel.Ins.id
                 case _           => CSRAddrSel.  N.id
             }
-            val csr_raddr_sel = inst_type match {
+            val csr_raddr_sel = instType match {
                 case InstType.EC => CSRAddrSel.VEC.id
                 case InstType.MR => CSRAddrSel.EPC.id
+                // case InstType.CR => CSRAddrSel.Ins.id
+                // case InstType.CI => CSRAddrSel.Ins.id
                 case InstType. C => CSRAddrSel.Ins.id
                 case _           => CSRAddrSel.  N.id
             }
-            val is_ecall = toInt(inst_type == InstType.EC)
+            val is_ecall = toInt(instType == InstType.EC)
+            // val rs1Sel = toInt(instType == InstType.CI)
+            // val rs2Sel = toInt(instType == InstType.CR || instType == InstType.CI)
             
             var bits: Long = 0L
             bits |= (imm_type   & 0b1111).toLong << Pos.ImmType
@@ -166,9 +184,8 @@ object Encode {
             bits |= (a_sel      & 0b1   ).toLong << Pos.ASel
             bits |= (b_sel      & 0b1   ).toLong << Pos.BSel
             bits |= (cmp_sel    & 0b111 ).toLong << Pos.CmpSel
-            bits |= (reg_ws     & 0b111 ).toLong << Pos.RegWSel
-            bits |= (reg_wen    & 0b1   ).toLong << Pos.RegWen
-            bits |= (mem_type   & 0b111 ).toLong << Pos.MemType
+            bits |= (reg_ws     & 0b111 ).toLong << Pos.GPRWSel
+            bits |= (reg_wen    & 0b1   ).toLong << Pos.GPRWen
             bits |= (mem_wen    & 0b1   ).toLong << Pos.MemWen
             bits |= (mem_ren    & 0b1   ).toLong << Pos.MemRen
             bits |= (is_jmp     & 0b1   ).toLong << Pos.IsJmp
@@ -176,6 +193,8 @@ object Encode {
             bits |= (is_invalid & 0b1   ).toLong << Pos.IsIvd
             bits |= (csr_wen    & 0b1   ).toLong << Pos.CSRWen
             bits |= (csr_wsel   & 0b111 ).toLong << Pos.CSRWSel
+            // bits |= (rs1Sel     & 0b1   ).toLong << Pos.Rs1Sel
+            // bits |= (rs2Sel     & 0b1   ).toLong << Pos.Rs2Sel
             bits |= (dnpc_sel   & 0b1   ).toLong << Pos.DNPCSel
             bits |= (csr_waddr_sel & 0b11).toLong << Pos.CSRWAddrSel
             bits |= (csr_raddr_sel & 0b11).toLong << Pos.CSRRAddrSel
@@ -183,15 +202,38 @@ object Encode {
             return BitPat(bits.U(48.W))
         }
     
-    def encode_r(alu_sel: AluSel) : BitPat = encode(InstType.R, alu_sel, CmpSel.N, MemType.N, CSRWSel.W)
-    def encode_i(inst_type: InstType, alu_sel: AluSel) : BitPat = encode(inst_type, alu_sel, CmpSel.  N, MemType. N, CSRWSel.W)
+    def encode_r(alu_sel: AluSel) : BitPat = encode(InstType.R, alu_sel, CmpSel.N, CSRWSel.W)
+    def encode_i(instType: InstType, alu_sel: AluSel) : BitPat = encode(instType, alu_sel, CmpSel.  N, CSRWSel.W)
     def encode_ia(alu_sel: AluSel) : BitPat = encode_i(InstType.IA, alu_sel)
     def encode_iu(alu_sel: AluSel) : BitPat = encode_i(InstType.IU, alu_sel)
-    def encode_load(mem_type: MemType) : BitPat = encode(InstType.IL, AluSel.ADD, CmpSel.N, mem_type, CSRWSel.W)
-    def encode_save(mem_type: MemType) : BitPat = encode(InstType. S, AluSel.ADD, CmpSel.N, mem_type, CSRWSel.W)
-    def encode_jump(inst_type: InstType) : BitPat = encode(inst_type, AluSel.ADD, CmpSel.Y, MemType.N, CSRWSel.W)
-    def encode_brch(cmp_sel: CmpSel) : BitPat = encode(InstType.B, AluSel.ADD, cmp_sel, MemType.N, CSRWSel.W)
-    def encode_csr(csr_wsel: CSRWSel) : BitPat = encode(InstType.C, AluSel.N, CmpSel.N, MemType.N, csr_wsel)
+    def encode_load() : BitPat = encode(InstType.IL, AluSel.ADD, CmpSel.N, CSRWSel.W)
+    def encode_save() : BitPat = encode(InstType. S, AluSel.ADD, CmpSel.N, CSRWSel.W)
+    def encode_jump(instType: InstType) : BitPat = encode(instType, AluSel.ADD, CmpSel.Y, CSRWSel.W)
+    def encode_brch(cmpSel: CmpSel) : BitPat = encode(InstType.B, AluSel.ADD, cmpSel, CSRWSel.W)
+    def encode_csr(csrWSel: CSRWSel) : BitPat = encode(InstType.C, AluSel.N, CmpSel.N, csrWSel)
+}
+
+import Encode.Pos
+class OP(t : UInt) {
+    val immType = t(Pos.ImmType + Pos.ImmTypeL  - 1, Pos.ImmType)
+    val aluSel  = t(Pos.ALUSel  + Pos.ALUSelL   - 1, Pos.ALUSel)
+    val aSel    = t(Pos.ASel    + Pos.BoolLen   - 1, Pos.ASel).asBool
+    val bSel    = t(Pos.BSel    + Pos.BoolLen   - 1, Pos.BSel).asBool
+    val cmpSel  = t(Pos.CmpSel  + Pos.CSRWSelL  - 1, Pos.CmpSel)
+    val gprWSel = t(Pos.GPRWSel + Pos.GPRWSelL  - 1, Pos.GPRWSel)
+    val gprWen  = t(Pos.GPRWen  + Pos.BoolLen   - 1, Pos.GPRWen).asBool
+    val memWen  = t(Pos.MemWen  + Pos.BoolLen   - 1, Pos.MemWen).asBool
+    val menRen  = t(Pos.MemRen  + Pos.BoolLen   - 1, Pos.MemRen).asBool
+    val isJmp   = t(Pos.IsJmp   + Pos.BoolLen   - 1, Pos.IsJmp).asBool
+    val isBrk   = t(Pos.IsBrk   + Pos.BoolLen   - 1, Pos.IsBrk).asBool
+    val isIvd   = t(Pos.IsIvd   + Pos.BoolLen   - 1, Pos.IsIvd).asBool
+    // val rs1Sel  = t(Pos.Rs1Sel  + Pos.BoolLen   - 1, Pos.Rs1Sel).asBool
+    // val rs2Sel  = t(Pos.Rs2Sel  + Pos.BoolLen   - 1, Pos.Rs2Sel).asBool
+    val csrWen  = t(Pos.CSRWen  + Pos.BoolLen   - 1, Pos.CSRWen).asBool
+    val dnpcSel = t(Pos.DNPCSel + Pos.BoolLen   - 1, Pos.DNPCSel).asBool
+    val csrWASel= t(Pos.CSRWAddrSel + Pos.CSRWAddrSelL - 1, Pos.CSRWAddrSel)
+    val csrRASel= t(Pos.CSRRAddrSel + Pos.CSRRAddrSelL - 1, Pos.CSRRAddrSel)
+    val isEcall = t(Pos.IsECall + Pos.BoolLen   - 1, Pos.IsECall).asBool
 }
 
 object Decoder {
@@ -274,15 +316,15 @@ object Decoder {
             SLTI    -> Encode.encode_ia(AluSel. SLT),
             SLTIU   -> Encode.encode_iu(AluSel.SLTU),
 
-            LB      -> Encode.encode_load(MemType. B),
-            LH      -> Encode.encode_load(MemType. H),
-            LW      -> Encode.encode_load(MemType. W),
-            LBU     -> Encode.encode_load(MemType.BU),
-            LHU     -> Encode.encode_load(MemType.HU),
+            LB      -> Encode.encode_load(),
+            LH      -> Encode.encode_load(),
+            LW      -> Encode.encode_load(),
+            LBU     -> Encode.encode_load(),
+            LHU     -> Encode.encode_load(),
 
-            SB      -> Encode.encode_save(MemType.B),
-            SH      -> Encode.encode_save(MemType.H),
-            SW      -> Encode.encode_save(MemType.W),
+            SB      -> Encode.encode_save(),
+            SH      -> Encode.encode_save(),
+            SW      -> Encode.encode_save(),
 
             JALR    -> Encode.encode_jump(InstType.IJ),
             JAL     -> Encode.encode_jump(InstType. J),
@@ -294,23 +336,29 @@ object Decoder {
             BLT     -> Encode.encode_brch(CmpSel. LT),
             BLTU    -> Encode.encode_brch(CmpSel.LTU),
 
-            CSRRW   -> Encode.encode_csr(CSRWSel. W),
-            CSRRS   -> Encode.encode_csr(CSRWSel. S),
-            CSRRC   -> Encode.encode_csr(CSRWSel. C),
+            CSRRW   -> Encode.encode_csr(CSRWSel.W ),
+            CSRRS   -> Encode.encode_csr(CSRWSel.S ),
+            CSRRC   -> Encode.encode_csr(CSRWSel.C ),
             CSRRWI  -> Encode.encode_csr(CSRWSel.WI),
             CSRRSI  -> Encode.encode_csr(CSRWSel.SI),
             CSRRCI  -> Encode.encode_csr(CSRWSel.CI),
+            // CSRRW   -> Encode.encode_csr(AluSel.ASEL),
+            // CSRRS   -> Encode.encode_csr(AluSel.  OR),
+            // CSRRC   -> Encode.encode_csr(AluSel.  AN),
+            // CSRRWI  -> Encode.encode_csr(AluSel.ASEL),
+            // CSRRSI  -> Encode.encode_csr(AluSel.  OR),
+            // CSRRCI  -> Encode.encode_csr(AluSel.  AN),
 
-            AUIPC   -> Encode.encode(InstType.UA, AluSel. ADD, CmpSel.N, MemType.N, CSRWSel.W),
-            LUI     -> Encode.encode(InstType.UL, AluSel.BSEL, CmpSel.N, MemType.N, CSRWSel.W),
-            EBREAK  -> Encode.encode(InstType.EB, AluSel.   N, CmpSel.N, MemType.N, CSRWSel.W),
-            ECALL   -> Encode.encode(InstType.EC, AluSel.   N, CmpSel.Y, MemType.N, CSRWSel.W),
-            MRET    -> Encode.encode(InstType.MR, AluSel.BSEL, CmpSel.Y, MemType.N, CSRWSel.W)
+            AUIPC   -> Encode.encode(InstType.UA, AluSel. ADD, CmpSel.N, CSRWSel.W),
+            LUI     -> Encode.encode(InstType.UL, AluSel.BSEL, CmpSel.N, CSRWSel.W),
+            EBREAK  -> Encode.encode(InstType.EB, AluSel.   N, CmpSel.N, CSRWSel.W),
+            ECALL   -> Encode.encode(InstType.EC, AluSel.   N, CmpSel.Y, CSRWSel.W),
+            MRET    -> Encode.encode(InstType.MR, AluSel.BSEL, CmpSel.Y, CSRWSel.W)
         ),
-        default = Encode.encode(InstType.IVD, AluSel.N, CmpSel.N, MemType.N, CSRWSel.W)
+        default = Encode.encode(InstType.IVD, AluSel.N, CmpSel.N, CSRWSel.W)
     )
 
-    def decode(inst: UInt) : UInt = {
-        return decoder(inst, truthTable)
+    def decode(inst: UInt) : OP = {
+        return new OP(decoder(inst, truthTable))
     }
 }

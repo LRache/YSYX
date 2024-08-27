@@ -62,7 +62,7 @@ extern FILE* log_fp;
 #define Assert(cond, format, ...) \
   do { \
     if (!(cond)) { \
-      (fflush(stdout), fprintf(stderr, ANSI_FMT(format, ANSI_FG_RED) "\n", ##  __VA_ARGS__)); \
+      (fflush(stdout), fprintf(stderr, ANSI_FMT("[%s:%d %s] " format, ANSI_FG_RED) "\n", __FILE__, __LINE__, __func__, ##  __VA_ARGS__)); \
       assert(cond); \
     } \
   } while (0)

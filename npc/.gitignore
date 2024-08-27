@@ -1,6 +1,4 @@
 obj
 out
 sim
-!csrc/**
-!ssrc/**
-!vsrc/**
+build

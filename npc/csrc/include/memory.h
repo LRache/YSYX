@@ -4,6 +4,7 @@
 #include <string>
 
 #include "common.h"
+#include "config.h"
 
 extern "C" void pmem_read (addr_t addr, word_t *data, int size);
 extern "C" void pmem_write(addr_t addr, word_t data, uint8_t mask);
@@ -31,5 +32,37 @@ void load_img_to_rom_from_mem(const uint32_t *img, size_t length);
 
 void load_img_to_flash_from_file(const std::string &path);
 void load_img_to_flash_from_mem(const uint32_t *img, size_t length);
+
+static inline bool in_flash(addr_t addr) {
+    #ifdef HAS_FLASH
+    return addr - FLASH_BASE < FLASH_SIZE;
+    #else
+    return false;
+    #endif
+}
+
+static inline bool in_sram(addr_t addr) {
+    #ifdef HAS_SRAM
+    return addr - SRAM_BASE < SRAM_SIZE;
+    #else
+    return false;
+    #endif
+}
+
+static inline bool in_psram(addr_t addr) {
+    #ifdef HAS_PSRAM
+    return addr - PSRAM_BASE < PSRAM_SIZE;
+    #else
+    return false;
+    #endif
+}
+
+static inline bool in_sdram(addr_t addr) {
+    #ifdef HAS_SDRAM
+    return addr - SDRAM_BASE < SDRAM_SIZE;
+    #else
+    return false;
+    #endif
+}
 
 #endif

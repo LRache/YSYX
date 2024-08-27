@@ -9,6 +9,8 @@
 #include "test_img.h"
 #include "config.h"
 #include "nvboard.h"
+#include "perf.h"
+#include "itrace.h"
 
 CPU cpu;
 uint32_t lastPC;
@@ -16,10 +18,14 @@ uint32_t lastInst;
 uint32_t regs[32];
 
 VTop top;
-static uint64_t instCount = 0;
 static uint64_t timer = 0;
+std::string hdb::outputDir = "./";
 
-#define IMG_NAME test_img_gpio
+#ifdef ITRACE
+static ITrace itracer;
+#endif
+
+#define IMG_NAME test_img_mem1
 
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
@@ -31,7 +37,12 @@ static void exec_once() {
     nvboard::update();
 }
 
-void hdb::init(const std::string &memImgPath, const std::string &romImgPath, const std::string &flashImgPath) {
+void hdb::init(
+    const std::string &memImgPath, 
+    const std::string &romImgPath, 
+    const std::string &flashImgPath, 
+    const std::string &outputDir
+) {
     difftest::init();
     nvboard::init();
 
@@ -39,9 +50,10 @@ void hdb::init(const std::string &memImgPath, const std::string &romImgPath, con
     load_img_to_mem_from_file(memImgPath);
     load_img_to_rom_from_file(romImgPath);
     load_img_to_flash_from_file(flashImgPath);
+    hdb::outputDir = outputDir;
 
     cpu.running = true;
-    instCount = 0;
+    cpu.instCount = 0;
     timer = 0;
     cpu.clockCount = 0;
 
@@ -50,6 +62,12 @@ void hdb::init(const std::string &memImgPath, const std::string &romImgPath, con
     top.reset = 0;
     Log("Reset at clock=%lu", cpu.clockCount);
     
+    perf::init();
+
+    #ifdef ITRACE
+    itracer.start(INST_START);
+    #endif
+
     cpu.mstatus = 0x1800;
     Log("Init finished.");
 }
@@ -61,32 +79,24 @@ void hdb::step() {
     }
     while (!cpu.valid && cpu.running) {
         exec_once();
-        // Log ("Exec to pc = " FMT_WORD, cpu.pc);
     }
-    // Log ("Exec to pc = " FMT_WORD, cpu.pc);
     exec_once(); // update PC for difftest.
     difftest::step();
-    instCount++;
+    cpu.instCount++;
 }
 
 void hdb_statistic() {
-    Log("Total count of instructions = %'" PRIu64, instCount);
-    Log("Total time spent = %'" PRIu64 " us with %" PRIu64 " clocks, frequency=%.3lfkHz", timer, cpu.clockCount, (double)cpu.clockCount * 1000 / timer);
-    if (timer > 0) Log("Simulation frequency = %'" PRIu64 " inst/s", instCount * 1000000 / timer);
+    Log("Total count of instructions = %" PRIu64 " with %" PRIu64 " clocks, IPC=%.6lf", cpu.instCount, cpu.clockCount, (double)cpu.instCount / cpu.clockCount);
+    Log("Total time spent = %'" PRIu64 " us, frequency=%.3lfkHz", timer, (double)cpu.clockCount * 1000 / timer);
+    if (timer > 0) Log("Simulation frequency = %'" PRIu64 " inst/s", cpu.instCount * 1000000 / timer);
 }
 
 int hdb::run(uint64_t n) {
     auto timerStart = std::chrono::high_resolution_clock::now();
     if (n == 0) {
-        while (cpu.running)
-        {
-            step();
-        }
+        while (cpu.running) step();
     } else {
-        while (cpu.running && n--)
-        {
-            step();
-        }
+        while (cpu.running && n--) step();
     }
     auto timerEnd = std::chrono::high_resolution_clock::now();
     timer += std::chrono::duration_cast<std::chrono::microseconds>(timerEnd - timerStart).count();
@@ -99,7 +109,11 @@ int hdb::run(uint64_t n) {
     }
 
     difftest::end();
+    perf::statistic();
     hdb_statistic();
+    #ifdef ITRACE
+    itracer.dump_to_file(outputDir + "trace/itrace");
+    #endif
     return r;
 }
 
@@ -114,7 +128,6 @@ void hdb_set_csr(uint32_t addr, word_t data) {
         case 0x342: cpu.mcause  = data; break;
         default: panic("Invalid CSR: 0x%x(%d) at pc=0x%08x(inst=0x%08x)", addr, addr, cpu.pc, cpu.inst);
     }
-    // Log("Set CSR addr=0x%x, data=0x%08x(%d)", addr, data, data);
 }
 
 void hdb_set_reg(uint32_t addr, word_t data) {
@@ -124,18 +137,25 @@ void hdb_set_reg(uint32_t addr, word_t data) {
 
 void hdb_invalid_inst() {
     cpu.running = false;
-    panic("Invalid Inst at pc=" FMT_WORD " (inst=" FMT_WORD ")", cpu.pc, cpu.inst);
+    panic("Invalid Inst at pc=" FMT_WORD " (inst=" FMT_WORD ") clock=%lu", cpu.pc, cpu.inst, cpu.clockCount);
 }
 
 void hdb_update_pc(uint32_t pc) {
     lastPC = cpu.pc;
     cpu.pc = pc;
+    if (!(top.reset || in_flash(pc) || in_sdram(pc))) {
+        panic("Invalid PC = " FMT_WORD, pc);
+    }
+    #ifdef ITRACE
+    itracer.trace(pc);
+    #endif
     // Log("Exec to pc=" FMT_WORD, pc);
 }
 
 void hdb_update_inst(uint32_t inst) {
     lastInst = cpu.inst;
     cpu.inst = inst;
+    // Log(FMT_WORD, inst);
 }
 
 void hdb_update_valid(bool valid) {

@@ -26,6 +26,7 @@ static void __fmt_u   (FmtBuffer *buffer, va_list *ap, char *arg);
 static void __fmt_x   (FmtBuffer *buffer, va_list *ap, char *arg);
 static void __fmt_X   (FmtBuffer *buffer, va_list *ap, char *arg);
 static void __fmt_p   (FmtBuffer *buffer, va_list *ap, char *arg);
+static void __fmt_ld  (FmtBuffer *buffer, va_list *ap, char *arg);
 static void __fmt_llu (FmtBuffer *buffer, va_list *ap, char *arg);
 
 typedef struct {
@@ -42,6 +43,7 @@ static FmtEntry fmtTable[] = {
   {"x"   , 1, __fmt_x},
   {"X"   , 1, __fmt_X},
   {"p"   , 1, __fmt_p},
+  {"ld"  , 2, __fmt_ld},
   {"llu" , 3, __fmt_llu},
 };
 
@@ -223,6 +225,62 @@ static void __fmt_p(FmtBuffer *buffer, va_list *ap, char *arg) {
   buffer->write(buffer, '0');
   buffer->write(buffer, 'x');
   __fmt_hex(buffer, ap, arg, 'a', 8, '0');
+}
+
+static void __fmt_ld(FmtBuffer *buffer, va_list *ap, char *arg) {
+  long int d = va_arg(*ap, long int);
+  int leftAlign = 0;
+  int minWidth = 0;
+  int zeroFill = 0;
+  if (*arg != 0) {
+    if (*arg == '0') {
+      zeroFill = 1;
+      arg++;
+    }
+    if (*arg == '-') {
+      leftAlign = 1;
+      arg++;
+    } 
+    while (*arg) {
+      minWidth = minWidth * 10 + *arg - '0';
+      arg++;
+    }
+  } 
+  int sign = d < 0;
+  if (sign) d = -d;
+  
+  char stack[24] = {};
+  char *t = stack;
+  if (d == 0) {
+    *(t++) = '0';
+  } else {
+    while (d) {
+      *(t++) = d % 10 + '0';
+      d = d / 10;
+    }
+  }
+
+  int width = t - stack;
+  char *h = stack;
+  if (width < minWidth) {
+    if (leftAlign) {
+      while (t > h) buffer->write(buffer, *(--t));
+      while (width < minWidth) {
+        buffer->write(buffer, ' ');
+        width ++;
+      }
+    } else {
+      char fill = zeroFill ? '0' : ' ';
+      while (width < minWidth) {
+        buffer->write(buffer, fill);
+        width++;
+      }
+      while (t > h) buffer->write(buffer, *(--t));
+    }
+  } else {
+    if (sign) buffer->write(buffer, '-');
+    while (t > h) buffer->write(buffer, *(--t));
+  }
 }
 
 static void __fmt_llu(FmtBuffer *buffer, va_list *ap, char *arg) {

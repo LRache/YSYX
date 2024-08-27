@@ -1,8 +1,9 @@
 VERILATOR= verilator
 VERILATOR_CFLAGS += -MMD --build -cc -O3 --trace-fst 
-VERILATOR_FLAGS += --timescale "1ns/1ns" --no-timing
+VERILATOR_FLAGS += --timescale "1ns/1ns" --no-timing --autoflush
 INC_PATH += $(abspath ./csrc/include)
 INC_PATH += $(abspath ./obj)
+INC_PATH += $(abspath ./csrc/util/cachesim/include)
 
 m = Top
 ifeq ($(m),soc)
@@ -13,27 +14,16 @@ TOP=$(lastword $(subst ., ,$(m)))
 mainModule=$(m)
 endif
 
-ifneq ($(mem),)
-SIM_FLAGS += -m $(abspath $(mem))
-endif
-ifneq ($(rom),)
-SIM_FLAGS += -r $(abspath $(rom))
-endif
-ifneq ($(flash),)
-SIM_FLAGS += -f $(abspath $(flash))
-endif
-
 SSRC_DIR = $(abspath ./ssrc)
 CSRC_DIR = $(abspath ./csrc)
 VSRC_DIR = $(abspath ./vsrc)
+BUILD_DIR = $(abspath ./build)
 OBJ_DIR	 = $(abspath ./obj/V$(TOP))
-SIM_DIR  = $(abspath ./sim)
-SIM_EXE  = $(abspath $(SIM_DIR)/V$(TOP))
-TEMP_DIR = $(abspath ./temp)
-TEMP_EXE = $(TEMP_DIR)/V$(TOP)
+SIM_EXE  = $(abspath $(BUILD_DIR)/V$(TOP))
+OUTPUT_DIR = $(abspath ./output)
 
 SSRCS = $(abspath $(shell find $(SSRC_DIR) -name "*.scala"))
-VSRCS = $(abspath $(shell find $(VSRC_DIR) -name "*.v" -or -name "*.sv"))
+VSRCS = $(abspath $(shell find $(VSRC_DIR) -name "*.v" -or -name "*.sv")) $(abspath $(shell find $(BUILD_DIR) -name "*.v" -or -name "*.sv"))
 CSRCS = $(abspath $(shell find $(CSRC_DIR) -name "*.c" -or -name "*.cc" -or -name "*.cpp"))
 
 ifeq ($(m),soc)
@@ -54,8 +44,21 @@ VERILATOR_FLAGS += $(VINCFLAGS)
 
 CXXFLAGS += $(addprefix -DVTop=, V$(TOP))
 CXXFLAGS += $(addprefix -DVTopHeader=, \"V$(TOP)/V$(TOP).h\")
+CXXFLAGS += -I/usr/lib/llvm-14/include -std=c++14   -fno-exceptions -lLLVM-14 -fPIE
 
 LDFLAGS += -dynamic-linker $(NEMU_SO)
+
+
+ifneq ($(mem),)
+SIM_FLAGS += -m $(abspath $(mem))
+endif
+ifneq ($(rom),)
+SIM_FLAGS += -r $(abspath $(rom))
+endif
+ifneq ($(flash),)
+SIM_FLAGS += -f $(abspath $(flash))
+endif
+SIM_FLAGS += -o $(OUTPUT_DIR)
 
 PRJ = playground
 
@@ -64,8 +67,8 @@ test:
 
 verilog: $(SSRCS)
 	$(call git_commit, "generate verilog")
-	mkdir -p $(VSRC_DIR)
-	mill -i $(PRJ).runMain $(mainModule) --target-dir $(VSRC_DIR) --target verilog
+	mkdir -p $(BUILD_DIR)
+	mill -i $(PRJ).runMain $(mainModule) --target-dir $(BUILD_DIR) --target verilog
 
 help:
 	mill -i $(PRJ).runMain mainModule --help
@@ -92,7 +95,6 @@ $(OBJ_DIR)/V$(TOP).mk: verilog
 	$(VERILATOR) --cc $(VSRCS) --Mdir $(OBJ_DIR) --trace-fst --top-module $(TOP) $(VERILATOR_FLAGS)
 
 $(SIM_EXE): $(CSRCS) $(VSRCS) $(NVBOARD_ARCHIVE)
-	mkdir -p $(SIM_DIR)
 	$(VERILATOR) $(VERILATOR_CFLAGS) $(VERILATOR_FLAGS) --top-module $(TOP) $(CSRCS) $(VSRCS) $(NVBOARD_ARCHIVE) $(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) --Mdir $(OBJ_DIR) --exe -o $(SIM_EXE)
 
 .PHONY sim: $(SIM_EXE)

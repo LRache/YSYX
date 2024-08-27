@@ -87,7 +87,15 @@
         "host.h": "c",
         "mmio.h": "c",
         "stdint.h": "c",
-        "*.inc": "c"
+        "*.inc": "c",
+        "iomanip": "cpp",
+        "rthw.h": "c",
+        "rtthread.h": "c",
+        "rtconfig.h": "c",
+        "rtdebug.h": "c",
+        "rtdef.h": "c",
+        "rtservice.h": "c",
+        "rtm.h": "c"
     },
     "files.watcherExclude": {
         "**/target": true

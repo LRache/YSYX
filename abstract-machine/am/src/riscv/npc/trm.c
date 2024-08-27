@@ -6,11 +6,10 @@
 extern char _heap_start;
 int main(const char *args);
 
-extern char _pmem_start;
-#define PMEM_SIZE (32 * 1024 * 1024)
-#define PMEM_END  ((uintptr_t)&_pmem_start + PMEM_SIZE)
+#define HEAP_SIZE (8 * 1024 * 1024)
+#define HEAP_END  ((uintptr_t)&_heap_start + HEAP_SIZE)
 
-Area heap = RANGE(&_heap_start, PMEM_END);
+Area heap = RANGE(&_heap_start, HEAP_END);
 #ifndef MAINARGS
 #define MAINARGS ""
 #endif
@@ -22,6 +21,7 @@ void putch(char ch) {
 
 void _trm_init() {
   ioe_init();
+  
   int ret = main(mainargs);
   halt(ret);
 }

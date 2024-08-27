@@ -22,6 +22,10 @@ void __am_uart_init() {
     UART_FCR = 0x7;
 }
 
+void __am_uart_config(AM_INPUT_CONFIG_T *cfg) { 
+    cfg->present = true;
+}
+
 inline int __uart_tx_ready() {
     return UART_LSR & (1 << 5);
 }

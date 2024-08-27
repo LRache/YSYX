@@ -3,6 +3,7 @@ package cpu.reg
 import chisel3._
 import chisel3.util.MuxLookup
 import chisel3.util.MuxCase
+import cpu.reg.CSRAddr.{MCAUSE => MCAUSE}
 
 object CSRWSel extends Enumeration {
     type CSRWSel = Value
@@ -32,26 +33,24 @@ class CSRDebugger extends BlackBox {
 class CSR extends Module {
     val io = IO(new Bundle {
         val waddr1  = Input (UInt(12.W))
-        val waddr2  = Input (UInt(12.W))
+        val is_ecall= Input (Bool())
+        // val waddr2  = Input (UInt(12.W))
         val wdata1  = Input (UInt(32.W))
         val wdata2  = Input (UInt(32.W))
         val wen1    = Input (Bool())
-        val wen2    = Input (Bool())
+        // val wen2    = Input (Bool())
         val raddr   = Input (UInt(12.W))
         val rdata   = Output(UInt(32.W))
-        val dbg     = Output(UInt(32.W))
     })
 
     val mvendorid = RegInit(0x79737938.U(32.W))
-    val marchid = RegInit(0.U(12.W))
+    val marchid = RegInit(0x24080016.U(32.W))
     val mcause  = RegInit(0.U(32.W))
     val mepc    = RegInit(0.U(32.W))
     val mscratch= RegInit(0.U(32.W))
     val mstatus = RegInit(0x1800.U(32.W))
     val mtvec   = RegInit(0.U(32.W))
     val satp    = RegInit(0.U(32.W))
-
-    io.dbg := mstatus
 
     io.rdata := MuxLookup(io.raddr, 0.U(32.W))(Seq (
         CSRAddr.MVENDORID -> mvendorid,
@@ -64,27 +63,16 @@ class CSR extends Module {
         CSRAddr.MCAUSE  -> mcause
     ))
 
-    when (io.wen1) {
-        when (io.waddr1 === CSRAddr.SATP) { satp := io.wdata1 } 
-        .elsewhen (io.waddr1 === CSRAddr.MSTATUS)  { mstatus  := io.wdata1 }
-        .elsewhen (io.waddr1 === CSRAddr.MTVEC)    { mtvec    := io.wdata1 }
-        .elsewhen (io.waddr1 === CSRAddr.MSCRATCH) { mscratch := io.wdata1 }
-        .elsewhen (io.waddr1 === CSRAddr.MEPC)     { mepc     := io.wdata1 }
-        .elsewhen (io.waddr1 === CSRAddr.MCAUSE)   { mcause   := io.wdata1 }
-        .elsewhen (io.waddr1 === CSRAddr.MVENDORID){ mvendorid:= io.wdata1 }
-        .elsewhen (io.waddr1 === CSRAddr.MARCHID)  { marchid  := io.wdata1 }
-    }
-
-    when (io.wen2) {
-        when (io.waddr2 === CSRAddr.SATP) { satp := io.wdata2 } 
-        .elsewhen (io.waddr2 === CSRAddr.MSTATUS)  { mstatus  := io.wdata2 }
-        .elsewhen (io.waddr2 === CSRAddr.MTVEC)    { mtvec    := io.wdata2 }
-        .elsewhen (io.waddr2 === CSRAddr.MSCRATCH) { mscratch := io.wdata2 }
-        .elsewhen (io.waddr2 === CSRAddr.MEPC)     { mepc     := io.wdata2 }
-        .elsewhen (io.waddr2 === CSRAddr.MCAUSE)   { mcause   := io.wdata2 }
-        .elsewhen (io.waddr2 === CSRAddr.MVENDORID){ mvendorid:= io.wdata2 }
-        .elsewhen (io.waddr2 === CSRAddr.MARCHID)  { marchid  := io.wdata2 }
-    }
+    // mstatus  := Mux(io.wen1 && io.waddr1 === CSRAddr.MSTATUS , io.wdata1, Mux(io.wen2 && io.waddr2 === CSRAddr.MSTATUS , io.wdata2, mstatus ))
+    // mtvec    := Mux(io.wen1 && io.waddr1 === CSRAddr.MTVEC   , io.wdata1, Mux(io.wen2 && io.waddr2 === CSRAddr.MTVEC   , io.wdata2, mtvec   ))
+    // mscratch := Mux(io.wen1 && io.waddr1 === CSRAddr.MSCRATCH, io.wdata1, Mux(io.wen2 && io.waddr2 === CSRAddr.MSCRATCH, io.wdata2, mscratch))
+    // mepc     := Mux(io.wen1 && io.waddr1 === CSRAddr.MEPC    , io.wdata1, Mux(io.wen2 && io.waddr2 === CSRAddr.MEPC    , io.wdata2, mepc    ))
+    // mcause   := Mux(io.wen1 && io.waddr1 === CSRAddr.MCAUSE  , io.wdata1, Mux(io.wen2 && io.waddr2 === CSRAddr.MCAUSE  , io.wdata2, mcause  ))
+    mstatus  := Mux(io.wen1 && io.waddr1 === CSRAddr.MSTATUS , io.wdata1, mstatus )
+    mtvec    := Mux(io.wen1 && io.waddr1 === CSRAddr.MTVEC   , io.wdata1, mtvec   )
+    mscratch := Mux(io.wen1 && io.waddr1 === CSRAddr.MSCRATCH, io.wdata1, mscratch)
+    mepc     := Mux(io.wen1 && io.waddr1 === CSRAddr.MEPC    , io.wdata1, mepc    )
+    mcause   := Mux(io.wen1 && io.waddr1 === CSRAddr.MCAUSE  , io.wdata1, Mux(io.is_ecall, io.wdata2, mcause))
 
     val debugger = Module(new CSRDebugger())
     debugger.io.clk := clock
@@ -94,7 +82,7 @@ class CSR extends Module {
 
     val debugger2 = Module(new CSRDebugger())
     debugger2.io.clk := clock
-    debugger2.io.wen := io.wen2
-    debugger2.io.waddr := io.waddr2
+    debugger2.io.wen := io.is_ecall
+    debugger2.io.waddr := MCAUSE
     debugger2.io.wdata := io.wdata2
 }

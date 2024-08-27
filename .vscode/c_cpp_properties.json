@@ -29,7 +29,6 @@
                 "${workspaceFolder}/abstract-machine/am/include",
                 "${workspaceFolder}/abstract-machine/am/include/arch",
                 "${workspaceFolder}/abstract-machine/am/src/",
-                "${workspaceFolder}/abstract-machine/am/src/platform/nemu/include",
                 "${workspaceFolder}/abstract-machine/klib/include"
             ],
             "defines": [
@@ -47,14 +46,34 @@
             "includePath": [
                 "${workspaceFolder}/abstract-machine/am/include",
                 "${workspaceFolder}/abstract-machine/am/include/arch",
-                "${workspaceFolder}/abstract-machine/am/src/",
-                "${workspaceFolder}/abstract-machine/am/src/platform/nemu/include",
                 "${workspaceFolder}/abstract-machine/klib/include",
+                "${workspaceFolder}/abstract-machine/src",
                 "${workspaceFolder}/am-kernels/tests/am-tests/include",
                 "${workspaceFolder}/am-kernels/tests/cpu-tests/include"
             ],
             "defines": [
                 "ARCH=riscv32-nemu",
+                "ARCH_H=\"arch/riscv.h\"",
+                "ISA_H=\"riscv/riscv.h\"",
+                "__ISA__=\"riscv32e\""
+            ],
+            "compilerPath": "/usr/bin/gcc"
+        },
+        {
+            "name": "RT-Thread",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64",
+            "includePath": [
+                "${workspaceFolder}/abstract-machine/am/include",
+                "${workspaceFolder}/abstract-machine/am/include/arch",
+                "${workspaceFolder}/abstract-machine/am/src",
+                "${workspaceFolder}/abstract-machine/klib/include",
+                "${workspaceFolder}/rt-thread-am/include",
+                "${workspaceFolder}/rt-thread-am/bsp/abstract-machine",
+                "${workspaceFolder}/rt-thread-am/bsp/abstract-machine/include/**"
+            ],
+            "defines": [
                 "ARCH_H=\"arch/riscv.h\"",
                 "ISA_H=\"riscv/riscv.h\"",
                 "__ISA__=\"riscv32e\""
@@ -83,7 +102,7 @@
         {
             "name": "Navy-apps",
             "includePath": [
-                "${workspaceFolder}/navy-apps/libs/**",
+                "${workspaceFolder}/navy-apps/libs/**"
             ],
             "defines": [
                 "${myDefines}",
@@ -117,7 +136,8 @@
                 "/usr/local/share/verilator/include/vltstd",
                 "${workspaceFolder}/nvboard/usr/include/",
                 "${workspaceFolder}/npc/csrc/include",
-                "${workspaceFolder}/npc/obj"
+                "${workspaceFolder}/npc/obj",
+                "${workspaceFolder}/npc/csrc/util/*/include"
             ],
             "compilerPath": "/usr/bin/gcc",
             "defines": [

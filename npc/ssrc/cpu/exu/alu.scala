@@ -6,7 +6,7 @@ import circt.stage.ChiselStage
 
 object AluSel extends Enumeration {
     type AluSel = Value
-    val ADD, SUB, AND, OR, XOR, SLL, SRL, SRA, SLT, SLTU, BSEL, N = Value
+    val ADD, SUB, AND, OR, XOR, SLL, SRL, SRA, SLT, SLTU, ASEL, BSEL, AN, N = Value
 }
 
 class Alu extends Module {
@@ -20,7 +20,7 @@ class Alu extends Module {
     val signed_b = io.b.asSInt
     val shift = io.b(4,0)
 
-    val resultSeq = Seq(
+    val resultTable = Seq(
         (AluSel. ADD.id.U) -> (io.a + io.b),
         (AluSel. SUB.id.U) -> (io.a - io.b),
         (AluSel. AND.id.U) -> (io.a & io.b),
@@ -33,8 +33,7 @@ class Alu extends Module {
         (AluSel.SLTU.id.U) -> (io.a < io.b).asUInt,
         (AluSel.BSEL.id.U) -> io.b,
     )
-
-    io.result := MuxLookup(io.sel, 0.U(32.W))(resultSeq)
+    io.result := MuxLookup(io.sel, 0.U(32.W))(resultTable)
 }
 
 object Alu extends App {
