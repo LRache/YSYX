@@ -1,6 +1,4 @@
 env.sh
 **/build
-.bloop
-.metals
 fceux-am
 verilog
