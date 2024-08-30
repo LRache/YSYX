@@ -11,6 +11,7 @@
 #include "nvboard.h"
 #include "perf.h"
 #include "itrace.h"
+#include "cache.h"
 
 CPU cpu;
 uint32_t lastPC;
@@ -110,6 +111,7 @@ int hdb::run(uint64_t n) {
     perf::statistic();
     hdb_statistic();
     itrace::print();
+    Cache cache(4, 0, 1);
     return r;
 }
 
