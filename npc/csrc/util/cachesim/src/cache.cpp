@@ -29,7 +29,7 @@ bool Cache::write(word_t addr) {
 SimResult Cache::sim(Tracer &tracer) {
     word_t addr;
     Tracer::Type t;
-    SimResult result;
+    SimResult result = {0, 0, 0, 0};
     tracer.iter_init();
     while (!tracer.iter_is_end()) {
         addr = tracer.iter_next(&t);
