@@ -20,7 +20,7 @@ class ICache (e: Int, s: Int, b: Int) extends Module {
     })
     val S = 1 << s
     val B = (1 << b) << 3
-    val t = 32 - s - b - 2
+    val t = 32 - s - b
     val E = 1 << e
 
     val groupIndex = Wire(UInt(s.W))
@@ -30,7 +30,7 @@ class ICache (e: Int, s: Int, b: Int) extends Module {
         groupIndex := io.io.raddr(s + b - 1, b)
     }
     
-    val tag = io.io.raddr(31, s + b + 2)
+    val tag = io.io.raddr(31, s + b)
 
     val cache = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((B + t + 1).W))))))
     val group = cache(groupIndex)
