@@ -47,7 +47,7 @@ SimResult Cache::sim(Tracer &tracer) {
             }
         }
     }
-    return result;
+    
 }
 
 Cache::~Cache() {
