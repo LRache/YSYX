@@ -86,15 +86,18 @@ void ITracer::iter_init() {
 
 word_t ITracer::iter_next(Type *t) {
     if (t != nullptr) *t = Type::READ;
+
+    if (iterIndex == tracer.size() && iterPC == this->endPC) {
+        this->iterIsEnd = true;
+        return iterPC;
+    }
+
     word_t npc = iterPC;
     if (iterPC == this->tracer[iterIndex].first) {
         iterPC = this->tracer[iterIndex].second;
         iterIndex++;
     } else {
         iterPC += 4;
-        if (iterIndex == tracer.size() && iterPC == this->endPC) {
-            this->iterIsEnd = true;
-        }
     }
     return npc;
 }
