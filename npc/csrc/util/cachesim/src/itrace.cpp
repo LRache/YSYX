@@ -40,7 +40,6 @@ void ITrace::trace(word_t npc) {
 
 void ITrace::end() {
     this->endPC = this->pc;
-    std::cout << this->pc << std::endl;
 }
 
 void ITrace::dump_to_file(const std::string &filename) {
