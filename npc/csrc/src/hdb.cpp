@@ -22,10 +22,6 @@ VTop top;
 static uint64_t timer = 0;
 std::string hdb::outputDir = "./";
 
-#ifdef ITRACE
-static ITrace itracer;
-#endif
-
 #define IMG_NAME test_img_mem1
 
 static uint32_t *img = IMG_NAME;
