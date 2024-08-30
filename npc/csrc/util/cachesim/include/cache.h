@@ -22,6 +22,7 @@ private:
     uint32_t *tag;
     uint32_t tagMask;
     uint32_t indexMask;
+    uint32_t *counter;
     bool *valid;
 public:
     Cache(int _e, int _s, int _b);

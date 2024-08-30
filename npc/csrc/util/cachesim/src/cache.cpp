@@ -10,6 +10,8 @@ Cache::Cache(int _e, int _s, int _b) : e(_e), s(_s), b(_b) {
     this->tag = new word_t[E*S];
     this->valid = new bool[E*S];
     std::fill(this->valid, this->valid + E*S, false);
+    this->counter = new unsigned int[S];
+    std::fill(this->counter, this->counter + S, 0);
 
     int tagLength = (sizeof(word_t) << 3) - s - b;
     this->tagMask = (0x80000000) >> tagLength;
@@ -18,8 +20,14 @@ Cache::Cache(int _e, int _s, int _b) : e(_e), s(_s), b(_b) {
 
 bool Cache::read(word_t addr) {
     int index = (addr & indexMask) >> b;
-    // std::cout << index << std::endl;
-    return true;
+    for (int i = 0; i < E; i++) {
+        if (this->tag[index * S + i] == (addr & this->tagMask)) {
+            return true;
+        }
+    }
+    this->tag[index * S + counter[index]] = addr & this->tagMask;
+    counter[index]++;
+    return false;
 }
 
 bool Cache::write(word_t addr) {
