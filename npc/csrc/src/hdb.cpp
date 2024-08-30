@@ -11,6 +11,7 @@
 #include "nvboard.h"
 #include "perf.h"
 #include "itrace.h"
+#include "cache.h"
 
 CPU cpu;
 uint32_t lastPC;
@@ -63,10 +64,7 @@ void hdb::init(
     Log("Reset at clock=%lu", cpu.clockCount);
     
     perf::init();
-
-    #ifdef ITRACE
-    itracer.start(INST_START);
-    #endif
+    itrace::start(INST_START);
 
     cpu.mstatus = 0x1800;
     Log("Init finished.");
@@ -88,7 +86,7 @@ void hdb::step() {
 void hdb_statistic() {
     Log("Total count of instructions = %" PRIu64 " with %" PRIu64 " clocks, IPC=%.6lf", cpu.instCount, cpu.clockCount, (double)cpu.instCount / cpu.clockCount);
     Log("Total time spent = %'" PRIu64 " us, frequency=%.3lfkHz", timer, (double)cpu.clockCount * 1000 / timer);
-    if (timer > 0) Log("Simulation frequency = %'" PRIu64 " inst/s", cpu.instCount * 1000000 / timer);
+    if (timer > 0) Log("Simulation frequency = %'" PRIu64 " clocks/s", cpu.clockCount * 1000000 / timer);
 }
 
 int hdb::run(uint64_t n) {
@@ -109,11 +107,11 @@ int hdb::run(uint64_t n) {
     }
 
     difftest::end();
+    itrace::end();
     perf::statistic();
     hdb_statistic();
-    #ifdef ITRACE
-    itracer.dump_to_file(outputDir + "trace/itrace");
-    #endif
+    itrace::print();
+    Cache cache(3, 0, 0);
     return r;
 }
 
@@ -146,9 +144,7 @@ void hdb_update_pc(uint32_t pc) {
     if (!(top.reset || in_flash(pc) || in_sdram(pc))) {
         panic("Invalid PC = " FMT_WORD, pc);
     }
-    #ifdef ITRACE
-    itracer.trace(pc);
-    #endif
+    itrace::trace(pc);
     // Log("Exec to pc=" FMT_WORD, pc);
 }
 
