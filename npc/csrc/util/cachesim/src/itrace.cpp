@@ -34,8 +34,8 @@ void ITrace::trace(word_t npc) {
     if (tracer.size() > ITRACE_LIMIT) return ;
     if (npc != this->pc + 4) {
         tracer.push_back({pc, npc});
-        this->pc = npc;
     }
+    this->pc = npc;
 }
 
 void ITrace::end() {
@@ -74,5 +74,5 @@ void ITrace::print() {
     for (auto &p : tracer) {
         std::cout << "[" << FMT_WORD << p.first << "]" <<"Jump to " << FMT_WORD << p.second << std::endl;
     }
-    std::cout << "END at pc=" << FMT_WORD << this->endPC;
+    std::cout << "END at pc=" << FMT_WORD << this->endPC << std::endl;
 }
