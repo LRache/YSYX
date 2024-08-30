@@ -111,7 +111,7 @@ int hdb::run(uint64_t n) {
     perf::statistic();
     hdb_statistic();
     itrace::print();
-    Cache cache(4, 0, 1);
+    Cache cache(3, 0, 0);
     return r;
 }
 

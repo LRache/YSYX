@@ -23,8 +23,6 @@ class ICache (e: Int, s: Int, b: Int) extends Module {
     val t = 32 - s - b - 2
     val E = 1 << e
 
-    // val offset = io.io.raddr(b - 1 , 2)
-    println(t)
     val groupIndex = Wire(UInt(s.W))
     if (s == 0) {
         groupIndex := 0.U(0.W)
