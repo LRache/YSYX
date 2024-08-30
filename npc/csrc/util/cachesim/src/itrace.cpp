@@ -2,6 +2,9 @@
 
 #include <fstream>
 #include <iostream>
+#include <iomanip>
+
+#define FMT_WORD std::hex << std::setfill('0') << std::setw(8)
 
 ITrace::ITrace() {
     this->pc = 0;
@@ -67,5 +70,5 @@ void ITrace::load_from_file(const std::string &filename) {
 }
 
 void ITrace::print() {
-    std::cout << "START at pc=" << std::hex << this->startPC << std::endl;
+    std::cout << "START at pc=" << FMT_WORD << this->startPC << std::endl;
 }
