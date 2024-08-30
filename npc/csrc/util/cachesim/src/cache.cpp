@@ -18,7 +18,7 @@ Cache::Cache(int _e, int _s, int _b) : e(_e), s(_s), b(_b) {
 
 bool Cache::read(word_t addr) {
     int index = (addr & indexMask) >> b;
-    std::cout << index << std::endl;
+    // std::cout << index << std::endl;
     return true;
 }
 
@@ -47,7 +47,7 @@ SimResult Cache::sim(Tracer &tracer) {
             }
         }
     }
-    
+    return result;
 }
 
 Cache::~Cache() {
