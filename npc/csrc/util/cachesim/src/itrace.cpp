@@ -71,4 +71,8 @@ void ITrace::load_from_file(const std::string &filename) {
 
 void ITrace::print() {
     std::cout << "START at pc=" << FMT_WORD << this->startPC << std::endl;
+    for (auto &p : tracer) {
+        std::cout << "[" << FMT_WORD << p.first << "]" <<"Jump to " << FMT_WORD << p.second << std::endl;
+    }
+    std::cout << "END at pc=" << FMT_WORD << this->endPC;
 }
