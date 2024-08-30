@@ -4,7 +4,7 @@
 #include <iostream>
 #include <iomanip>
 
-#define FMT_WORD std::hex << std::setfill('0') << std::setw(8)
+#define FMT_WORD "0x"<<std::hex << std::setfill('0') << std::setw(8)
 
 ITrace::ITrace() {
     this->pc = 0;
