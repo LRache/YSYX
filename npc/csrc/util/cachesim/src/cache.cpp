@@ -46,7 +46,6 @@ SimResult Cache::sim(Tracer &tracer) {
                 result.writeMiss++;
             }
         }
-        std::cout << std::hex << addr << std::endl;
     }
     return result;
 }
