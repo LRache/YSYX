@@ -112,7 +112,8 @@ int hdb::run(uint64_t n) {
     perf::statistic();
     hdb_statistic();
     #ifdef ITRACE
-    itracer.dump_to_file(outputDir + "trace/itrace");
+    // itracer.dump_to_file(outputDir + "trace/itrace");
+    itracer.print();
     #endif
     return r;
 }

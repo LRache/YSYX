@@ -95,7 +95,9 @@
         "rtdebug.h": "c",
         "rtdef.h": "c",
         "rtservice.h": "c",
-        "rtm.h": "c"
+        "rtm.h": "c",
+        "strstream": "cpp",
+        "typeindex": "cpp"
     },
     "files.watcherExclude": {
         "**/target": true
