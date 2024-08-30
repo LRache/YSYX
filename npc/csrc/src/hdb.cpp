@@ -137,13 +137,15 @@ void hdb_invalid_inst() {
 }
 
 void hdb_update_pc(uint32_t pc) {
+    if (!cpu.running) return ;
+
     lastPC = cpu.pc;
     cpu.pc = pc;
     if (!(top.reset || in_flash(pc) || in_sdram(pc))) {
         panic("Invalid PC = " FMT_WORD, pc);
     }
     itrace::trace(pc);
-    Log("Exec to pc=" FMT_WORD, pc);
+    // Log("Exec to pc=" FMT_WORD, pc);
 }
 
 void hdb_update_inst(uint32_t inst) {
