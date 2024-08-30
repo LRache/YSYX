@@ -75,4 +75,5 @@ void ITrace::print() {
         std::cout << "[" << FMT_WORD << p.first << "]" <<"Jump to " << FMT_WORD << p.second << std::endl;
     }
     std::cout << "END at pc=" << FMT_WORD << this->endPC << std::endl;
+    std::cout << std::dec;
 }
