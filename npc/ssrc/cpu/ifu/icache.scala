@@ -20,7 +20,7 @@ class ICache (e: Int, s: Int, b: Int) extends Module {
     })
     val S = 1 << s
     val B = (1 << b) << 3
-    val t = 32 - s - b
+    val t = 32 - s - b - 2
     val E = 1 << e
 
     // val offset = io.io.raddr(b - 1 , 2)
