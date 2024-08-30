@@ -51,6 +51,7 @@ void itrace::sim_cache() {
     << std::setw(10) << r.readMiss << " | "
     << std::setw( 6) << (double)r.readMiss / total * 100 << "% | " 
     << std::endl;
+    std::cout << std::endl;
 }
 
 #else
