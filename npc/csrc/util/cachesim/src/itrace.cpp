@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+#include <cassert>
 
 #define FMT_WORD "0x"<<std::hex << std::setfill('0') << std::setw(8)
 
@@ -91,6 +92,7 @@ word_t ITracer::iter_next(Type *t) {
         this->iterIsEnd = true;
         return iterPC;
     }
+    assert(!this->iterIsEnd);
 
     word_t npc = iterPC;
     if (iterPC == this->tracer[iterIndex].first) {
