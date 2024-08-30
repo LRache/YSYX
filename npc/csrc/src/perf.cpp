@@ -100,8 +100,6 @@ void perf::icache_statistic() {
     std::cout << std::setw(5) << "" << " | " 
     << std::setw(10) << "Count" << " | " 
     << std::setw( 7) << " " << " | " 
-    // << std::setw(12) << "Clock" << " | " 
-    // << std::setw( 7) << " " 
     << std::endl;
     
     uint64_t total = icache.hit.count + icache.miss.count;
