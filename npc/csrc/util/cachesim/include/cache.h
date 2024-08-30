@@ -9,12 +9,12 @@ private:
     int s; // count of group
     int b; // count of bytes in one entry
     
-    word_t *cache;
     uint32_t *tag;
     bool *valid;
     uint32_t tagMask;
 public:
     Cache(int _e, int _s, int _b);
+    bool mem(word_t addr);
     ~Cache();
 };
 
