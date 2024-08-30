@@ -6,11 +6,11 @@
 
 #define FMT_WORD "0x"<<std::hex << std::setfill('0') << std::setw(8)
 
-ITrace::ITrace() {
+ITracer::ITracer() {
     this->pc = 0;
 }
 
-ITrace::ITrace(const std::string &filename) {
+ITracer::ITracer(const std::string &filename) {
     std::ifstream f;
     f.open(filename, std::ios::binary);
     if (!f.is_open()) return;
@@ -24,13 +24,13 @@ ITrace::ITrace(const std::string &filename) {
     f.close();
 }
 
-void ITrace::start(word_t startPC) {
+void ITracer::start(word_t startPC) {
     this->startPC = startPC;
     this->pc = startPC;
     this->tracer.clear();
 }
 
-void ITrace::trace(word_t npc) {
+void ITracer::trace(word_t npc) {
     if (tracer.size() > ITRACE_LIMIT) return ;
     if (npc != this->pc + 4) {
         tracer.push_back({pc, npc});
@@ -38,11 +38,11 @@ void ITrace::trace(word_t npc) {
     this->pc = npc;
 }
 
-void ITrace::end() {
+void ITracer::end() {
     this->endPC = this->pc;
 }
 
-void ITrace::dump_to_file(const std::string &filename) {
+void ITracer::dump_to_file(const std::string &filename) {
     std::ofstream f;
     f.open(filename, std::ios::binary);
     if (!f.is_open()) return ;
@@ -55,7 +55,7 @@ void ITrace::dump_to_file(const std::string &filename) {
     f.close();
 }
 
-void ITrace::load_from_file(const std::string &filename) {
+void ITracer::load_from_file(const std::string &filename) {
     std::ifstream f;
     f.open(filename, std::ios::binary);
     if (!f.is_open()) return ;
@@ -69,11 +69,36 @@ void ITrace::load_from_file(const std::string &filename) {
     f.read((char *)&this->endPC, sizeof(word_t));
 }
 
-void ITrace::print() {
+void ITracer::print() {
     std::cout << "START at pc=" << FMT_WORD << this->startPC << std::endl;
     for (auto &p : tracer) {
         std::cout << "[" << FMT_WORD << p.first << "]" <<"Jump to " << FMT_WORD << p.second << std::endl;
     }
     std::cout << "END at pc=" << FMT_WORD << this->endPC << std::endl;
     std::cout << std::dec;
+}
+
+void ITracer::iter_init() {
+    iterPC = this->startPC;
+    iterIndex = 0;
+    iterIsEnd = false;
+}
+
+word_t ITracer::iter_next(Type *t) {
+    *t = Type::READ;
+    word_t npc = iterPC;
+    if (iterPC == this->tracer[iterIndex].first) {
+        iterPC = this->tracer[iterIndex].second;
+        iterIndex++;
+    } else {
+        iterPC += 4;
+        if (iterIndex == tracer.size() && iterPC == this->endPC) {
+            this->iterIsEnd = true;
+        }
+    }
+    return npc;
+}
+
+bool ITracer::iter_is_end() {
+    return this->iterIsEnd;
 }

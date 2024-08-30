@@ -1,10 +1,13 @@
 #include "hdb.h"
 #include "config.h"
 #include "itrace.h"
+#include "cache.h"
+
+#include <iostream>
 
 #ifdef ITRACE
 
-static ITrace itracer;
+static ITracer itracer;
 
 void itrace::start(word_t pc) {
     itracer.start(pc);
@@ -24,6 +27,13 @@ void itrace::dump_to_file(const std::string &filename) {
 
 void itrace::print() {
     itracer.print();
+}
+
+void itrace::sim_cache() {
+    Cache cache(3, 0, 2);
+    auto r = cache.sim(itracer);
+    std::cout << r.readHit << std::endl;
+    std::cout << r.readMiss << std::endl;
 }
 
 #else

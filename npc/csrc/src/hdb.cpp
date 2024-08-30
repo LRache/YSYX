@@ -89,6 +89,14 @@ void hdb_statistic() {
     if (timer > 0) Log("Simulation frequency = %'" PRIu64 " clocks/s", cpu.clockCount * 1000000 / timer);
 }
 
+void hdb::end() {
+    difftest::end();
+    itrace::end();
+    itrace::sim_cache();
+    perf::statistic();
+    hdb_statistic();
+}
+
 int hdb::run(uint64_t n) {
     auto timerStart = std::chrono::high_resolution_clock::now();
     if (n == 0) {
@@ -105,13 +113,7 @@ int hdb::run(uint64_t n) {
     } else {
         Log(ANSI_FG_RED "HIT BAD TRAP" ANSI_FG_BLUE " with code %d at pc=" FMT_WORD, r, cpu.pc);
     }
-
-    difftest::end();
-    itrace::end();
-    perf::statistic();
-    hdb_statistic();
-    itrace::print();
-    Cache cache(3, 0, 0);
+    end();
     return r;
 }
 

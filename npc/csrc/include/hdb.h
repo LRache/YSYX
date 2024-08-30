@@ -39,6 +39,7 @@ namespace hdb
         );
     void step();
     int run(uint64_t n = 0);
+    void end();
     
     extern std::string outputDir;
 } // namespace hdb
@@ -57,6 +58,7 @@ namespace itrace
     void end();
     void dump_to_file(const std::string &filename);
     void print();
+    void sim_cache();
 } // namespace tracer
 
 
