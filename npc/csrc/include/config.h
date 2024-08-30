@@ -35,7 +35,7 @@
 
 #define INST_START FLASH_BASE
 
-#define DIFFTEST
+// #define DIFFTEST
 #define ITRACE
 
 #endif
