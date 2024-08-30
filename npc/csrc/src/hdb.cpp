@@ -63,10 +63,7 @@ void hdb::init(
     Log("Reset at clock=%lu", cpu.clockCount);
     
     perf::init();
-
-    #ifdef ITRACE
-    itracer.start(INST_START);
-    #endif
+    itrace::start(INST_START);
 
     cpu.mstatus = 0x1800;
     Log("Init finished.");
@@ -109,12 +106,10 @@ int hdb::run(uint64_t n) {
     }
 
     difftest::end();
+    itrace::end();
     perf::statistic();
     hdb_statistic();
-    #ifdef ITRACE
-    // itracer.dump_to_file(outputDir + "trace/itrace");
-    itracer.print();
-    #endif
+    itrace::print();
     return r;
 }
 
@@ -147,9 +142,7 @@ void hdb_update_pc(uint32_t pc) {
     if (!(top.reset || in_flash(pc) || in_sdram(pc))) {
         panic("Invalid PC = " FMT_WORD, pc);
     }
-    #ifdef ITRACE
-    itracer.trace(pc);
-    #endif
+    itrace::trace(pc);
     // Log("Exec to pc=" FMT_WORD, pc);
 }
 
