@@ -46,6 +46,7 @@ SimResult Cache::sim(Tracer &tracer) {
                 result.writeMiss++;
             }
         }
+        std::cout << addr << std::endl;
     }
     return result;
 }
