@@ -88,7 +88,7 @@ void hdb::step() {
 void hdb_statistic() {
     Log("Total count of instructions = %" PRIu64 " with %" PRIu64 " clocks, IPC=%.6lf", cpu.instCount, cpu.clockCount, (double)cpu.instCount / cpu.clockCount);
     Log("Total time spent = %'" PRIu64 " us, frequency=%.3lfkHz", timer, (double)cpu.clockCount * 1000 / timer);
-    if (timer > 0) Log("Simulation frequency = %'" PRIu64 " inst/s", cpu.clockCount * 1000000 / timer);
+    if (timer > 0) Log("Simulation frequency = %'" PRIu64 " clocks/s", cpu.clockCount * 1000000 / timer);
 }
 
 int hdb::run(uint64_t n) {
