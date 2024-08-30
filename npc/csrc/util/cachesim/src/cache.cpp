@@ -9,6 +9,7 @@ Cache::Cache(int _e, int _s, int _b) {
 
     this->cache = new word_t[e*s*b];
     this->tag = new word_t[e*s];
+    this->valid = new bool[e*s];
 
     int tagLength = (sizeof(word_t) << 3) - _s - _b - (int)log2(sizeof(word_t));
     std::cout << tagLength << std::endl;
