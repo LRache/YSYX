@@ -88,7 +88,6 @@ void hdb_statistic() {
 void hdb::end() {
     difftest::end();
     itrace::end();
-    itrace::sim_cache();
     perf::statistic();
     hdb_statistic();
 }
@@ -110,6 +109,9 @@ int hdb::run(uint64_t n) {
         Log(ANSI_FG_RED "HIT BAD TRAP" ANSI_FG_BLUE " with code %d at pc=" FMT_WORD, r, cpu.pc);
     }
     end();
+    if (!hdb::outputDir.empty()) {
+        itrace::dump_to_file(hdb::outputDir + "//itrace.bin");
+    }
     return r;
 }
 

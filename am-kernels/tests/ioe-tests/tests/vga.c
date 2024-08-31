@@ -14,7 +14,7 @@ int main() {
     // uint32_t color = 0;
     for (int y = 0; y < VGA_HEIGHT; y++) {
         for (int x = 0; x < VGA_WIDTH; x++) {
-            buffer[x][y] = 0x12;
+            buffer[x][y] = 0x66b192;
             // color += 32;
         }
         printf("%d\n", y);

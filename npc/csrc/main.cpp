@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
     std::string outputdir = "./";
     int optionIndex = 0;
     int o;
-    while ((o = getopt_long(argc, argv, "m:r:f:", options, &optionIndex)) != -1)
+    while ((o = getopt_long(argc, argv, "m:r:f:o:", options, &optionIndex)) != -1)
     {
         switch (o)
         {
