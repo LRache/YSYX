@@ -26,9 +26,8 @@ bool Cache::read(word_t addr) {
             return true;
         }
     }
-    std::cout << index << std::endl;
     this->tag[index * S + counter[index]] = addr & this->tagMask;
-    counter[index]++;
+    counter[index] = (counter[index] + 1) % this->E;
     return false;
 }
 
