@@ -92,7 +92,9 @@ static void icache_start_update(bool start) {
 
 static void icache_is_hit_update(bool isHit) {
     icache.isHit = isHit;
-    icache.hit.pref_count(0);
+    if (isHit) {
+        icache.hit.pref_count(0);
+    }
 }
 
 void perf::icache_statistic() {

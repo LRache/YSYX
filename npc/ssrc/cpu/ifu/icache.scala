@@ -70,7 +70,7 @@ class ICache (e: Int, s: Int, b: Int) extends Module {
     io.mem.rready := true.B
 
     io.perf.valid := memValid
-    io.perf.isHit := isHit && ready
+    io.perf.isHit := hitValid
     io.perf.start := ready
 
     // Unused
