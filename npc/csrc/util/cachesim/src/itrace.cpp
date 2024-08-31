@@ -104,6 +104,7 @@ ITracerIterator &ITracerIterator::operator++() {
     if (index != tracer->size()) {
         if (this->pc == tracer->at(index).first) {
             this->pc = tracer->at(index).second;
+            index ++;
             return *this;
         }
     }
@@ -120,11 +121,9 @@ bool ITracerIterator::operator!=(const ITracerIterator &other) const {
 }
 
 ITracerIterator ITracer::begin() const {
-    // return Iterator(&tracer, startPC, 0);
     return {&tracer, startPC, 0};
 }
 
 ITracerIterator ITracer::end() const {
-    // return {nullptr, endPC + 4, tracer.size()};
     return {&tracer, endPC + 4, tracer.size()};
 }
