@@ -37,8 +37,8 @@ void ITracer::trace(word_t npc) {
     if (tracer.size() > ITRACE_LIMIT) return ;
     if (npc != this->pc + 4) {
         tracer.push_back({pc, npc});
+        std::cout << std::hex << pc << " " << npc << std::endl;
     }
-    std::cout << std::hex << pc << " " << npc << std::endl;
     this->pc = npc;
 }
 
