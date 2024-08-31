@@ -35,11 +35,15 @@ public:
 
 template <typename T>
 SimResult Cache::sim(Tracer<T> &tracer) {
-    word_t addr;
-    MemType t;
     SimResult result = {};
-    for (auto pc : tracer) {
-        std::cout << pc.addr << std::endl;
+    for (MemTracerAddr addr : tracer) {
+        if (addr.t == MemType::READ) {
+            if (read(addr.addr)) result.readHit ++;
+            else result.readMiss ++;
+        } else if (addr.t == MemType::WRITE) {
+            if (write(addr.addr)) result.writeHit ++;
+            else result.writeMiss ++;
+        }
     }
     return result;
 }
