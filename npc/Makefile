@@ -11,7 +11,7 @@ TOP=$(lastword $(subst ., ,$(m)))
 mainModule=$(m)
 endif
 
-# UTILS = cachesim
+UTILS = cachesim
 
 SSRC_DIR = $(abspath ./ssrc)
 CSRC_DIR = $(abspath ./csrc)
