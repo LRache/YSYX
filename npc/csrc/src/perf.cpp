@@ -133,7 +133,7 @@ void perf::icache_statistic() {
     STATISTIC_OUTPUT_DEINIT;
 
     double amat = totalClk + (1 - (double) icache.miss.clockCount / totalClk) * icache.miss.clockCount;
-    std::cout << "AMAT=" << amat << std::endl;
+    std::cout << "AMAT=" << std::fixed << amat << std::endl;
 }
 
 static struct {
