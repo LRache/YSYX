@@ -36,30 +36,6 @@ bool Cache::write(word_t addr) {
     return false;
 }
 
-SimResult Cache::sim(Tracer &tracer) {
-    word_t addr;
-    Tracer::Type t;
-    SimResult result = {};
-    tracer.iter_init();
-    while (!tracer.iter_is_end()) {
-        addr = tracer.iter_next(&t);
-        if (t == Tracer::Type::READ) {
-            if (this->read(addr)) {
-                result.readHit++;
-            } else {
-                result.readMiss++;
-            }
-        } else if (t == Tracer::Type::WRITE) {
-            if (this->write(addr)) {
-                result.writeHit++;
-            } else {
-                result.writeMiss++;
-            }
-        }
-    }
-    return result;
-}
-
 Cache::~Cache() {
     delete this->tag;
     delete this->valid;

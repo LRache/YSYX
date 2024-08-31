@@ -28,8 +28,16 @@ public:
     Cache(int _e, int _s, int _b);
     bool read(word_t addr);
     bool write(word_t addr);
-    SimResult sim(Tracer &tracer);
+    template <typename T> SimResult sim(Tracer<T> &tracer);
     ~Cache();
 };
+
+template <typename T>
+SimResult Cache::sim(Tracer<T> &tracer) {
+    word_t addr;
+    MemType t;
+    SimResult result = {};
+    return result;
+}
 
 #endif

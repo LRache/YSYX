@@ -11,7 +11,7 @@
 static ITracer itracer;
 
 void itrace::start(word_t pc) {
-    itracer.start(pc);
+    itracer.start_trace(pc);
 }
 
 void itrace::trace(word_t pc) {
@@ -19,7 +19,7 @@ void itrace::trace(word_t pc) {
 } 
 
 void itrace::end() {
-    itracer.end();
+    itracer.end_trace();
 }
 
 void itrace::dump_to_file(const std::string &filename) {

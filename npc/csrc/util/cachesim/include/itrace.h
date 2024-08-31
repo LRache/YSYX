@@ -9,31 +9,40 @@
 
 #define ITRACE_LIMIT 1000000000
 
-class ITracer : public Tracer {
-private:
-    using pair = std::pair<word_t, word_t>;
-    std::vector<pair> tracer;
+using ITracerPair = std::pair<word_t, word_t>;
+
+class ITracerIterator {
+    const std::vector<ITracerPair> *tracer;
     word_t pc;
-    word_t startPC;
-    word_t endPC;
+    uint64_t index;
+public:
+    ITracerIterator(const std::vector<ITracerPair> *tracer, word_t pc, uint64_t index);
+    ITracerIterator(const ITracerIterator &other);
+    ITracerIterator(const ITracerIterator &&other);
+    MemTracerAddr operator*() const;
+    ITracerIterator& operator++();
+    bool operator==(const ITracerIterator &other) const;
+};
 
-    word_t iterPC;
-    int iterIndex;
-    bool iterIsEnd;
-
+class ITracer : public Tracer<ITracerIterator> {
 public:
     ITracer();
     ITracer(const std::string &filename);
-    void start(word_t startPC);
+    void start_trace(word_t startPC);
     void trace(word_t pc);
-    void end();
+    void end_trace();
     void dump_to_file(const std::string &filename);
     void load_from_file(const std::string &filename);
     void print();
     
-    void iter_init() override;
-    word_t iter_next(Type *t) override;
-    bool iter_is_end() override;
+    ITracerIterator begin() const override;
+    ITracerIterator end() const override;
+
+private:
+    std::vector<ITracerPair> tracer;
+    word_t pc;
+    word_t startPC;
+    word_t endPC;
 };
 
 #endif

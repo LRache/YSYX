@@ -25,7 +25,7 @@ ITracer::ITracer(const std::string &filename) {
     f.close();
 }
 
-void ITracer::start(word_t startPC) {
+void ITracer::start_trace(word_t startPC) {
     this->startPC = startPC;
     this->pc = startPC;
     this->tracer.clear();
@@ -39,7 +39,7 @@ void ITracer::trace(word_t npc) {
     this->pc = npc;
 }
 
-void ITracer::end() {
+void ITracer::end_trace() {
     this->endPC = this->pc;
 }
 
@@ -62,7 +62,7 @@ void ITracer::load_from_file(const std::string &filename) {
     if (!f.is_open()) return ;
     f.read((char *)&this->startPC, sizeof(word_t));
     while (!f.eof()) {
-        pair p;
+        ITracerPair p;
         f.read((char *)&p.first, sizeof(word_t));
         f.read((char *)&p.second , sizeof(word_t));
         tracer.push_back(p);
@@ -79,31 +79,48 @@ void ITracer::print() {
     std::cout << std::dec;
 }
 
-void ITracer::iter_init() {
-    iterPC = this->startPC;
-    iterIndex = 0;
-    iterIsEnd = false;
+ITracerIterator::ITracerIterator(const std::vector<ITracerPair> *tracer, word_t pc, uint64_t index) : tracer(tracer), pc(pc), index(index)
+{
+
 }
 
-word_t ITracer::iter_next(Type *t) {
-    if (t != nullptr) *t = Type::READ;
-
-    if (iterIndex == tracer.size() && iterPC == this->endPC) {
-        this->iterIsEnd = true;
-        return iterPC;
-    }
-    assert(!this->iterIsEnd);
-
-    word_t npc = iterPC;
-    if (iterPC == this->tracer[iterIndex].first) {
-        iterPC = this->tracer[iterIndex].second;
-        iterIndex++;
-    } else {
-        iterPC += 4;
-    }
-    return npc;
+ITracerIterator::ITracerIterator(const ITracerIterator &other) {
+    this->tracer = other.tracer;
+    this->pc = other.pc;
+    this->index = other.index;
 }
 
-bool ITracer::iter_is_end() {
-    return this->iterIsEnd;
+ITracerIterator::ITracerIterator(const ITracerIterator &&other) {
+    this->tracer = other.tracer;
+    this->pc = other.pc;
+    this->index = other.index;
+}
+
+MemTracerAddr ITracerIterator::operator*() const {
+    return {this->pc, MemType::READ};
+}
+
+ITracerIterator &ITracerIterator::operator++() {
+    if (index != tracer->size()) {
+        if (this->pc == tracer->at(index).first) {
+            this->pc = tracer->at(index).second;
+            return *this;
+        }
+    }
+    this->pc += 4;
+    return *this;
+}
+
+bool ITracerIterator::operator==(const ITracerIterator &other) const {
+    return this->pc == other.pc && this->index == other.index;
+}
+
+ITracerIterator ITracer::begin() const {
+    // return Iterator(&tracer, startPC, 0);
+    return {&tracer, startPC, 0};
+}
+
+ITracerIterator ITracer::end() const {
+    // return {nullptr, endPC + 4, tracer.size()};
+    return {&tracer, endPC + 4, tracer.size()};
 }
