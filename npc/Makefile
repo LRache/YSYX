@@ -92,6 +92,7 @@ idea:
 
 clean:
 	-rm -rf $(BUILD_DIR)
+	-rm -rf $(OBJ_DIR)
 
 update: $(OBJ_DIR)/V$(TOP).mk
 
