@@ -1,5 +1,5 @@
 ARCH ?= riscv32e-ysyxsoc
-NAMES ?= microbench
+NAMES ?= dummy
 TYPES ?= itrace
 
 TRACE_DIR ?= $(NPC_HOME)/output

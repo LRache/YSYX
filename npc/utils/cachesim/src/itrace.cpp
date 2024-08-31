@@ -137,6 +137,7 @@ void ITracerReader::open(const std::string &filepath) {
         isEnd = false;
         f.read((char *)&pc, sizeof(word_t));
         f.read((char *)&endPC, sizeof(word_t));
+        // std::cout << std::hex << pc << " " << endPC << std::endl;
         read_turn();
     } else {
         // throw std::runtime_error(std::string(std::strerror(errno)) + ": " + filepath);
@@ -145,9 +146,12 @@ void ITracerReader::open(const std::string &filepath) {
 
 void ITracerReader::read_turn() {
     if (isEnd) return ;
+    // std::cout << std::dec;
+    // std::cout << f.tellg() << std::endl;
     f.read((char *)&nextJumpPC, sizeof(word_t));
+    // std::cout << f.tellg() << std::endl;
     f.read((char *)&nextJumpDest, sizeof(word_t));
-    std::cout << std::hex << nextJumpPC << " " << nextJumpDest << std::endl;
+    // std::cout << std::hex << nextJumpPC << " " << nextJumpDest << std::endl;
     isEndTurn = f.eof();
 }
 
