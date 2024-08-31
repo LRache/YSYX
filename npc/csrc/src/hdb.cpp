@@ -11,7 +11,6 @@
 #include "nvboard.h"
 #include "perf.h"
 #include "itrace.h"
-#include "cache.h"
 
 CPU cpu;
 uint32_t lastPC;
