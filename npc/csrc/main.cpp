@@ -1,5 +1,6 @@
 #include <getopt.h>
 #include <string>
+#include <cstdlib>
 
 #include "debug.h"
 #include "hdb.h"
@@ -35,6 +36,7 @@ int main(int argc, char **argv) {
         }
     }
     hdb::init(memImg, romImg, flashImg, outputdir);
+    std::atexit(hdb::end);
     int r = 0;
     r = hdb::run();
     return r;
