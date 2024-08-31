@@ -31,27 +31,27 @@ void itrace::print() {
 }
 
 void itrace::sim_cache() {
-    Cache cache(3, 0, 2);
-    auto r = cache.sim(itracer);
-    std::cout << "Result of CacheSim" << std::endl;
-    std::cout 
-    << std::setw(5) << "" << " | " 
-    << std::setw(10) << "Count" << " | " 
-    << std::setw( 7) << " " << " | " 
-    << std::endl;
+    // Cache cache(3, 0, 2);
+    // auto r = cache.sim(itracer);
+    // std::cout << "Result of CacheSim" << std::endl;
+    // std::cout 
+    // << std::setw(5) << "" << " | " 
+    // << std::setw(10) << "Count" << " | " 
+    // << std::setw( 7) << " " << " | " 
+    // << std::endl;
 
-    uint64_t total = r.readHit + r.readMiss;
-    std::cout 
-    << std::setw( 5) << "hit" << " | "
-    << std::setw(10) << r.readHit << " | "
-    << std::setw( 6) << (double)r.readHit / total * 100 << "% | " 
-    << std::endl;
-    std::cout
-    << std::setw( 5) << "miss" << " | "
-    << std::setw(10) << r.readMiss << " | "
-    << std::setw( 6) << (double)r.readMiss / total * 100 << "% | " 
-    << std::endl;
-    std::cout << std::endl;
+    // uint64_t total = r.readHit + r.readMiss;
+    // std::cout 
+    // << std::setw( 5) << "hit" << " | "
+    // << std::setw(10) << r.readHit << " | "
+    // << std::setw( 6) << (double)r.readHit / total * 100 << "% | " 
+    // << std::endl;
+    // std::cout
+    // << std::setw( 5) << "miss" << " | "
+    // << std::setw(10) << r.readMiss << " | "
+    // << std::setw( 6) << (double)r.readMiss / total * 100 << "% | " 
+    // << std::endl;
+    // std::cout << std::endl;
 }
 
 #else

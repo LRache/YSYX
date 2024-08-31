@@ -3,7 +3,9 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
-#include <cassert>
+#include <cstring>
+#include <cerrno>
+#include <stdexcept>
 
 #define FMT_WORD "0x"<<std::hex << std::setfill('0') << std::setw(8)
 
@@ -37,6 +39,7 @@ void ITracer::trace(word_t npc) {
         tracer.push_back({pc, npc});
     }
     this->pc = npc;
+    std::cout << std::hex << pc << " " << npc << std::endl;
 }
 
 void ITracer::end_trace() {
@@ -48,26 +51,26 @@ void ITracer::dump_to_file(const std::string &filename) {
     f.open(filename, std::ios::binary);
     if (!f.is_open()) return ;
     f.write((const char *)&this->startPC, sizeof(word_t));
+    f.write((const char *)&this->endPC, sizeof(word_t));
     for (auto &p : tracer) {
         f.write((const char *)&p.first,  sizeof(word_t));
         f.write((const char *)&p.second, sizeof(word_t));
     }
-    f.write((const char *)&this->endPC, sizeof(word_t));
     f.close();
 }
 
 void ITracer::load_from_file(const std::string &filename) {
-    std::ifstream f;
-    f.open(filename, std::ios::binary);
-    if (!f.is_open()) return ;
-    f.read((char *)&this->startPC, sizeof(word_t));
-    while (!f.eof()) {
-        ITracerPair p;
-        f.read((char *)&p.first, sizeof(word_t));
-        f.read((char *)&p.second , sizeof(word_t));
-        tracer.push_back(p);
-    }
-    f.read((char *)&this->endPC, sizeof(word_t));
+    // std::ifstream f;
+    // f.open(filename, std::ios::binary);
+    // if (!f.is_open()) return ;
+    // f.read((char *)&this->startPC, sizeof(word_t));
+    // while (!f.eof()) {
+    //     ITracerPair p;
+    //     f.read((char *)&p.first, sizeof(word_t));
+    //     f.read((char *)&p.second , sizeof(word_t));
+    //     tracer.push_back(p);
+    // }
+    // f.read((char *)&this->endPC, sizeof(word_t));
 }
 
 void ITracer::print() {
@@ -126,4 +129,56 @@ ITracerIterator ITracer::begin() const {
 
 ITracerIterator ITracer::end() const {
     return {&tracer, endPC + 4, tracer.size()};
+}
+
+void ITracerReader::open(const std::string &filepath) {
+    f.open(filepath, std::ios::binary);
+    if (f.is_open()) {
+        isEnd = false;
+        f.read((char *)&pc, sizeof(word_t));
+        f.read((char *)&endPC, sizeof(word_t));
+        read_turn();
+    } else {
+        // throw std::runtime_error(std::string(std::strerror(errno)) + ": " + filepath);
+    }
+}
+
+void ITracerReader::read_turn() {
+    if (isEnd) return ;
+    f.read((char *)&nextJumpPC, sizeof(word_t));
+    f.read((char *)&nextJumpDest, sizeof(word_t));
+    std::cout << std::hex << nextJumpPC << " " << nextJumpDest << std::endl;
+    isEndTurn = f.eof();
+}
+
+MemTracerAddr ITracerReader::next() {
+    if (isEnd) return {0, MemType::READ};
+    
+    if (isEndTurn && pc == endPC) {
+        isEnd = true;
+        return {pc, MemType::READ};
+    }
+
+    word_t npc;
+    if (pc == nextJumpPC) {
+        npc = nextJumpDest;
+        read_turn();
+    } else {
+        npc = pc + 4;
+    }
+    word_t p = pc;
+    pc = npc;
+    return {p, MemType::READ};
+}
+
+bool ITracerReader::is_end() const {
+    return isEnd;
+}
+
+void ITracerReader::close() {
+    f.close();
+}
+
+ITracerReader::~ITracerReader() {
+    f.close();
 }

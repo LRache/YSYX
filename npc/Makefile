@@ -43,7 +43,8 @@ NEMU_SO = $(abspath $(NEMU_HOME)/build/riscv32-nemu-interpreter-so)
 include $(NVBOARD_HOME)/scripts/nvboard.mk
 
 INCFLAGS = $(addprefix -I, $(INC_PATH))
-CXXFLAGS += $(INCFLAGS)
+CXXFLAGS += $(INCFLAGS) 
+CXXFLAGS += -fexceptions
 VINCFLAGS = $(addprefix -I, $(VINC_PATH))
 VERILATOR_FLAGS += $(VINCFLAGS)
 
@@ -92,7 +93,7 @@ idea:
 
 clean:
 	-rm -rf $(BUILD_DIR)
-	-rm -rf $(OBJ_DIR)
+	-rm -rf $(abspath ./obj)
 
 update: $(OBJ_DIR)/V$(TOP).mk
 

@@ -1,18 +1,10 @@
-#ifndef __CACHESIM_H__
-#define __CAHCESIM_H__
+#pragma once
 
 #include "trace.h"
 #include <iostream>
 
-struct SimResult {
-    uint64_t readHit;
-    uint64_t readMiss;
-    uint64_t writeHit;
-    uint64_t writeMiss;
-};
-
 class Cache {
-private:
+protected:
     int E; // count of entries of each group
     int S; // count of group
     int B; // count of bytes in one entry
@@ -23,29 +15,21 @@ private:
     uint32_t *tag;
     uint32_t tagMask;
     uint32_t indexMask;
-    uint32_t *counter;
     bool *valid;
 public:
     Cache(int _e, int _s, int _b);
+    virtual ~Cache();
     bool read(word_t addr);
     bool write(word_t addr);
-    template <typename T> SimResult sim(Tracer<T> &tracer);
-    ~Cache();
+    virtual uint32_t get_replace_entry(uint32_t groupIndex) = 0;
+    virtual void hit(uint32_t groupIndex, uint32_t entryIndex, bool isRead) = 0;
 };
 
-template <typename T>
-SimResult Cache::sim(Tracer<T> &tracer) {
-    SimResult result = {};
-    for (MemTracerAddr addr : tracer) {
-        if (addr.t == MemType::READ) {
-            if (read(addr.addr)) result.readHit ++;
-            else result.readMiss ++;
-        } else if (addr.t == MemType::WRITE) {
-            if (write(addr.addr)) result.writeHit ++;
-            else result.writeMiss ++;
-        }
-    }
-    return result;
-}
-
-#endif
+class FIFOCache : public Cache {
+private:
+    uint32_t *counter;
+public:
+    FIFOCache(int, int, int);
+    uint32_t get_replace_entry(uint32_t groupIndex) override;
+    void hit(uint32_t, uint32_t, bool) override {};
+};

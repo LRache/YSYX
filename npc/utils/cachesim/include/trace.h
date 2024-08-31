@@ -1,5 +1,4 @@
-#ifndef __TRACER_H__
-#define __TRACER_H__
+#pragma once
 
 #include <stdint.h>
 
@@ -20,4 +19,10 @@ public:
     virtual Iterator end() const = 0;
 };
 
-#endif
+class MemTracerReader {
+public:
+    virtual ~MemTracerReader() = default;
+    virtual MemTracerAddr next() = 0;
+    virtual bool is_end() const = 0;
+    virtual void close() = 0;
+};

@@ -5,6 +5,7 @@
 #include <vector>
 #include <utility>
 #include <string>
+#include <fstream>
 
 #define ITRACE_LIMIT 1000000000
 
@@ -43,4 +44,24 @@ private:
     word_t pc;
     word_t startPC;
     word_t endPC;
+};
+
+class ITracerReader : public MemTracerReader {
+private:
+    std::ifstream f;
+    
+    bool isEndTurn = false;
+    bool isEnd = true;
+    word_t pc;
+    word_t nextJumpPC;
+    word_t nextJumpDest;
+    word_t endPC;
+    void read_turn();
+public:
+    ~ITracerReader(); 
+    void open(const std::string &filepath);
+    
+    MemTracerAddr next() override;
+    bool is_end() const override;
+    void close() override;
 };
