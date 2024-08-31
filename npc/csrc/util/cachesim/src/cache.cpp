@@ -22,7 +22,7 @@ Cache::Cache(int _e, int _s, int _b) : e(_e), s(_s), b(_b) {
 bool Cache::read(word_t addr) {
     int index = (addr & indexMask) >> b;
     for (int i = 0; i < E; i++) {
-        if (this->tag[index * S + i] == (addr & this->tagMask)) {
+        if (this->tag[index * S + i] == (addr & this->tagMask) && this->valid[index * S + i]) {
             return true;
         }
     }
