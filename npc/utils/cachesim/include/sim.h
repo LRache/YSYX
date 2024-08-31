@@ -13,6 +13,7 @@ struct SimResult {
 template <typename T>
 SimResult sim(Cache &cache, Tracer<T> &tracer) {
     SimResult result = {};
+    std::cout << std::hex;
     for (MemTracerAddr addr : tracer) {
         if (addr.t == MemType::READ) {
             if (cache.read(addr.addr)) result.readHit ++;
@@ -21,6 +22,7 @@ SimResult sim(Cache &cache, Tracer<T> &tracer) {
             if (cache.write(addr.addr)) result.writeHit ++;
             else result.writeMiss ++;
         }
+        std::cout << addr.addr << std::endl;
     }
     return result;
 }
