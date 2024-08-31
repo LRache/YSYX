@@ -1,5 +1,4 @@
-#ifndef __ITRACE_H__
-#define __ITRACE_H__
+#pragma once
 
 #include "trace.h"
 
@@ -45,5 +44,3 @@ private:
     word_t startPC;
     word_t endPC;
 };
-
-#endif
