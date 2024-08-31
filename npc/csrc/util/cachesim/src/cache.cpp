@@ -14,7 +14,7 @@ Cache::Cache(int _e, int _s, int _b) : e(_e), s(_s), b(_b) {
     std::fill(this->counter, this->counter + S, 0);
 
     int tagLength = (sizeof(word_t) << 3) - s - b;
-    this->tagMask = (0x80000000) >> tagLength;
+    this->tagMask = ((int)0x80000000) >> tagLength;
     this->indexMask = ((0x80000000) >> (32 - b)) & (~this->tagMask);
     std::cout << std::hex << this->tagMask << std::endl << std::dec;
 }
