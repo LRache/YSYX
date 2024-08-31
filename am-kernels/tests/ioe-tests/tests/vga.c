@@ -5,25 +5,23 @@
 #define VGA_WIDTH 640
 
 int main() {
-    // int cnt = VGA_HEIGHT * VGA_WIDTH;
-    // volatile uint32_t *buffer = (volatile uint32_t *)VGA_BASE;
-    // for (int i = 0; i < cnt / 2; i++) {
-    //     buffer[i] = 0x00ffff00;
+    // uint32_t buffer[10000];
+    // for (int i = 0 ;i < 10000; i++) {
+    //     buffer[i] = 0xffffff;
     // }
-    // for (int i = cnt / 2; i < cnt; i++) {
-    //     buffer[i] = 0x00ffffff;
-    // }
-    uint32_t buffer[10000];
-    for (int i = 0 ;i < 10000; i++) {
-        buffer[i] = 0xffffff;
+    uint32_t color = 0;
+    for (int y = 0; y < VGA_HEIGHT; y++) {
+        for (int x = 0; x < VGA_WIDTH; x++) {
+            AM_GPU_FBDRAW_T ctl;
+            ctl.h = 1;
+            ctl.w = 1;
+            ctl.x = x;
+            ctl.y = y;
+            ctl.pixels = &color;
+            ioe_write(AM_GPU_FBDRAW, &ctl);
+            color = (color + 1) % 0x00ffffff;
+        }
     }
-    AM_GPU_FBDRAW_T ctl;
-    ctl.h = 100;
-    ctl.w = 100;
-    ctl.x = 200;
-    ctl.y = 100;
-    ctl.pixels = buffer;
-    ioe_write(AM_GPU_FBDRAW, &ctl);
-    // while (1);    
+    while (1);    
     return 0;
 }
