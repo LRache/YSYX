@@ -115,6 +115,10 @@ bool ITracerIterator::operator==(const ITracerIterator &other) const {
     return this->pc == other.pc && this->index == other.index;
 }
 
+bool ITracerIterator::operator!=(const ITracerIterator &other) const {
+    return this->pc != other.pc || this->index != other.index;
+}
+
 ITracerIterator ITracer::begin() const {
     // return Iterator(&tracer, startPC, 0);
     return {&tracer, startPC, 0};

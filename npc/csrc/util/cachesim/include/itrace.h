@@ -22,6 +22,7 @@ public:
     MemTracerAddr operator*() const;
     ITracerIterator& operator++();
     bool operator==(const ITracerIterator &other) const;
+    bool operator!=(const ITracerIterator &other) const;
 };
 
 class ITracer : public Tracer<ITracerIterator> {

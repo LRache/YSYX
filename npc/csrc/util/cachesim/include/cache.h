@@ -2,6 +2,7 @@
 #define __CAHCESIM_H__
 
 #include "trace.h"
+#include <iostream>
 
 struct SimResult {
     uint64_t readHit;
@@ -37,6 +38,9 @@ SimResult Cache::sim(Tracer<T> &tracer) {
     word_t addr;
     MemType t;
     SimResult result = {};
+    for (auto pc : tracer) {
+        std::cout << pc.addr << std::endl;
+    }
     return result;
 }
 
