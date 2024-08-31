@@ -27,6 +27,7 @@ bool Cache::read(word_t addr) {
         }
     }
     this->tag[index * S + counter[index]] = addr & this->tagMask;
+    this->valid[index * S + counter[index]] = true;
     counter[index] = (counter[index] + 1) % this->E;
     return false;
 }
