@@ -12,12 +12,13 @@ class ICacheIO extends Bundle {
     val valid = Output(Bool())
 }
 
-class ICache (e: Int, s: Int, b: Int) extends Module {
+class ICache (e: Int, s: Int) extends Module {
     val io = IO(new Bundle {
         val io = new ICacheIO
         val mem = new AXI4IO()
         val perf = new ICachePerfCounter()
     })
+    val b = 4
     val S = 1 << s
     val B = (1 << b) << 3
     val t = 32 - s - b
@@ -65,9 +66,12 @@ class ICache (e: Int, s: Int, b: Int) extends Module {
     io.io.rdata := Mux(memValid, io.mem.rdata, group(hitLineIndex))
 
     io.mem.araddr := io.io.raddr
-    io.mem.arsize := 2.U
     io.mem.arvalid := ready && !isHit
+    
     io.mem.rready := true.B
+    io.mem.arlen  := 3.U // BURST 4
+    io.mem.arsize := 2.U // 4 bytes per burst
+    io.mem.arburst := 1.U // INCR
 
     io.perf.valid := memValid
     io.perf.isHit := hitValid
@@ -85,7 +89,5 @@ class ICache (e: Int, s: Int, b: Int) extends Module {
     io.mem.awsize  := 0.U
     io.mem.awburst := 0.U
     io.mem.wlast   := false.B
-    io.mem.arburst := 0.U
     io.mem.arid    := 0.U
-    io.mem.arlen   := 0.U
 }   
