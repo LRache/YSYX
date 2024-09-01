@@ -22,6 +22,7 @@ public:
 class MemTracerReader {
 public:
     virtual ~MemTracerReader() = default;
+    virtual MemTracerAddr begin() = 0;
     virtual MemTracerAddr next() = 0;
     virtual bool is_end() const = 0;
     virtual void close() = 0;

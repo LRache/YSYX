@@ -61,6 +61,7 @@ public:
     ~ITracerReader(); 
     void open(const std::string &filepath);
     
+    MemTracerAddr begin() override;
     MemTracerAddr next() override;
     bool is_end() const override;
     void close() override;

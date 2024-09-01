@@ -2,6 +2,7 @@
 
 #include "trace.h"
 #include <iostream>
+#include <vector>
 
 class Cache {
 protected:
@@ -19,6 +20,7 @@ protected:
 public:
     Cache(int _e, int _s, int _b);
     virtual ~Cache();
+    bool is_valid(uint32_t groupIndex, uint32_t entryIndex);
     bool read(word_t addr);
     bool write(word_t addr);
     virtual uint32_t get_replace_entry(uint32_t groupIndex) = 0;
@@ -27,9 +29,18 @@ public:
 
 class FIFOCache : public Cache {
 private:
-    uint32_t *counter;
+    std::vector<uint32_t> counter;
 public:
     FIFOCache(int, int, int);
     uint32_t get_replace_entry(uint32_t groupIndex) override;
     void hit(uint32_t, uint32_t, bool) override {};
+};
+
+class LRUCache : public Cache {
+private:
+    std::vector<std::vector<uint32_t>> counter;
+public:
+    LRUCache(int, int, int);
+    uint32_t get_replace_entry(uint32_t groupIndex) override;
+    void hit(uint32_t groupIndex, uint32_t entryIndex, bool isRead) override;
 };

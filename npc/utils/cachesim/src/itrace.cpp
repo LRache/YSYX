@@ -6,6 +6,7 @@
 #include <cstring>
 #include <cerrno>
 #include <stdexcept>
+#include <cassert>
 
 #define FMT_WORD "0x"<<std::hex << std::setfill('0') << std::setw(8)
 
@@ -154,12 +155,17 @@ void ITracerReader::read_turn() {
     isEndTurn = f.eof();
 }
 
+MemTracerAddr ITracerReader::begin() {
+    assert(!isEnd);
+    return { pc, MemType::READ };
+}
+
 MemTracerAddr ITracerReader::next() {
-    if (isEnd) return {0, MemType::READ};
+    assert(!isEnd);
     
     if (isEndTurn && pc == endPC) {
         isEnd = true;
-        return {pc, MemType::READ};
+        return { pc, MemType::READ };
     }
 
     word_t npc;
@@ -171,7 +177,7 @@ MemTracerAddr ITracerReader::next() {
     }
     word_t p = pc;
     pc = npc;
-    return {p, MemType::READ};
+    return { p, MemType::READ };
 }
 
 bool ITracerReader::is_end() const {

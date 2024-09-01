@@ -29,16 +29,22 @@ SimResult sim(Cache &cache, Tracer<T> &tracer) {
 
 SimResult sim(Cache &cache, MemTracerReader &reader) {
     SimResult result = {};
-    MemTracerAddr addr;
-    for (; !reader.is_end(); addr = reader.next()) {
+    int c = 0;
+    for (MemTracerAddr addr = reader.begin(); !reader.is_end(); addr = reader.next()) {
         if (addr.t == MemType::READ) {
-        if (cache.read(addr.addr)) result.readHit ++;
+            if (cache.read(addr.addr)) result.readHit ++;
             else result.readMiss ++;
         } else if (addr.t == MemType::WRITE) {
             if (cache.write(addr.addr)) result.writeHit ++;
             else result.writeMiss ++;
+        } else {
+            std::cout << std::hex;
+            std::cout << addr.t << " " << addr.addr << " " << c << std::endl;
+            std::cout << std::dec;
         }
+        c++;
         // std::cout << std::hex << addr.addr << std::endl;
     }
+    // std::cout << c << std::endl;
     return result;
 }

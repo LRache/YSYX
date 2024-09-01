@@ -16,6 +16,10 @@ Cache::Cache(int _e, int _s, int _b) : e(_e), s(_s), b(_b) {
     this->indexMask = ((0x80000000) >> (32 - b)) & (~this->tagMask);
 }
 
+bool Cache::is_valid(uint32_t groupIndex, uint32_t entryIndex) {
+    return valid[groupIndex * S + entryIndex];
+}
+
 bool Cache::read(word_t addr) {
     uint32_t groupIndex = (addr & indexMask) >> b;
     for (int i = 0; i < E; i++) {
@@ -40,12 +44,32 @@ Cache::~Cache() {
 }
 
 FIFOCache::FIFOCache(int _e, int _s, int _b) : Cache(_e, _s, _b) {
-    this->counter = new unsigned int[S];
-    std::fill(this->counter, this->counter + S, 0);
+    counter = std::vector<uint32_t>(S);
+    std::fill(counter.begin(), counter.end(), 0);
 }
 
 uint32_t FIFOCache::get_replace_entry(uint32_t groupIndex) {
     uint32_t t = counter[groupIndex];
     counter[groupIndex] = (counter[groupIndex] + 1) % E;
     return t;
+}
+
+LRUCache::LRUCache(int _e, int _s, int _b) : Cache(_s, _s, _b) {
+    counter = std::vector<std::vector<uint32_t>>(S, std::vector<uint32_t>(E, 0));
+}
+
+uint32_t LRUCache::get_replace_entry(uint32_t groupIndex) {
+    uint32_t choose = 0;
+    for (int i = 0; i < E; i++) {
+        if (is_valid(groupIndex, i)) {
+            choose = counter[groupIndex][i] < counter[groupIndex][choose] ? i : choose;
+        } else {
+            return i;
+        }
+    }
+    return choose;
+}
+
+void LRUCache::hit(uint32_t groupIndex, uint32_t entryIndex, bool isRead) {
+    this->counter[groupIndex][entryIndex] ++;
 }

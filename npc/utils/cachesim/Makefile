@@ -1,9 +1,9 @@
 ARCH ?= riscv32e-ysyxsoc
-NAMES ?= dummy
+ALL ?= dummy
 TYPES ?= itrace
 
 TRACE_DIR ?= $(NPC_HOME)/output
-TRACE_FILES ?= $(foreach name, $(NAMES), $(foreach type, $(TYPES), $(TRACE_DIR)/$(name)-$(ARCH)/$(type).bin))
+TRACE_FILES ?= $(foreach name, $(ALL), $(foreach type, $(TYPES), $(TRACE_DIR)/$(name)-$(ARCH)/$(type).bin))
 
 CXX = g++
 
