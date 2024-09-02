@@ -18,6 +18,7 @@ struct Counter {
     }
 
     void pref_count(uint64_t c) {
+        if (!cpu.running) return ;
         count ++;
         clockCount += c;
     }

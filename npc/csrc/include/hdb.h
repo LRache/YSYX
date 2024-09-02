@@ -28,8 +28,8 @@ typedef struct
     uint64_t instCount;
 } CPU;
 
-extern CPU cpu;
 extern VTop top;
+extern CPU cpu;
 
 namespace hdb
 {
