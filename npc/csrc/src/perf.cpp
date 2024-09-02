@@ -5,6 +5,9 @@
 #include "debug.h"
 #include "perf.h"
 #include "memory.h"
+#include "config.h"
+
+#ifdef PERF
 
 #define STATISTIC_OUTPUT_INIT std::cout << std::fixed << std::setprecision(2);
 #define STATISTIC_OUTPUT_DEINIT std::cout.unsetf(std::ios::fixed); std::cout.unsetf(std::ios::floatfield);
@@ -245,4 +248,20 @@ extern "C" void perf_icache_start_update(bool start) {
 extern "C" void perf_icache_is_hit_update(bool isHit) {
     icache_is_hit_update(isHit);
 }
+
+#else
+
+void perf::init() {}
+void perf::statistic() {}
+void perf::ifu_statistic() {}
+void perf::lsu_statistic() {}
+void perf::icache_statistic() {}
+
+extern "C" void perf_ifu_valid_update(bool v) {}
+extern "C" void perf_lsu_state_update(bool ren, bool wen, bool waiting, uint32_t addr) {}
+extern "C" void perf_icache_valid_update(bool valid) {}
+extern "C" void perf_icache_start_update(bool start) {}
+extern "C" void perf_icache_is_hit_update(bool isHit) {}
+
+#endif
 
