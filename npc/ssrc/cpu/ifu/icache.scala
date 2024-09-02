@@ -107,7 +107,7 @@ class ICache (e: Int, s: Int) extends Module {
     io.perf.start := ready
 
     // Unused
-    io.mem.bready  := 0.U
+    io.mem.bready  := DontCare
     io.mem.wdata   := DontCare
     io.mem.wstrb   := DontCare
     io.mem.wvalid  := DontCare
