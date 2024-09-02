@@ -80,7 +80,7 @@ static void icache_valid_update(bool valid) {
     if (valid) {
         uint64_t clockCount = cpu.clockCount - icache.start;
         icache.miss.pref_count(clockCount);
-        icache.isHit = true;
+        // icache.isHit = true;
     }
 }
 
@@ -91,7 +91,7 @@ static void icache_start_update(bool start) {
 }
 
 static void icache_is_hit_update(bool isHit) {
-    icache.isHit = isHit;
+    // icache.isHit = isHit;
     if (isHit) {
         icache.hit.pref_count(0);
     }
