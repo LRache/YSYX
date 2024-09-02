@@ -92,7 +92,8 @@ class ICache (e: Int, s: Int) extends Module {
     // val hitDataMuxSeq : Seq[(UInt, UInt)] = for (i <- 0 to 3) yield (i.U, hitEntry(i * 32 + 31, i * 32))
     // val hitData = MuxLookup(offset, 0.U)(hitDataMuxSeq)
 
-    io.io.valid := hitValid || state === s_mem_valid
+    // io.io.valid := hitValid || state === s_mem_valid
+    io.io.valid := hitValid || memValid
     // io.io.rdata := hitData
     io.io.rdata := Mux(memValid, io.mem.rdata, hitEntry(31, 0))
 
