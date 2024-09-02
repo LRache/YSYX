@@ -25,7 +25,8 @@ class EXU extends Module {
     alu.io.b    := Mux(io.in.bits.b_sel, io.in.bits.imm, io.in.bits.rs2)
     alu.io.sel  := io.in.bits.alu_sel
 
-    io.out.bits.pc_sel := io.in.bits.is_jmp && cmp.io.res
+    // io.out.bits.pc_sel := io.in.bits.is_jmp && cmp.io.res
+    io.out.bits.pc_sel := cmp.io.res
     io.out.bits.exu_result := alu.io.result
 
     // CSR

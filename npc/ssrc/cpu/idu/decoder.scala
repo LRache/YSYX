@@ -203,7 +203,7 @@ object Encode {
         }
     
     def encode_r(alu_sel: AluSel) : BitPat = encode(InstType.R, alu_sel, CmpSel.N, CSRWSel.W)
-    def encode_i(instType: InstType, alu_sel: AluSel) : BitPat = encode(instType, alu_sel, CmpSel.  N, CSRWSel.W)
+    def encode_i(instType: InstType, alu_sel: AluSel) : BitPat = encode(instType, alu_sel, CmpSel.N, CSRWSel.W)
     def encode_ia(alu_sel: AluSel) : BitPat = encode_i(InstType.IA, alu_sel)
     def encode_iu(alu_sel: AluSel) : BitPat = encode_i(InstType.IU, alu_sel)
     def encode_load() : BitPat = encode(InstType.IL, AluSel.ADD, CmpSel.N, CSRWSel.W)
