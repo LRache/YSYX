@@ -1,5 +1,7 @@
+#pragma once
+
 #define __EBREAK 0x00100073
-#define GOOD_TRAP 0x00000513, 0x00100073
+#define GOOD_TRAP 0x00000513, __EBREAK
 
 static uint32_t test_img_ebreak[] = {
     __EBREAK
@@ -272,10 +274,11 @@ static uint32_t test_img_dead_loop[] = {
     // 0x00200113, // addi x2, x0, 2
     // 0x00300193, // addi x3, x0, 3
     // 0x00400213, // addi x4, x0, 4
-    0x30000537, // lui x10, 0x30000
-    0x00052083, // lw x1, 0(x10)
-    0x00052103, // lbu x11, 1(x10)
-    0x00052183, // lbu x11, 2(x10)
-    0x00052203, // lbu x11, 3(x10)
-    0xff1ff06f, // j -16
+    0x30000537, // 00 lui x10, 0x30000
+    0x00052083, // 04 lw x1, 0(x10)
+    0x00052103, // 08 lbu x11, 1(x10)
+    0x00052183, // 0c lbu x11, 2(x10)
+    0x00052203, // 10 lbu x11, 3(x10)
+    0xff1ff06f, // 14 j -16
+    GOOD_TRAP
 };
