@@ -87,12 +87,14 @@ class ICache (e: Int, s: Int) extends Module {
         2.U -> rdata2,
         3.U -> io.mem.rdata
     ))
-    val hitData = MuxLookup(offset, 0.U)(Seq (
-        0.U -> hitEntry(127, 96),
-        1.U -> hitEntry( 95, 64),
-        2.U -> hitEntry( 63, 32),
-        3.U -> hitEntry( 31,  0)
-    ))
+    val hitDataMuxSeq : Seq[(UInt, UInt)] = for (i <- 0 to 3) yield (i.U, hitEntry(i * 32 + 31, i * 32))
+    // val hitData = MuxLookup(offset, 0.U)(Seq (
+    //     0.U -> hitEntry(127, 96),
+    //     1.U -> hitEntry( 95, 64),
+    //     2.U -> hitEntry( 63, 32),
+    //     3.U -> hitEntry( 31,  0)
+    // ))
+    val hitData = MuxLookup(offset, 0.U)(hitDataMuxSeq)
     when(hitValid) {
         printf("%d %x\n", offset, hitData)
     }
