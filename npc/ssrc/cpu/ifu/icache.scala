@@ -46,11 +46,13 @@ class ICache (e: Int, s: Int) extends Module {
     val hitLineIndex = PriorityEncoder(lineHits)
     val hitEntry = group(hitLineIndex)
 
-    val s_idle :: s_wait_mem_0 :: s_wait_mem_1 :: s_wait_mem_2 :: s_wait_mem_3 :: s_mem_valid :: Nil = Enum(6)
+    val s_idle :: s_hit :: s_wait_mem_0 :: s_wait_mem_1 :: s_wait_mem_2 :: s_wait_mem_3 :: s_mem_valid :: Nil = Enum(7)
     val state = RegInit(s_idle)
     state := MuxLookup(state, s_idle)(Seq (
-        s_idle       -> Mux(io.io.ready, Mux(isHit, s_idle, Mux(io.mem.arready, s_wait_mem_0, s_idle)), s_idle),
+        // s_idle       -> Mux(io.io.ready, Mux(isHit, s_idle, Mux(io.mem.arready, s_wait_mem_0, s_idle)), s_idle),
+        s_idle       -> Mux(io.io.ready, Mux(isHit, s_hit, Mux(io.mem.arready, s_wait_mem_0, s_idle)), s_idle),
         // s_idle       -> Mux(io.io.ready, Mux(isHit, s_idle, Mux(io.mem.arready, s_wait_mem_3, s_idle)), s_idle),
+        s_hit        -> s_idle,
         s_wait_mem_0 -> Mux(io.mem.rvalid, s_wait_mem_1, s_wait_mem_0),
         s_wait_mem_1 -> Mux(io.mem.rvalid, s_wait_mem_2, s_wait_mem_1),
         s_wait_mem_2 -> Mux(io.mem.rvalid, s_wait_mem_3, s_wait_mem_2),
@@ -66,7 +68,8 @@ class ICache (e: Int, s: Int) extends Module {
     rdata2 := Mux(io.mem.rvalid && state === s_wait_mem_2, io.mem.rdata, rdata2)    
 
     val ready = (state === s_idle) && io.io.ready
-    val hitValid = ready && isHit
+    // val hitValid = ready && isHit
+    val hitValid = state === s_hit
     val memValid = (state === s_wait_mem_3) && io.mem.rvalid
     // val valid = hitValid || memValid
     // val valid = hitValid || state === s_mem_valid
