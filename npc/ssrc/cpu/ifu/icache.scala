@@ -77,8 +77,8 @@ class ICache (e: Int, s: Int) extends Module {
     for (i <- 0 to E-1) {
         group(i) := Mux(
             memValid && groupCounter === i.U, 
-            // Cat(true.B, tag, io.mem.rdata, rdata2, rdata1, rdata0), 
-            Cat(true.B, tag, io.mem.rdata),
+            Cat(true.B, tag, io.mem.rdata, rdata2, rdata1, rdata0), 
+            // Cat(true.B, tag, io.mem.rdata),
             group(i)
         )
     }
