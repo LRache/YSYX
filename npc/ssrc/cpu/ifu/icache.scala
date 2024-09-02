@@ -43,7 +43,7 @@ class ICache (e: Int, s: Int) extends Module {
     val isHit = lineHits.asUInt.orR
     val hitLineIndex = PriorityEncoder(lineHits)
 
-    val s_idle :: s_wait_mem_0 :: s_wait_mem_1 :: s_wait_mem_2 :: s_wait_mem_3 :: Nil = Enum(2)
+    val s_idle :: s_wait_mem_0 :: s_wait_mem_1 :: s_wait_mem_2 :: s_wait_mem_3 :: Nil = Enum(5)
     val state = RegInit(s_idle)
     state := MuxLookup(state, s_idle)(Seq (
         s_idle       -> Mux(io.io.ready, Mux(isHit, s_idle, Mux(io.mem.arready, s_wait_mem_0, s_idle)), s_idle),
