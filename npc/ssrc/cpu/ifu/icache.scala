@@ -94,7 +94,7 @@ class ICache (e: Int, s: Int) extends Module {
         3.U -> hitEntry( 31,  0)
     ))
     when(hitValid) {
-        printf("%x\n", hitData)
+        printf("%d %x\n", offset, hitData)
     }
 
     io.io.valid := valid
