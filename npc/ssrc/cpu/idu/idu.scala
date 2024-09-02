@@ -67,7 +67,7 @@ class IDU extends Module {
 
     // LSU
     io.out.bits.mem_type := io.in.bits.inst(14, 12)
-    io.out.bits.mem_wen := op.memWen && io.in.valid
+    io.out.bits.mem_wen := op.memWen
     io.out.bits.mem_ren := op.menRen
 
     // WBU
@@ -105,7 +105,6 @@ class IDU extends Module {
 
     io.out.bits.dnpc_sel := op.dnpcSel
 
-    // val csrImm = Cat(0.U(27.W), io.in.bits.inst(19, 15))
     // io.out.bits.rs1 := Mux(op.rs1Sel, csrImm, io.gpr_rdata1)
     // io.out.bits.rs2 := Mux(op.rs2Sel, io.csr_rdata, io.gpr_rdata2)
 
