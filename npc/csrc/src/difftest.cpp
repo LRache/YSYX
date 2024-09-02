@@ -40,7 +40,7 @@ static void inline reg_cmp(int i, uint32_t dut) {
     if (refRegs[i] != dut) {
         panic(
             "Difftest failed.\nDifferent reg:\nx%d, dut=%d(0x%08x), ref=%d(0x%08x)\ndut.pc=0x%08x inst=0x%08x",
-            i, dut, dut, refRegs[i], refRegs[i], lastPC, lastInst
+            i, dut, dut, refRegs[i], refRegs[i], lastPC, cpu.inst
         );
     }
 }
