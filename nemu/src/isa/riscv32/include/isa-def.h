@@ -21,6 +21,7 @@
 typedef struct {
   word_t gpr[MUXDEF(CONFIG_RVE, 16, 32)];
   word_t pc;
+  word_t refPC;
   word_t satp;      // 0x180
   word_t mstatus;   // 0x300
   word_t mtvec;     // 0x305

@@ -104,7 +104,6 @@ void difftest::step() {
     bool nemu_skip;
     nemu_difftest_skip(&nemu_skip, DIFFTEST_TO_DUT);
     if (skip || nemu_skip) {
-        // Log("Difftest skip");
         skip = false;
         nemu_skip = false;
         nemu_difftest_regcpy(cpu.gpr, DIFFTEST_TO_REF);

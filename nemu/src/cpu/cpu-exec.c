@@ -30,7 +30,6 @@ CPU_state cpu = { .mstatus=0x1800 };
 uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
 static bool g_print_step = false;
-static uint32_t debug_last_pc = 0;
 
 void device_update();
 bool watchpoint_triggered();
@@ -65,7 +64,7 @@ void exec_once(Decode *s, vaddr_t pc) {
   if (nemu_state.state == NEMU_INTR) {
       nemu_intr(s);
   }
-  debug_last_pc = cpu.pc;
+  cpu.refPC = cpu.pc;
   cpu.pc = s->dnpc;
 #ifdef CONFIG_ITRACE
   char *p = s->logbuf;
@@ -119,7 +118,6 @@ static void statistic() {
 }
 
 void assert_fail_msg() {
-  Log("Last pc=0x%x", debug_last_pc);
   statistic();
 }
 

@@ -97,7 +97,9 @@
         "rtservice.h": "c",
         "rtm.h": "c",
         "strstream": "cpp",
-        "typeindex": "cpp"
+        "typeindex": "cpp",
+        "difftest.h": "c",
+        "locale.h": "c"
     },
     "files.watcherExclude": {
         "**/target": true
