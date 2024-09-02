@@ -7,6 +7,7 @@ import cpu.reg.CSRAddr
 import cpu.IFUMessage
 import cpu.IDUMessage
 import Encode.Pos
+import cpu.reg.CSR
 
 class IDU extends Module {
   val io = IO(new Bundle {
@@ -32,10 +33,10 @@ class IDU extends Module {
 
     io.csr_raddr := MuxLookup(op.csrRASel, 0.U(12.W))(
         Seq(
-        CSRAddrSel.N.id.U -> 0.U(12.W),
-        CSRAddrSel.VEC.id.U -> CSRAddr.MTVEC,
-        CSRAddrSel.EPC.id.U -> CSRAddr.MEPC,
-        CSRAddrSel.Ins.id.U -> io.in.bits.inst(31, 20)
+          CSRAddrSel.N.id.U -> 0.U(12.W),
+          CSRAddrSel.VEC.id.U -> CSRAddr.MTVEC,
+          CSRAddrSel.EPC.id.U -> CSRAddr.MEPC,
+          CSRAddrSel.Ins.id.U -> csr_addr_translate(io.in.bits.inst(31, 20))
         )
     )
     io.out.bits.csr_rdata := io.csr_rdata
@@ -53,7 +54,7 @@ class IDU extends Module {
     val imm_b   = Cat(Fill(20, io.in.bits.inst(31)), io.in.bits.inst(31), io.in.bits.inst(7), io.in.bits.inst(30, 25), io.in.bits.inst(11, 8), 0.B)
     val imm_u   = Cat(io.in.bits.inst(31, 12), 0.U(12.W))
     val imm_j   = Cat(Fill(11, io.in.bits.inst(31)), io.in.bits.inst(31), io.in.bits.inst(19, 12), io.in.bits.inst(20), io.in.bits.inst(30, 21), 0.B)
-    io.out.bits.imm := MuxLookup(op.immType, 0.U(32.W))( Seq(
+    io.out.bits.imm := MuxLookup(op.immType, 0.U(32.W))(Seq(
             ImmType.I.id.U -> imm_i,
             ImmType.IU.id.U -> imm_iu,
             ImmType.S.id.U -> imm_s,
@@ -75,15 +76,28 @@ class IDU extends Module {
     io.out.bits.reg_wen := op.gprWen
     
     // CSR
+    def csr_addr_translate(origin: UInt): UInt = {
+      MuxLookup(origin, 0.U) (Seq(
+        0x100.U(12.W) -> CSRAddr.NONE,
+        0x101.U(12.W) -> CSRAddr.MVENDORID,
+        0x180.U(12.W) -> CSRAddr.MARCHID,
+        0x300.U(12.W) -> CSRAddr.SATP,
+        0x305.U(12.W) -> CSRAddr.MSTATUS,
+        0x305.U(12.W) -> CSRAddr.MTVEC,
+        0x340.U(12.W) -> CSRAddr.MSCRATCH,
+        0x341.U(12.W) -> CSRAddr.MEPC,
+        0x342.U(12.W) -> CSRAddr.MCAUSE
+      ))
+    }
     io.out.bits.csr_wen1 := ((op.csrWen && io.gpr_raddr1.orR) || is_ecall)
     io.out.bits.is_ecall := is_ecall
     io.out.bits.csr_imm := Cat(0.U(27.W), io.in.bits.inst(19, 15))
     io.out.bits.csr_ws := op.csrWSel
     io.out.bits.csr_waddr1 := MuxLookup(op.csrWASel, 0.U(12.W))(Seq(
-        CSRAddrSel.N.id.U -> 0.U(12.W),
+        CSRAddrSel.N.id.U   -> CSRAddr.NONE,
         CSRAddrSel.VEC.id.U -> CSRAddr.MTVEC,
         CSRAddrSel.EPC.id.U -> CSRAddr.MEPC,
-        CSRAddrSel.Ins.id.U -> io.in.bits.inst(31, 20)
+        CSRAddrSel.Ins.id.U -> csr_addr_translate(io.in.bits.inst(31, 20))
     ))
     // io.out.bits.csr_waddr2 := CSRAddr.MCAUSE
     io.out.bits.csr_wd_sel := op.isEcall

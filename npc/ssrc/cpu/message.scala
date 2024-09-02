@@ -28,7 +28,7 @@ class IDUMessage extends Bundle {
     val reg_wen    = Bool()
     val reg_ws     = UInt(3.W)
 
-    val csr_waddr1 = UInt(12.W)
+    val csr_waddr1 = UInt(4.W)
     // val csr_waddr2 = UInt(12.W)
     val is_ecall   = Bool()
     val csr_wen1   = Bool()
@@ -61,7 +61,7 @@ class EXUMessage extends Bundle {
     val reg_wen    = Bool()
     val reg_ws     = UInt(3.W)
 
-    val csr_waddr1 = UInt(12.W)
+    val csr_waddr1 = UInt(4.W)
     val is_ecall   = Bool()
     // val csr_waddr2 = UInt(12.W)
     val csr_wen1   = Bool()
@@ -91,7 +91,7 @@ class LSUMessage extends Bundle {
     val reg_wen    = Bool()
     val reg_ws     = UInt(3.W)
 
-    val csr_waddr1 = UInt(12.W)
+    val csr_waddr1 = UInt(4.W)
     val is_ecall   = Bool()
     // val csr_waddr2 = UInt(12.W)
     val csr_wdata1 = UInt(32.W)

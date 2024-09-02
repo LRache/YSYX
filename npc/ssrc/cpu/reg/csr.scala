@@ -10,23 +10,23 @@ object CSRWSel extends Enumeration {
 }
 
 object CSRAddr {
-    val MVENDORID= 0x100.U(12.W)
-    val MARCHID  = 0x101.U(12.W)
-    val SATP     = 0x180.U(12.W)
-    val MSTATUS  = 0x300.U(12.W)
-    val MTVEC    = 0x305.U(12.W)
-    val MSCRATCH = 0x340.U(12.W)
-    val MEPC     = 0x341.U(12.W)
-    val MCAUSE   = 0x342.U(12.W)
-    // val NONE        = 0x0.U(4.W)
-    // val MVENDORID   = 0x1.U(4.W)
-    // val MARCHID     = 0x2.U(4.W)
-    // val SATP        = 0x3.U(4.W)
-    // val MSTATUS     = 0x4.U(4.W)
-    // val MTVEC       = 0x5.U(4.W)
-    // val MSCRATCH    = 0x6.U(4.W)
-    // val MEPC        = 0x7.U(4.W)
-    // val MCAUSE      = 0x8.U(4.W)
+    // val MVENDORID= 0x100.U(12.W)
+    // val MARCHID  = 0x101.U(12.W)
+    // val SATP     = 0x180.U(12.W)
+    // val MSTATUS  = 0x300.U(12.W)
+    // val MTVEC    = 0x305.U(12.W)
+    // val MSCRATCH = 0x340.U(12.W)
+    // val MEPC     = 0x341.U(12.W)
+    // val MCAUSE   = 0x342.U(12.W)
+    val NONE        = 0x0.U(4.W)
+    val MVENDORID   = 0x1.U(4.W)
+    val MARCHID     = 0x2.U(4.W)
+    val SATP        = 0x3.U(4.W)
+    val MSTATUS     = 0x4.U(4.W)
+    val MTVEC       = 0x5.U(4.W)
+    val MSCRATCH    = 0x6.U(4.W)
+    val MEPC        = 0x7.U(4.W)
+    val MCAUSE      = 0x8.U(4.W)
 }
 
 class CSRDebugger extends BlackBox {
@@ -40,14 +40,14 @@ class CSRDebugger extends BlackBox {
 
 class CSR extends Module {
     val io = IO(new Bundle {
-        val waddr1  = Input (UInt(12.W))
+        val waddr1  = Input (UInt(4.W))
         val is_ecall= Input (Bool())
         // val waddr2  = Input (UInt(12.W))
         val wdata1  = Input (UInt(32.W))
         val wdata2  = Input (UInt(32.W))
         val wen1    = Input (Bool())
         // val wen2    = Input (Bool())
-        val raddr   = Input (UInt(12.W))
+        val raddr   = Input (UInt(4.W))
         val rdata   = Output(UInt(32.W))
     })
 
