@@ -1,7 +1,10 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-// #define HAS_NVBOARD
+#define HAS_NVBOARD
+#define DIFFTEST
+// #define ITRACE
+#define PERF
 
 // #define HAS_MEM
 #define MEM_BASE 0x80000000
@@ -34,8 +37,5 @@
 #define VGA_BUFFER_SIZE (VGA_HEIGHT * VGA_WIDTH * 4)
 
 #define INST_START FLASH_BASE
-
-#define DIFFTEST
-// #define ITRACE
 
 #endif

@@ -53,7 +53,7 @@ class AXI4Arbiter extends Module {
     val select = RegInit(false.B)
     val io1_valid = io.io1.arvalid || (io.io1.awvalid && io.io1.wvalid)
     val io2_valid = io.io2.arvalid || (io.io2.awvalid && io.io2.wvalid)
-    val arbite_finished = (io.sel.rvalid && io.sel.rready) || (io.sel.bvalid && io.sel.bready)
+    val arbite_finished = (io.sel.rlast && io.sel.rready) || (io.sel.bvalid && io.sel.bready)
     val request_arbite = io1_valid || io2_valid
      
     val s_wait_in :: s_arbite :: Nil = Enum(2)

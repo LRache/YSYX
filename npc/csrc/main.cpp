@@ -1,5 +1,6 @@
 #include <getopt.h>
 #include <string>
+#include <cstdlib>
 
 #include "debug.h"
 #include "hdb.h"
@@ -23,7 +24,7 @@ int main(int argc, char **argv) {
     std::string outputdir = "./";
     int optionIndex = 0;
     int o;
-    while ((o = getopt_long(argc, argv, "m:r:f:", options, &optionIndex)) != -1)
+    while ((o = getopt_long(argc, argv, "m:r:f:o:", options, &optionIndex)) != -1)
     {
         switch (o)
         {
@@ -35,6 +36,7 @@ int main(int argc, char **argv) {
         }
     }
     hdb::init(memImg, romImg, flashImg, outputdir);
+    std::atexit(hdb::end);
     int r = 0;
     r = hdb::run();
     return r;

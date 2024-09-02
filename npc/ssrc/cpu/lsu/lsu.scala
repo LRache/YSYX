@@ -203,6 +203,8 @@ class LSU extends Module {
         GPRWSel.CSR.id.U -> io.in.bits.csr_rdata
     ))
 
+    assert(io.mem.rresp === 0.U)
+
     io. in.ready := io.out.ready
     io.out.valid := state === s_valid
 

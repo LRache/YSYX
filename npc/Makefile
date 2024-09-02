@@ -1,9 +1,6 @@
 VERILATOR= verilator
 VERILATOR_CFLAGS += -MMD --build -cc -O3 --trace-fst 
 VERILATOR_FLAGS += --timescale "1ns/1ns" --no-timing --autoflush
-INC_PATH += $(abspath ./csrc/include)
-INC_PATH += $(abspath ./obj)
-INC_PATH += $(abspath ./csrc/util/cachesim/include)
 
 m = Top
 ifeq ($(m),soc)
@@ -14,6 +11,8 @@ TOP=$(lastword $(subst ., ,$(m)))
 mainModule=$(m)
 endif
 
+UTILS = cachesim
+
 SSRC_DIR = $(abspath ./ssrc)
 CSRC_DIR = $(abspath ./csrc)
 VSRC_DIR = $(abspath ./vsrc)
@@ -21,10 +20,16 @@ BUILD_DIR = $(abspath ./build)
 OBJ_DIR	 = $(abspath ./obj/V$(TOP))
 SIM_EXE  = $(abspath $(BUILD_DIR)/V$(TOP))
 OUTPUT_DIR = $(abspath ./output)
+UTILS_DIR = $(abspath ./utils)
 
 SSRCS = $(abspath $(shell find $(SSRC_DIR) -name "*.scala"))
 VSRCS = $(abspath $(shell find $(VSRC_DIR) -name "*.v" -or -name "*.sv")) $(abspath $(shell find $(BUILD_DIR) -name "*.v" -or -name "*.sv"))
 CSRCS = $(abspath $(shell find $(CSRC_DIR) -name "*.c" -or -name "*.cc" -or -name "*.cpp"))
+CSRCS += $(abspath $(shell find $(CSRC_DIR) -name "*.c" -or -name "*.cc" -or -name "*.cpp"))
+CSRCS += $(abspath $(shell find $(foreach util,$(UTILS),$(UTILS_DIR)/$(util)/src) -name "*.c" -or -name "*.cc" -or -name "*.cpp"))
+INC_PATH += $(abspath ./csrc/include)
+INC_PATH += $(abspath ./obj)
+INC_PATH += $(abspath $(foreach util,$(UTILS),$(UTILS_DIR)/$(util)/include))
 
 ifeq ($(m),soc)
 VSRCS += $(abspath ../ysyxSoC/build/ysyxSoCFull.v)
@@ -38,7 +43,8 @@ NEMU_SO = $(abspath $(NEMU_HOME)/build/riscv32-nemu-interpreter-so)
 include $(NVBOARD_HOME)/scripts/nvboard.mk
 
 INCFLAGS = $(addprefix -I, $(INC_PATH))
-CXXFLAGS += $(INCFLAGS)
+CXXFLAGS += $(INCFLAGS) 
+CXXFLAGS += -fexceptions
 VINCFLAGS = $(addprefix -I, $(VINC_PATH))
 VERILATOR_FLAGS += $(VINCFLAGS)
 
@@ -87,6 +93,7 @@ idea:
 
 clean:
 	-rm -rf $(BUILD_DIR)
+	-rm -rf $(abspath ./obj)
 
 update: $(OBJ_DIR)/V$(TOP).mk
 

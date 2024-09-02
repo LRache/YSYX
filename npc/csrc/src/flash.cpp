@@ -20,7 +20,7 @@ extern "C" void flash_read(addr_t addr, word_t *data) {
     rdata |= (d & 0x00ff0000) >>  8;
     rdata |= (d & 0xff000000) >> 24;
     *data = rdata;
-    // Log("Read flash [" FMT_WORD "]=" FMT_WORD, addr, d);
+    // Log("Read flash [" FMT_WORD "]=" FMT_WORD, FLASH_BASE + addr, d);
 }
 
 void set_flash(addr_t addr, word_t data) {
@@ -58,6 +58,12 @@ void load_img_to_flash_from_mem(const uint32_t *img, size_t length) {
 extern "C" void flash_read(addr_t addr, word_t *data) {
     *data = 0;
 }
+
+void set_flash(addr_t addr, word_t data) {}
+
+void load_img_to_flash_from_file(const std::string &path) {}
+
+void load_img_to_flash_from_mem(const uint32_t *img, size_t length) {}
 
 #endif
 

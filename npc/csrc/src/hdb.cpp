@@ -11,22 +11,16 @@
 #include "nvboard.h"
 #include "perf.h"
 #include "itrace.h"
-#include "cache.h"
 
 CPU cpu;
 uint32_t lastPC;
 uint32_t lastInst;
-uint32_t regs[32];
 
 VTop top;
 static uint64_t timer = 0;
 std::string hdb::outputDir = "./";
 
-#ifdef ITRACE
-static ITrace itracer;
-#endif
-
-#define IMG_NAME test_img_mem1
+#define IMG_NAME test_img_ebreak
 
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
@@ -79,7 +73,7 @@ void hdb::step() {
         exec_once();
     }
     exec_once(); // update PC for difftest.
-    difftest::step();
+    if (cpu.running) difftest::step();
     cpu.instCount++;
 }
 
@@ -87,6 +81,12 @@ void hdb_statistic() {
     Log("Total count of instructions = %" PRIu64 " with %" PRIu64 " clocks, IPC=%.6lf", cpu.instCount, cpu.clockCount, (double)cpu.instCount / cpu.clockCount);
     Log("Total time spent = %'" PRIu64 " us, frequency=%.3lfkHz", timer, (double)cpu.clockCount * 1000 / timer);
     if (timer > 0) Log("Simulation frequency = %'" PRIu64 " clocks/s", cpu.clockCount * 1000000 / timer);
+}
+
+void hdb::end() {
+    difftest::end();
+    perf::statistic();
+    hdb_statistic();
 }
 
 int hdb::run(uint64_t n) {
@@ -105,13 +105,10 @@ int hdb::run(uint64_t n) {
     } else {
         Log(ANSI_FG_RED "HIT BAD TRAP" ANSI_FG_BLUE " with code %d at pc=" FMT_WORD, r, cpu.pc);
     }
-
-    difftest::end();
     itrace::end();
-    perf::statistic();
-    hdb_statistic();
-    itrace::print();
-    Cache cache(3, 0, 0);
+    if (!hdb::outputDir.empty()) {
+        itrace::dump_to_file(hdb::outputDir + "//itrace.bin");
+    }
     return r;
 }
 
@@ -139,6 +136,8 @@ void hdb_invalid_inst() {
 }
 
 void hdb_update_pc(uint32_t pc) {
+    if (!cpu.running) return ;
+
     lastPC = cpu.pc;
     cpu.pc = pc;
     if (!(top.reset || in_flash(pc) || in_sdram(pc))) {
