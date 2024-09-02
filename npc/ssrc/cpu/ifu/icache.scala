@@ -66,7 +66,8 @@ class ICache (e: Int, s: Int) extends Module {
     val ready = (state === s_idle) && io.io.ready
     val hitValid = ready && isHit
     val memValid = (state === s_wait_mem_3) && io.mem.rvalid
-    val valid = hitValid || memValid
+    // val valid = hitValid || memValid
+    val valid = hitValid || state === s_mem_valid
     
     val counter = RegInit(VecInit(Seq.fill(S)(0.U(e.W))))
     val groupCounter = counter(groupIndex)
