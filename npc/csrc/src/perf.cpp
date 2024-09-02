@@ -93,7 +93,7 @@ static void icache_start_update(bool start) {
 static void icache_is_hit_update(bool isHit) {
     // icache.isHit = isHit;
     if (isHit) {
-        // icache.hit.pref_count(0);
+        icache.hit.pref_count(0);
         Log("Hit at clock=%lu", cpu.clockCount);
     }
 }
