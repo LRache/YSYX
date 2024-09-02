@@ -10,10 +10,10 @@ object GPRWSel extends Enumeration {
     val EXU, SN, MEM, CSR = Value
 }
 
-class RegFileDebugger extends BlackBox {
+class GPRDebugger(addrLength : Int) extends BlackBox {
     val io = IO(new Bundle {
         val clk     = Input(Clock())
-        val waddr   = Input(UInt(Config.GPRAddrLength.W))
+        val waddr   = Input(UInt(addrLength.W))
         val wdata   = Input(UInt(32.W))
         val wen     = Input(Bool())
     })
@@ -43,7 +43,7 @@ class GPR(addrLength : Int) extends Module {
     io.rdata1 := Mux(raddr1.orR, MuxLookup(raddr1, 0.U)(table), 0.U)
     io.rdata2 := Mux(raddr2.orR, MuxLookup(raddr2, 0.U)(table), 0.U)
 
-    val debugger = Module(new RegFileDebugger())
+    val debugger = Module(new GPRDebugger(addrLength))
     debugger.io.clk   := clock
     debugger.io.waddr := io.waddr
     debugger.io.wdata := io.wdata
