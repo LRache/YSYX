@@ -107,16 +107,16 @@ class ICache (e: Int, s: Int) extends Module {
     io.perf.start := ready
 
     // Unused
-    io.mem.bready  := DontCare
-    io.mem.wdata   := DontCare
-    io.mem.wstrb   := DontCare
-    io.mem.wvalid  := DontCare
-    io.mem.awaddr  := DontCare
-    io.mem.awvalid := DontCare
-    io.mem.awid    := DontCare
-    io.mem.awlen   := DontCare
-    io.mem.awsize  := DontCare
-    io.mem.awburst := DontCare
-    io.mem.wlast   := DontCare
-    io.mem.arid    := DontCare
+    io.mem.bready  := 0.U
+    io.mem.wdata   := 0.U
+    io.mem.wstrb   := 0.U
+    io.mem.wvalid  := 0.U
+    io.mem.awaddr  := 0.U
+    io.mem.awvalid := 0.U
+    io.mem.awid    := 0.U
+    io.mem.awlen   := 0.U
+    io.mem.awsize  := 0.U
+    io.mem.awburst := 0.U
+    io.mem.wlast   := 0.U
+    io.mem.arid    := 0.U
 }   
