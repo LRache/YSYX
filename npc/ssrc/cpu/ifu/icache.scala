@@ -46,14 +46,15 @@ class ICache (e: Int, s: Int) extends Module {
     val hitLineIndex = PriorityEncoder(lineHits)
     val hitEntry = group(hitLineIndex)
 
-    val s_idle :: s_wait_mem_0 :: s_wait_mem_1 :: s_wait_mem_2 :: s_wait_mem_3 :: Nil = Enum(5)
+    val s_idle :: s_wait_mem_0 :: s_wait_mem_1 :: s_wait_mem_2 :: s_wait_mem_3 :: s_mem_valid :: Nil = Enum(6)
     val state = RegInit(s_idle)
     state := MuxLookup(state, s_idle)(Seq (
         s_idle       -> Mux(io.io.ready, Mux(isHit, s_idle, Mux(io.mem.arready, s_wait_mem_0, s_idle)), s_idle),
         s_wait_mem_0 -> Mux(io.mem.rvalid, s_wait_mem_1, s_wait_mem_0),
         s_wait_mem_1 -> Mux(io.mem.rvalid, s_wait_mem_2, s_wait_mem_1),
         s_wait_mem_2 -> Mux(io.mem.rvalid, s_wait_mem_3, s_wait_mem_2),
-        s_wait_mem_3 -> Mux(io.mem.rvalid, s_idle, s_wait_mem_3)
+        s_wait_mem_3 -> Mux(io.mem.rvalid, s_mem_valid,  s_wait_mem_3),
+        s_mem_valid  -> s_idle,
     ))
     val rdata0 = RegInit(0.U(32.W))
     val rdata1 = RegInit(0.U(32.W))
@@ -77,30 +78,19 @@ class ICache (e: Int, s: Int) extends Module {
             group(i)
         )
     }
-    // when(memValid) {
-    //     printf("%x %x %x %x", rdata0, rdata1, rdata2, io.mem.rdata)
-    // }
 
-    val memRData = MuxLookup(offset, 0.U)(Seq (
-        0.U -> rdata0,
-        1.U -> rdata1,
-        2.U -> rdata2,
-        3.U -> io.mem.rdata
-    ))
-    val hitDataMuxSeq : Seq[(UInt, UInt)] = for (i <- 0 to 3) yield (i.U, hitEntry(i * 32 + 31, i * 32))
-    // val hitData = MuxLookup(offset, 0.U)(Seq (
-    //     0.U -> hitEntry(127, 96),
-    //     1.U -> hitEntry( 95, 64),
-    //     2.U -> hitEntry( 63, 32),
-    //     3.U -> hitEntry( 31,  0)
+    // val memRData = MuxLookup(offset, 0.U)(Seq (
+    //     0.U -> rdata0,
+    //     1.U -> rdata1,
+    //     2.U -> rdata2,
+    //     3.U -> io.mem.rdata
     // ))
+    val hitDataMuxSeq : Seq[(UInt, UInt)] = for (i <- 0 to 3) yield (i.U, hitEntry(i * 32 + 31, i * 32))
     val hitData = MuxLookup(offset, 0.U)(hitDataMuxSeq)
-    // when(hitValid) {
-    //     printf("%d %x\n", offset, hitData)
-    // }
 
     io.io.valid := valid
-    io.io.rdata := Mux(memValid, memRData, hitData)
+    // io.io.rdata := Mux(memValid, memRData, hitData)
+    io.io.rdata := hitData
 
     io.mem.araddr := memRAddr
     io.mem.arvalid := ready && !isHit

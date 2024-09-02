@@ -13,13 +13,13 @@ protected:
     int s;
     int b;
     
-    uint32_t *tag;
+    std::vector<std::vector<uint32_t>> tag;
     uint32_t tagMask;
     uint32_t indexMask;
-    bool *valid;
+    std::vector<std::vector<bool>> valid;
 public:
     Cache(int _e, int _s, int _b);
-    virtual ~Cache();
+    virtual ~Cache() = default;
     bool is_valid(uint32_t groupIndex, uint32_t entryIndex);
     bool read(word_t addr);
     bool write(word_t addr);
