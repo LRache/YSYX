@@ -43,23 +43,26 @@ class ICache (e: Int, s: Int) extends Module {
     val isHit = lineHits.asUInt.orR
     val hitLineIndex = PriorityEncoder(lineHits)
 
-    val s_idle :: s_wait_mem :: Nil = Enum(2)
+    val s_idle :: s_wait_mem_0 :: s_wait_mem_1 :: s_wait_mem_2 :: s_wait_mem_3 :: Nil = Enum(2)
     val state = RegInit(s_idle)
     state := MuxLookup(state, s_idle)(Seq (
-        s_idle      -> Mux(io.io.ready, Mux(isHit, s_idle, Mux(io.mem.arready, s_wait_mem, s_idle)), s_idle),
-        s_wait_mem  -> Mux(io.mem.rvalid, s_idle, s_wait_mem),
+        s_idle       -> Mux(io.io.ready, Mux(isHit, s_idle, Mux(io.mem.arready, s_wait_mem_0, s_idle)), s_idle),
+        s_wait_mem_0 -> Mux(io.mem.rvalid, s_wait_mem_1, s_wait_mem_0),
+        s_wait_mem_1 -> Mux(io.mem.rvalid, s_wait_mem_2, s_wait_mem_1),
+        s_wait_mem_2 -> Mux(io.mem.rvalid, s_wait_mem_3, s_wait_mem_2),
+        s_wait_mem_3 -> Mux(io.mem.rvalid, s_idle, s_wait_mem_3)
     ))
 
     val ready = (state === s_idle) && io.io.ready
     val hitValid = ready && isHit
-    val memValid = (state === s_wait_mem) && io.mem.rvalid
+    val memValid = (state === s_wait_mem_3) && io.mem.rvalid
     val valid = hitValid || memValid
     
     val counter = RegInit(VecInit(Seq.fill(S)(0.U(e.W))))
     val groupCounter = counter(groupIndex)
     counter(groupIndex) := Mux(memValid, groupCounter+1.U, groupCounter)
     for (i <- 0 to E-1) {
-        group(i) := Mux(memValid && groupCounter === i.U, Cat(true.B, tag, io.mem.rdata), group(i))
+        group(i) := Mux((state === s_wait_mem_0) && io.mem.rvalid && groupCounter === i.U, Cat(true.B, tag, io.mem.rdata), group(i))
     }
 
     io.io.valid := valid
