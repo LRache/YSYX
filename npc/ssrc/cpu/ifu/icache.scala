@@ -19,7 +19,7 @@ class ICache (e: Int, s: Int) extends Module {
         val mem = new AXI4IO()
         val perf = new ICachePerfCounter()
     })
-    val b = 2
+    val b = 4
     val S = 1 << s
     val B = (1 << b) << 3
     val t = 32 - s - b
@@ -32,7 +32,7 @@ class ICache (e: Int, s: Int) extends Module {
     } else {
         groupIndex := io.io.raddr(s + b - 1, b)
     }
-    // val offset = io.io.raddr(b-1, 2)
+    val offset = io.io.raddr(b-1, 2)
     val memRAddr = Cat(io.io.raddr(31, b), 0.U(b.W))
 
     val cache = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((B + t + 1).W))))))
@@ -49,14 +49,14 @@ class ICache (e: Int, s: Int) extends Module {
     val s_idle :: s_wait_mem_0 :: s_wait_mem_1 :: s_wait_mem_2 :: s_wait_mem_3 :: s_mem_valid :: Nil = Enum(6)
     val state = RegInit(s_idle)
     state := MuxLookup(state, s_idle)(Seq (
-        // s_idle       -> Mux(io.io.ready, Mux(isHit, s_idle, Mux(io.mem.arready, s_wait_mem_0, s_idle)), s_idle),
-        s_idle       -> Mux(io.io.ready, Mux(isHit, s_idle, Mux(io.mem.arready, s_wait_mem_3, s_idle)), s_idle),
-        // s_wait_mem_0 -> Mux(io.mem.rvalid, s_wait_mem_1, s_wait_mem_0),
-        // s_wait_mem_1 -> Mux(io.mem.rvalid, s_wait_mem_2, s_wait_mem_1),
-        // s_wait_mem_2 -> Mux(io.mem.rvalid, s_wait_mem_3, s_wait_mem_2),
-        // s_wait_mem_3 -> Mux(io.mem.rvalid, s_mem_valid,  s_wait_mem_3),
-        s_wait_mem_3 -> Mux(io.mem.rvalid, s_idle,  s_wait_mem_3),
-        // s_mem_valid  -> s_idle,
+        s_idle       -> Mux(io.io.ready, Mux(isHit, s_idle, Mux(io.mem.arready, s_wait_mem_0, s_idle)), s_idle),
+        // s_idle       -> Mux(io.io.ready, Mux(isHit, s_idle, Mux(io.mem.arready, s_wait_mem_3, s_idle)), s_idle),
+        s_wait_mem_0 -> Mux(io.mem.rvalid, s_wait_mem_1, s_wait_mem_0),
+        s_wait_mem_1 -> Mux(io.mem.rvalid, s_wait_mem_2, s_wait_mem_1),
+        s_wait_mem_2 -> Mux(io.mem.rvalid, s_wait_mem_3, s_wait_mem_2),
+        s_wait_mem_3 -> Mux(io.mem.rvalid, s_mem_valid,  s_wait_mem_3),
+        // s_wait_mem_3 -> Mux(io.mem.rvalid, s_idle,  s_wait_mem_3),
+        s_mem_valid  -> s_idle,
     ))
     val rdata0 = RegInit(0.U(32.W))
     val rdata1 = RegInit(0.U(32.W))
@@ -83,26 +83,20 @@ class ICache (e: Int, s: Int) extends Module {
         )
     }
 
-    // val memRData = MuxLookup(offset, 0.U)(Seq (
-    //     0.U -> rdata0,
-    //     1.U -> rdata1,
-    //     2.U -> rdata2,
-    //     3.U -> io.mem.rdata
-    // ))
-    // val hitDataMuxSeq : Seq[(UInt, UInt)] = for (i <- 0 to 3) yield (i.U, hitEntry(i * 32 + 31, i * 32))
-    // val hitData = MuxLookup(offset, 0.U)(hitDataMuxSeq)
+    val hitDataMuxSeq : Seq[(UInt, UInt)] = for (i <- 0 to 3) yield (i.U, hitEntry(i * 32 + 31, i * 32))
+    val hitData = MuxLookup(offset, 0.U)(hitDataMuxSeq)
 
-    // io.io.valid := hitValid || state === s_mem_valid
-    io.io.valid := hitValid || memValid
-    // io.io.rdata := hitData
-    io.io.rdata := Mux(memValid, io.mem.rdata, hitEntry(31, 0))
+    io.io.valid := hitValid || state === s_mem_valid
+    // io.io.valid := hitValid || memValid
+    io.io.rdata := hitData
+    // io.io.rdata := Mux(memValid, io.mem.rdata, hitEntry(31, 0))
 
     io.mem.araddr := memRAddr
     io.mem.arvalid := ready && !isHit
     
     io.mem.rready := true.B
-    // io.mem.arlen  := 3.U // BURST 4
-    io.mem.arlen  := 0.U // BURST 4
+    io.mem.arlen  := 3.U // BURST 4
+    // io.mem.arlen  := 0.U // BURST 1
     io.mem.arsize := 2.U // 4 bytes per burst
     io.mem.arburst := 1.U // INCR
 
