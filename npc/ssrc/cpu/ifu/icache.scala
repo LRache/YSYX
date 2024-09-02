@@ -77,6 +77,9 @@ class ICache (e: Int, s: Int) extends Module {
             group(i)
         )
     }
+    when(memValid) {
+        printf("%x %x %x %x", rdata0, rdata1, rdata2, io.mem.rdata)
+    }
 
     val memRData = MuxLookup(offset, 0.U)(Seq (
         0.U -> rdata0,
