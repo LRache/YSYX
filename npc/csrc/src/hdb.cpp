@@ -150,7 +150,7 @@ void hdb_update_pc(uint32_t pc) {
 void hdb_update_inst(uint32_t inst) {
     lastInst = cpu.inst;
     cpu.inst = inst;
-    // Log(FMT_WORD, inst);
+    Log(FMT_WORD, inst);
 }
 
 void hdb_update_valid(bool valid) {
