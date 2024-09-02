@@ -25,9 +25,6 @@ class ICache (e: Int, s: Int) extends Module {
     val t = 32 - s - b
     val E = 1 << e
 
-    val cache = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((B + t + 1).W))))))
-    val group = cache(groupIndex)
-
     val tag = io.io.raddr(31, s + b)
     val groupIndex = Wire(UInt(s.W))
     if (s == 0) {
@@ -37,6 +34,9 @@ class ICache (e: Int, s: Int) extends Module {
     }
     val offset = io.io.raddr(b-1, 2)
     val mem_raddr = io.io.raddr(31, b)
+
+    val cache = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((B + t + 1).W))))))
+    val group = cache(groupIndex)
     
     val lineHits = Wire(Vec(E, Bool()))
     for (i <- 0 to E-1) {
