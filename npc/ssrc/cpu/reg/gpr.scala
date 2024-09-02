@@ -1,8 +1,9 @@
 package cpu.reg
 
 import chisel3._
-import cpu.reg
 import chisel3.util.MuxLookup
+
+import cpu.Config
 
 object GPRWSel extends Enumeration {
     type GPRWSel = Value
@@ -12,7 +13,7 @@ object GPRWSel extends Enumeration {
 class RegFileDebugger extends BlackBox {
     val io = IO(new Bundle {
         val clk     = Input(Clock())
-        val waddr   = Input(UInt(5.W))
+        val waddr   = Input(UInt(Config.GPRAddrLength.W))
         val wdata   = Input(UInt(32.W))
         val wen     = Input(Bool())
     })

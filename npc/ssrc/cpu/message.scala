@@ -57,7 +57,7 @@ class EXUMessage extends Bundle {
     val mem_ren    = Bool()
     val mem_type   = UInt(3.W)
         
-    val rd         = UInt(5.W)
+    val rd         = UInt(GPRAddrLength.W)
     val rs2        = UInt(32.W)
     val reg_wen    = Bool()
     val reg_ws     = UInt(3.W)
@@ -88,7 +88,7 @@ class LSUMessage extends Bundle {
     val pc_sel     = Bool()
     // val exu_result = UInt(32.W)
         
-    val rd         = UInt(5.W)
+    val rd         = UInt(GPRAddrLength.W)
     val reg_wen    = Bool()
     val reg_ws     = UInt(3.W)
 
