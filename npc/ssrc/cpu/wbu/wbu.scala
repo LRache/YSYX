@@ -29,7 +29,7 @@ class WBU extends Module {
     })
     io.reg_waddr := io.in.bits.rd
     io.reg_wdata := io.in.bits.gpr_wdata
-    io.reg_wen := io.in.bits.reg_wen && io.in.valid
+    io.reg_wen := io.in.bits.gpr_wen && io.in.valid
 
     io.csr_waddr1 := io.in.bits.csr_waddr1
     // io.csr_waddr2 := io.in.bits.csr_waddr2

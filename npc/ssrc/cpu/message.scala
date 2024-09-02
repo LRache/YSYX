@@ -59,8 +59,8 @@ class EXUMessage extends Bundle {
         
     val rd         = UInt(GPRAddrLength.W)
     val rs2        = UInt(32.W)
-    val reg_wen    = Bool()
-    val reg_ws     = UInt(3.W)
+    val gpr_wen    = Bool()
+    val gpr_ws     = UInt(3.W)
 
     val csr_waddr1 = UInt(4.W)
     val is_ecall   = Bool()
@@ -89,8 +89,8 @@ class LSUMessage extends Bundle {
     // val exu_result = UInt(32.W)
         
     val rd         = UInt(GPRAddrLength.W)
-    val reg_wen    = Bool()
-    val reg_ws     = UInt(3.W)
+    val gpr_wen    = Bool()
+    // val reg_ws     = UInt(3.W)
 
     val csr_waddr1 = UInt(4.W)
     val is_ecall   = Bool()

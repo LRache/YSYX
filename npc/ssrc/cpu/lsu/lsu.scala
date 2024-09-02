@@ -196,7 +196,7 @@ class LSU extends Module {
     val mem_rdata = RegInit(0.U(32.W))
     mem_rdata := Mux(state === s_wait_mem && mem_ren, Cat(mem_rdata_3, mem_rdata_2, mem_rdata_1, mem_rdata_0), mem_rdata)
     
-    io.out.bits.gpr_wdata :=  MuxLookup(io.in.bits.reg_ws, 0.U)(Seq (
+    io.out.bits.gpr_wdata :=  MuxLookup(io.in.bits.gpr_ws, 0.U)(Seq (
         GPRWSel.EXU.id.U -> io.in.bits.exu_result,
         GPRWSel.MEM.id.U -> mem_rdata,
         GPRWSel. SN.id.U -> io.in.bits.snpc,
@@ -226,8 +226,8 @@ class LSU extends Module {
     io.out.bits.pc_sel     := io.in.bits.pc_sel
         
     io.out.bits.rd      := io.in.bits.rd
-    io.out.bits.reg_wen := io.in.bits.reg_wen
-    io.out.bits.reg_ws  := io.in.bits.reg_ws
+    io.out.bits.gpr_wen := io.in.bits.gpr_wen
+    // io.out.bits.reg_ws  := io.in.bits.reg_ws
 
     io.out.bits.csr_waddr1 := io.in.bits.csr_waddr1
     io.out.bits.is_ecall   := io.in.bits.is_ecall
