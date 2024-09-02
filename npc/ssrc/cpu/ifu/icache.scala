@@ -92,7 +92,7 @@ class ICache (e: Int, s: Int) extends Module {
     ))
 
     io.io.valid := valid
-    io.io.rdata := Mux(memValid, io.mem.rdata, hitData)
+    io.io.rdata := Mux(memValid, memRData, hitData)
 
     io.mem.araddr := io.io.raddr
     io.mem.arvalid := ready && !isHit
