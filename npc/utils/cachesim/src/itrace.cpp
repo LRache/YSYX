@@ -140,7 +140,7 @@ void ITracerReader::open(const std::string &filepath) {
         // std::cout << std::hex << pc << " " << endPC << std::endl;
         read_turn();
     } else {
-        throw std::runtime_error(std::string(std::strerror(errno)) + ": " + filepath);
+        // throw std::runtime_error(std::string(std::strerror(errno)) + ": " + filepath);
     }
 }
 
