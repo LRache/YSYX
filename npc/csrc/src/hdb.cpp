@@ -15,7 +15,6 @@
 CPU cpu;
 uint32_t lastPC;
 uint32_t lastInst;
-uint32_t regs[32];
 
 VTop top;
 static uint64_t timer = 0;
@@ -74,7 +73,7 @@ void hdb::step() {
         exec_once();
     }
     exec_once(); // update PC for difftest.
-    difftest::step();
+    if (cpu.running) difftest::step();
     cpu.instCount++;
 }
 

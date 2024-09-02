@@ -59,5 +59,11 @@ extern "C" void flash_read(addr_t addr, word_t *data) {
     *data = 0;
 }
 
+void set_flash(addr_t addr, word_t data) {}
+
+void load_img_to_flash_from_file(const std::string &path) {}
+
+void load_img_to_flash_from_mem(const uint32_t *img, size_t length) {}
+
 #endif
 
