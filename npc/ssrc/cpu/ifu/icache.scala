@@ -101,7 +101,8 @@ class ICache (e: Int, s: Int) extends Module {
     io.mem.arvalid := ready && !isHit
     
     io.mem.rready := true.B
-    io.mem.arlen  := 3.U // BURST 4
+    // io.mem.arlen  := 3.U // BURST 4
+    io.mem.arlen  := 0.U // BURST 4
     io.mem.arsize := 2.U // 4 bytes per burst
     io.mem.arburst := 1.U // INCR
 
