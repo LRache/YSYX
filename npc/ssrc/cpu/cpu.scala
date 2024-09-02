@@ -24,7 +24,7 @@ class HCPU(instStart : BigInt) extends Module {
     val gpr = Module(new GPR(4))
     val csr = Module(new CSR)
 
-    val icache = Module(new ICache(3, 0))
+    val icache = Module(new ICache(2, 0))
     
     val arbiter = Module(new AXI4Arbiter)
     arbiter.io.sel <> io.master
