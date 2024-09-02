@@ -80,9 +80,6 @@ class ICache (e: Int, s: Int) extends Module {
     // when(memValid) {
     //     printf("%x %x %x %x", rdata0, rdata1, rdata2, io.mem.rdata)
     // }
-    when(hitValid) {
-        printf("%x\n", hitData)
-    }
 
     val memRData = MuxLookup(offset, 0.U)(Seq (
         0.U -> rdata0,
@@ -96,6 +93,9 @@ class ICache (e: Int, s: Int) extends Module {
         2.U -> hitEntry( 63, 32),
         3.U -> hitEntry( 31,  0)
     ))
+    when(hitValid) {
+        printf("%x\n", hitData)
+    }
 
     io.io.valid := valid
     io.io.rdata := Mux(memValid, memRData, hitData)
