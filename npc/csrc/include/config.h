@@ -1,7 +1,7 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-#define HAS_NVBOARD
+// #define HAS_NVBOARD
 #define DIFFTEST
 // #define ITRACE
 #define PERF
