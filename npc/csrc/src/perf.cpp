@@ -72,8 +72,6 @@ static struct {
     Counter hit;
     Counter miss;
 
-    bool isHit = false;
-    bool started = false;
     uint64_t start;
 } icache;
 
@@ -81,7 +79,6 @@ static void icache_valid_update(bool valid) {
     if (valid) {
         uint64_t clockCount = cpu.clockCount - icache.start;
         icache.miss.pref_count(clockCount);
-        // icache.isHit = true;
     }
 }
 
@@ -92,10 +89,8 @@ static void icache_start_update(bool start) {
 }
 
 static void icache_is_hit_update(bool isHit) {
-    // icache.isHit = isHit;
     if (isHit) {
         icache.hit.pref_count(0);
-        Log("Hit at clock=%lu", cpu.clockCount);
     }
 }
 
