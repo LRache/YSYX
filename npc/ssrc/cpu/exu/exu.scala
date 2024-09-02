@@ -36,7 +36,7 @@ class EXU extends Module {
             CSRWSel. W.id.U -> io.in.bits.rs1,
             CSRWSel. S.id.U -> (io.in.bits.csr_rdata |   io.in.bits.rs1 ),
             CSRWSel. C.id.U -> (io.in.bits.csr_rdata & (~io.in.bits.rs1)),
-            CSRWSel.WI.id.U -> io.in.bits.csr_imm,
+            CSRWSel.WI.id.U -> Cat(0.U(27.W), io.in.bits.csr_imm),
             CSRWSel.SI.id.U -> (io.in.bits.csr_rdata |   io.in.bits.csr_imm ),
             CSRWSel.CI.id.U -> (io.in.bits.csr_rdata & (~io.in.bits.csr_imm)),
         ))

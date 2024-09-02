@@ -92,7 +92,7 @@ class IDU extends Module {
     }
     io.out.bits.csr_wen1 := ((op.csrWen && io.gpr_raddr1.orR) || is_ecall)
     io.out.bits.is_ecall := is_ecall
-    io.out.bits.csr_imm := Cat(0.U(27.W), io.in.bits.inst(19, 15))
+    io.out.bits.csr_imm := io.in.bits.inst(19, 15)
     io.out.bits.csr_ws := op.csrWSel
     io.out.bits.csr_waddr1 := MuxLookup(op.csrWASel, 0.U(12.W))(Seq(
         CSRAddrSel.N.id.U   -> CSRAddr.NONE,
