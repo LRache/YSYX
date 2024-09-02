@@ -3,7 +3,6 @@ package cpu.reg
 import chisel3._
 import chisel3.util.MuxLookup
 import chisel3.util.MuxCase
-import cpu.reg.CSRAddr.{MCAUSE => MCAUSE}
 
 object CSRWSel extends Enumeration {
     type CSRWSel = Value
@@ -19,6 +18,15 @@ object CSRAddr {
     val MSCRATCH = 0x340.U(12.W)
     val MEPC     = 0x341.U(12.W)
     val MCAUSE   = 0x342.U(12.W)
+    // val NONE        = 0x0.U(4.W)
+    // val MVENDORID   = 0x1.U(4.W)
+    // val MARCHID     = 0x2.U(4.W)
+    // val SATP        = 0x3.U(4.W)
+    // val MSTATUS     = 0x4.U(4.W)
+    // val MTVEC       = 0x5.U(4.W)
+    // val MSCRATCH    = 0x6.U(4.W)
+    // val MEPC        = 0x7.U(4.W)
+    // val MCAUSE      = 0x8.U(4.W)
 }
 
 class CSRDebugger extends BlackBox {
@@ -83,6 +91,6 @@ class CSR extends Module {
     val debugger2 = Module(new CSRDebugger())
     debugger2.io.clk := clock
     debugger2.io.wen := io.is_ecall
-    debugger2.io.waddr := MCAUSE
+    debugger2.io.waddr := CSRAddr.MCAUSE
     debugger2.io.wdata := io.wdata2
 }

@@ -166,8 +166,7 @@ extern "C" {
         hdb_set_csr(addr, data);
     }
 
-    void update_reset(uint8_t reset) {
-    }
+    void update_reset(uint8_t reset) {}
 
     void update_pc(uint32_t pc) {
         hdb_update_pc(pc);
