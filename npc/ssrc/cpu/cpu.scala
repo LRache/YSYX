@@ -21,7 +21,7 @@ class HCPU(instStart : BigInt) extends Module {
         val interrupt = Input(Bool())
     })
     
-    val gpr = Module(new GPR(4))
+    val gpr = Module(new GPR(Config.GPRAddrLength))
     val csr = Module(new CSR)
 
     val icache = Module(new ICache(2, 0))

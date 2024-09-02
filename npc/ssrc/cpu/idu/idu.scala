@@ -3,37 +3,38 @@ package cpu.idu
 import chisel3._
 import chisel3.util._
 
+import cpu.Config
 import cpu.reg.CSRAddr
 import cpu.IFUMessage
 import cpu.IDUMessage
-import Encode.Pos
 import cpu.reg.CSR
+import Encode.Pos
 
 class IDU extends Module {
   val io = IO(new Bundle {
     val in = Flipped(Decoupled(new IFUMessage))
     val out = Decoupled(new IDUMessage)
 
-    val gpr_raddr1 = Output(UInt(5.W))
-    val gpr_raddr2 = Output(UInt(5.W))
+    val gpr_raddr1 = Output(UInt(Config.GPRAddrLength.W))
+    val gpr_raddr2 = Output(UInt(Config.GPRAddrLength.W))
     val gpr_rdata1 = Input(UInt(32.W))
     val gpr_rdata2 = Input(UInt(32.W))
 
-    val csr_raddr = Output(UInt(12.W))
+    val csr_raddr = Output(UInt(4.W))
     val csr_rdata = Input(UInt(32.W))
   })
 
     val op = Decoder.decode(io.in.bits.inst)
     val is_ecall = op.isEcall
 
-    io.gpr_raddr1 := io.in.bits.inst(19, 15)
-    io.gpr_raddr2 := Mux(is_ecall, 15.U(5.W), io.in.bits.inst(24, 20))
+    io.gpr_raddr1 := io.in.bits.inst(15 + Config.GPRAddrLength - 1, 15)
+    io.gpr_raddr2 := Mux(is_ecall, 15.U(5.W), io.in.bits.inst(20 + Config.GPRAddrLength - 1, 20))
     io.out.bits.rs1 := io.gpr_rdata1
     io.out.bits.rs2 := io.gpr_rdata2
 
     io.csr_raddr := MuxLookup(op.csrRASel, 0.U(12.W))(
         Seq(
-          CSRAddrSel.N.id.U -> 0.U(12.W),
+          CSRAddrSel.N.id.U   -> CSRAddr.NONE,
           CSRAddrSel.VEC.id.U -> CSRAddr.MTVEC,
           CSRAddrSel.EPC.id.U -> CSRAddr.MEPC,
           CSRAddrSel.Ins.id.U -> csr_addr_translate(io.in.bits.inst(31, 20))

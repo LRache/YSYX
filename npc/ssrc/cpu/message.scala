@@ -1,6 +1,7 @@
 package cpu
 
 import chisel3._
+import cpu.Config.GPRAddrLength
 
 class IFUMessage extends Bundle {
     val inst = UInt(32.W)
@@ -24,7 +25,7 @@ class IDUMessage extends Bundle {
     val mem_ren    = Bool()
     val mem_type   = UInt(3.W)
         
-    val rd         = UInt(5.W)
+    val rd         = UInt(GPRAddrLength.W)
     val reg_wen    = Bool()
     val reg_ws     = UInt(3.W)
 

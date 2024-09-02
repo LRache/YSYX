@@ -20,11 +20,11 @@ class RegFileDebugger extends BlackBox {
 
 class GPR(addrLength : Int) extends Module {
     val io = IO(new Bundle {
-        val waddr   = Input (UInt(5.W))
+        val waddr   = Input (UInt(addrLength.W))
         val wdata   = Input (UInt(32.W))
         val wen     = Input (Bool())
-        val raddr1  = Input (UInt(5.W))
-        val raddr2  = Input (UInt(5.W))
+        val raddr1  = Input (UInt(addrLength.W))
+        val raddr2  = Input (UInt(addrLength.W))
         val rdata1  = Output(UInt(32.W))
         val rdata2  = Output(UInt(32.W))
     })
