@@ -267,7 +267,7 @@ static uint32_t test_img_gpio[] = {
     GOOD_TRAP
 };
 
-static uint32_t test_dead_loop[] = {
+static uint32_t test_img_dead_loop[] = {
     // 0x00100093, // addi x1, x0, 1
     // 0x00200113, // addi x2, x0, 2
     // 0x00300193, // addi x3, x0, 3
