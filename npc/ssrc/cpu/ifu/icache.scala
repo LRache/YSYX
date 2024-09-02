@@ -33,7 +33,7 @@ class ICache (e: Int, s: Int) extends Module {
         groupIndex := io.io.raddr(s + b - 1, b)
     }
     val offset = io.io.raddr(b-1, 2)
-    val mem_raddr = io.io.raddr(31, b)
+    val memRAddr = io.io.raddr(31, b)
 
     val cache = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((B + t + 1).W))))))
     val group = cache(groupIndex)
@@ -94,7 +94,7 @@ class ICache (e: Int, s: Int) extends Module {
     io.io.valid := valid
     io.io.rdata := Mux(memValid, memRData, hitData)
 
-    io.mem.araddr := io.io.raddr
+    io.mem.araddr := memRAddr
     io.mem.arvalid := ready && !isHit
     
     io.mem.rready := true.B
