@@ -1,10 +1,10 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-// #define HAS_NVBOARD
+#define HAS_NVBOARD
 #define DIFFTEST
 // #define ITRACE
-// #define PERF
+#define PERF
 
 // #define HAS_MEM
 #define MEM_BASE 0x80000000
