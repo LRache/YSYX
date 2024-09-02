@@ -2,6 +2,8 @@
 #include <math.h>
 #include <iostream>
 
+#define WORD_LENGTH (sizeof(word_t) << 3)
+
 Cache::Cache(int _e, int _s, int _b) : e(_e), s(_s), b(_b) {
     E = 1 << e;
     S = 1 << s;
@@ -10,9 +12,10 @@ Cache::Cache(int _e, int _s, int _b) : e(_e), s(_s), b(_b) {
     this->tag = std::vector<std::vector<uint32_t>>(S, std::vector<uint32_t>(E, 0));
     this->valid = std::vector<std::vector<bool>>(S, std::vector<bool>(E, false));
 
-    int tagLength = (sizeof(word_t) << 3) - s - b;
-    this->tagMask = ((int)0x80000000) >> tagLength;
-    this->indexMask = ((int)(0x80000000) >> (32 - b)) & (~this->tagMask);
+    int tagLength = WORD_LENGTH - s - b;
+    this->tagMask = ((int)0x80000000) >> (tagLength - 1);
+    this->indexMask = ((int)(0x80000000) >> (WORD_LENGTH - b)) & (~this->tagMask);
+    // std::cout << tagLength << std::endl;
 }
 
 bool Cache::is_valid(uint32_t groupIndex, uint32_t entryIndex) {

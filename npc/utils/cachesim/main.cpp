@@ -49,5 +49,15 @@ int main(int argc, char **argv) {
     //     }
     // }
     sim_file(argv[1], 2, 0, 4);
+    sim_file(argv[1], 3, 0, 2);
+    // ITracer t;
+    // t.start_trace(0);
+    // for (int i = 4; i < 23 * 4; i += 4) {
+    //     t.trace(i);
+    // }
+    // t.end_trace();
+    // FIFOCache c(2, 0, 4);
+    // auto r = sim(c, t);
+    // output_icache_sim(r, "", 0, 0, 0);
     return 0;
 }

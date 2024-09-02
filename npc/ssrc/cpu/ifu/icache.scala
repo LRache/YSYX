@@ -50,6 +50,7 @@ class ICache (e: Int, s: Int) extends Module {
     val state = RegInit(s_idle)
     state := MuxLookup(state, s_idle)(Seq (
         s_idle       -> Mux(io.io.ready, Mux(isHit, s_idle, Mux(io.mem.arready, s_wait_mem_0, s_idle)), s_idle),
+        // s_idle       -> Mux(io.io.ready, Mux(isHit, s_idle, Mux(io.mem.arready, s_wait_mem_3, s_idle)), s_idle),
         s_wait_mem_0 -> Mux(io.mem.rvalid, s_wait_mem_1, s_wait_mem_0),
         s_wait_mem_1 -> Mux(io.mem.rvalid, s_wait_mem_2, s_wait_mem_1),
         s_wait_mem_2 -> Mux(io.mem.rvalid, s_wait_mem_3, s_wait_mem_2),
@@ -106,16 +107,16 @@ class ICache (e: Int, s: Int) extends Module {
     io.perf.start := ready
 
     // Unused
-    io.mem.bready  := false.B
-    io.mem.wdata   := 0.U
-    io.mem.wstrb   := 0.U
-    io.mem.wvalid  := 0.U
-    io.mem.awaddr  := 0.U
-    io.mem.awvalid := 0.U
-    io.mem.awid    := 0.U
-    io.mem.awlen   := 0.U
-    io.mem.awsize  := 0.U
-    io.mem.awburst := 0.U
-    io.mem.wlast   := false.B
-    io.mem.arid    := 0.U
+    io.mem.bready  := DontCare
+    io.mem.wdata   := DontCare
+    io.mem.wstrb   := DontCare
+    io.mem.wvalid  := DontCare
+    io.mem.awaddr  := DontCare
+    io.mem.awvalid := DontCare
+    io.mem.awid    := DontCare
+    io.mem.awlen   := DontCare
+    io.mem.awsize  := DontCare
+    io.mem.awburst := DontCare
+    io.mem.wlast   := DontCare
+    io.mem.arid    := DontCare
 }   
