@@ -67,7 +67,7 @@ class ICache (e: Int, s: Int) extends Module {
     val hitValid = ready && isHit
     val memValid = (state === s_wait_mem_3) && io.mem.rvalid
     // val valid = hitValid || memValid
-    val valid = hitValid || state === s_mem_valid
+    // val valid = hitValid || state === s_mem_valid
     
     val counter = RegInit(VecInit(Seq.fill(S)(0.U(e.W))))
     val groupCounter = counter(groupIndex)
@@ -89,7 +89,7 @@ class ICache (e: Int, s: Int) extends Module {
     val hitDataMuxSeq : Seq[(UInt, UInt)] = for (i <- 0 to 3) yield (i.U, hitEntry(i * 32 + 31, i * 32))
     val hitData = MuxLookup(offset, 0.U)(hitDataMuxSeq)
 
-    io.io.valid := valid
+    io.io.valid := hitValid || state === s_mem_valid
     // io.io.rdata := Mux(memValid, memRData, hitData)
     io.io.rdata := hitData
 
