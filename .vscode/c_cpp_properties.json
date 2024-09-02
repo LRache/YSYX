@@ -47,7 +47,6 @@
                 "${workspaceFolder}/abstract-machine/am/include",
                 "${workspaceFolder}/abstract-machine/am/include/arch",
                 "${workspaceFolder}/abstract-machine/klib/include",
-                "${workspaceFolder}/abstract-machine/src",
                 "${workspaceFolder}/am-kernels/tests/am-tests/include",
                 "${workspaceFolder}/am-kernels/tests/cpu-tests/include"
             ],
@@ -137,7 +136,7 @@
                 "${workspaceFolder}/nvboard/usr/include/",
                 "${workspaceFolder}/npc/csrc/include",
                 "${workspaceFolder}/npc/obj",
-                "${workspaceFolder}/npc/csrc/util/*/include"
+                "${workspaceFolder}/npc/utils/*/include"
             ],
             "compilerPath": "/usr/bin/gcc",
             "defines": [

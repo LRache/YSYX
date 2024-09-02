@@ -4,16 +4,16 @@
 #include "cache.h"
 
 struct SimResult {
-    uint64_t readHit;
-    uint64_t readMiss;
-    uint64_t writeHit;
-    uint64_t writeMiss;
+    uint64_t readHit   = 0;
+    uint64_t readMiss  = 0;
+    uint64_t writeHit  = 0;
+    uint64_t writeMiss = 0;
 };
 
 template <typename T>
 SimResult sim(Cache &cache, Tracer<T> &tracer) {
     SimResult result = {};
-    std::cout << std::hex;
+    // std::cout << std::hex;
     for (MemTracerAddr addr : tracer) {
         if (addr.t == MemType::READ) {
             if (cache.read(addr.addr)) result.readHit ++;
@@ -22,7 +22,7 @@ SimResult sim(Cache &cache, Tracer<T> &tracer) {
             if (cache.write(addr.addr)) result.writeHit ++;
             else result.writeMiss ++;
         }
-        std::cout << addr.addr << std::endl;
+        // std::cout << addr.addr << std::endl;
     }
     return result;
 }

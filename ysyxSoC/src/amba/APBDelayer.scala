@@ -22,43 +22,43 @@ class apb_delayer extends BlackBox {
 
 class APBDelayerChisel extends Module {
   val io = IO(new APBDelayerIO)
-  // io.out <> io.in
+  io.out <> io.in
   
-  val rs = 460
-  val s = 100
+  // val rs = 460
+  // val s = 100
   
-  io.out.pwrite := io.in.pwrite
-  io.out.paddr := io.in.paddr
-  io.out.pprot := io.in.pprot
-  io.out.pwdata := io.in.pwdata
-  io.out.pstrb := io.in.pstrb
+  // io.out.pwrite := io.in.pwrite
+  // io.out.paddr := io.in.paddr
+  // io.out.pprot := io.in.pprot
+  // io.out.pwdata := io.in.pwdata
+  // io.out.pstrb := io.in.pstrb
 
-  val slverr = RegInit(false.B)
-  val rdata = RegInit(0.U(32.W))
+  // val slverr = RegInit(false.B)
+  // val rdata = RegInit(0.U(32.W))
 
-  val s_wait_enable :: s_wait_ready :: s_delay :: s_ready :: Nil = Enum(4)
-  val state = RegInit(s_wait_enable)
-  val counter = RegInit(0.U(32.W))
-  counter := MuxLookup(state, 0.U) (Seq(
-    s_wait_ready  -> (counter + rs.U),
-    s_delay       -> (counter - s.U)
-  ))
-  state := MuxLookup(state, s_wait_enable) (Seq (
-    s_wait_enable -> Mux(io.in.penable, s_wait_ready, s_wait_enable),
-    s_wait_ready  -> Mux(io.out.pready, s_delay, s_wait_ready),
-    s_delay       -> Mux(counter < s.U, s_ready, s_delay),
-    s_ready       -> s_wait_enable,
-  ))
+  // val s_wait_enable :: s_wait_ready :: s_delay :: s_ready :: Nil = Enum(4)
+  // val state = RegInit(s_wait_enable)
+  // val counter = RegInit(0.U(32.W))
+  // counter := MuxLookup(state, 0.U) (Seq(
+  //   s_wait_ready  -> (counter + rs.U),
+  //   s_delay       -> (counter - s.U)
+  // ))
+  // state := MuxLookup(state, s_wait_enable) (Seq (
+  //   s_wait_enable -> Mux(io.in.penable, s_wait_ready, s_wait_enable),
+  //   s_wait_ready  -> Mux(io.out.pready, s_delay, s_wait_ready),
+  //   s_delay       -> Mux(counter - 200.U < s.U, s_ready, s_delay),
+  //   s_ready       -> s_wait_enable,
+  // ))
 
-  val ready = state === s_ready
-  slverr := Mux(io.out.pready, io.out.pslverr, slverr)
-  rdata := Mux(io.out.pready, io.out.prdata, rdata)
+  // val ready = state === s_ready
+  // slverr := Mux(io.out.pready, io.out.pslverr, slverr)
+  // rdata := Mux(io.out.pready, io.out.prdata, rdata)
 
-  io.in.pready := ready
-  io.in.pslverr := Mux(ready, slverr, false.B)
-  io.in.prdata := Mux(ready, rdata, 0.U)
-  io.out.psel := Mux(state === s_wait_enable || state === s_wait_ready, io.in.psel, false.B)
-  io.out.penable := Mux(state === s_wait_enable || state === s_wait_ready, io.in.penable, false.B)
+  // io.in.pready := ready
+  // io.in.pslverr := Mux(ready, slverr, false.B)
+  // io.in.prdata := Mux(ready, rdata, 0.U)
+  // io.out.psel := Mux(state === s_wait_enable || state === s_wait_ready, io.in.psel, false.B)
+  // io.out.penable := Mux(state === s_wait_enable || state === s_wait_ready, io.in.penable, false.B)
 }
 
 class APBDelayerWrapper(implicit p: Parameters) extends LazyModule {

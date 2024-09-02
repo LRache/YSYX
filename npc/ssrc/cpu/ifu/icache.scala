@@ -46,14 +46,17 @@ class ICache (e: Int, s: Int) extends Module {
     val hitLineIndex = PriorityEncoder(lineHits)
     val hitEntry = group(hitLineIndex)
 
-    val s_idle :: s_wait_mem_0 :: s_wait_mem_1 :: s_wait_mem_2 :: s_wait_mem_3 :: Nil = Enum(5)
+    val s_idle :: s_wait_mem_0 :: s_wait_mem_1 :: s_wait_mem_2 :: s_wait_mem_3 :: s_mem_valid :: Nil = Enum(6)
     val state = RegInit(s_idle)
     state := MuxLookup(state, s_idle)(Seq (
         s_idle       -> Mux(io.io.ready, Mux(isHit, s_idle, Mux(io.mem.arready, s_wait_mem_0, s_idle)), s_idle),
+        // s_idle       -> Mux(io.io.ready, Mux(isHit, s_idle, Mux(io.mem.arready, s_wait_mem_3, s_idle)), s_idle),
         s_wait_mem_0 -> Mux(io.mem.rvalid, s_wait_mem_1, s_wait_mem_0),
         s_wait_mem_1 -> Mux(io.mem.rvalid, s_wait_mem_2, s_wait_mem_1),
         s_wait_mem_2 -> Mux(io.mem.rvalid, s_wait_mem_3, s_wait_mem_2),
-        s_wait_mem_3 -> Mux(io.mem.rvalid, s_idle, s_wait_mem_3)
+        s_wait_mem_3 -> Mux(io.mem.rvalid, s_mem_valid,  s_wait_mem_3),
+        // s_wait_mem_3 -> Mux(io.mem.rvalid, s_idle,  s_wait_mem_3),
+        s_mem_valid  -> s_idle,
     ))
     val rdata0 = RegInit(0.U(32.W))
     val rdata1 = RegInit(0.U(32.W))
@@ -65,7 +68,8 @@ class ICache (e: Int, s: Int) extends Module {
     val ready = (state === s_idle) && io.io.ready
     val hitValid = ready && isHit
     val memValid = (state === s_wait_mem_3) && io.mem.rvalid
-    val valid = hitValid || memValid
+    // val valid = hitValid || memValid
+    // val valid = hitValid || state === s_mem_valid
     
     val counter = RegInit(VecInit(Seq.fill(S)(0.U(e.W))))
     val groupCounter = counter(groupIndex)
@@ -74,39 +78,25 @@ class ICache (e: Int, s: Int) extends Module {
         group(i) := Mux(
             memValid && groupCounter === i.U, 
             Cat(true.B, tag, io.mem.rdata, rdata2, rdata1, rdata0), 
+            // Cat(true.B, tag, io.mem.rdata),
             group(i)
         )
     }
-    // when(memValid) {
-    //     printf("%x %x %x %x", rdata0, rdata1, rdata2, io.mem.rdata)
-    // }
 
-    val memRData = MuxLookup(offset, 0.U)(Seq (
-        0.U -> rdata0,
-        1.U -> rdata1,
-        2.U -> rdata2,
-        3.U -> io.mem.rdata
-    ))
     val hitDataMuxSeq : Seq[(UInt, UInt)] = for (i <- 0 to 3) yield (i.U, hitEntry(i * 32 + 31, i * 32))
-    // val hitData = MuxLookup(offset, 0.U)(Seq (
-    //     0.U -> hitEntry(127, 96),
-    //     1.U -> hitEntry( 95, 64),
-    //     2.U -> hitEntry( 63, 32),
-    //     3.U -> hitEntry( 31,  0)
-    // ))
     val hitData = MuxLookup(offset, 0.U)(hitDataMuxSeq)
-    // when(hitValid) {
-    //     printf("%d %x\n", offset, hitData)
-    // }
 
-    io.io.valid := valid
-    io.io.rdata := Mux(memValid, memRData, hitData)
+    io.io.valid := hitValid || state === s_mem_valid
+    // io.io.valid := hitValid || memValid
+    io.io.rdata := hitData
+    // io.io.rdata := Mux(memValid, io.mem.rdata, hitEntry(31, 0))
 
     io.mem.araddr := memRAddr
     io.mem.arvalid := ready && !isHit
     
     io.mem.rready := true.B
     io.mem.arlen  := 3.U // BURST 4
+    // io.mem.arlen  := 0.U // BURST 1
     io.mem.arsize := 2.U // 4 bytes per burst
     io.mem.arburst := 1.U // INCR
 
@@ -115,16 +105,16 @@ class ICache (e: Int, s: Int) extends Module {
     io.perf.start := ready
 
     // Unused
-    io.mem.bready  := false.B
-    io.mem.wdata   := 0.U
-    io.mem.wstrb   := 0.U
-    io.mem.wvalid  := 0.U
-    io.mem.awaddr  := 0.U
-    io.mem.awvalid := 0.U
-    io.mem.awid    := 0.U
-    io.mem.awlen   := 0.U
-    io.mem.awsize  := 0.U
-    io.mem.awburst := 0.U
-    io.mem.wlast   := false.B
-    io.mem.arid    := 0.U
+    io.mem.bready  := DontCare
+    io.mem.wdata   := DontCare
+    io.mem.wstrb   := DontCare
+    io.mem.wvalid  := DontCare
+    io.mem.awaddr  := DontCare
+    io.mem.awvalid := DontCare
+    io.mem.awid    := DontCare
+    io.mem.awlen   := DontCare
+    io.mem.awsize  := DontCare
+    io.mem.awburst := DontCare
+    io.mem.wlast   := DontCare
+    io.mem.arid    := DontCare
 }   

@@ -146,12 +146,8 @@ void ITracerReader::open(const std::string &filepath) {
 
 void ITracerReader::read_turn() {
     if (isEnd) return ;
-    // std::cout << std::dec;
-    // std::cout << f.tellg() << std::endl;
     f.read((char *)&nextJumpPC, sizeof(word_t));
-    // std::cout << f.tellg() << std::endl;
     f.read((char *)&nextJumpDest, sizeof(word_t));
-    // std::cout << std::hex << nextJumpPC << " " << nextJumpDest << std::endl;
     isEndTurn = f.eof();
 }
 
