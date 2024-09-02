@@ -115,12 +115,12 @@ int hdb::run(uint64_t n) {
 void hdb_set_csr(uint32_t addr, word_t data) {
     switch (addr)
     {
-        case 0x180: cpu.satp    = data; break;
-        case 0x300: cpu.mstatus = data; break;
-        case 0x305: cpu.mtvec   = data; break;
-        case 0x340: cpu.mscratch= data; break;
-        case 0x341: cpu.mepc    = data; break;
-        case 0x342: cpu.mcause  = data; break;
+        case 3: cpu.satp    = data; break;
+        case 4: cpu.mstatus = data; break;
+        case 5: cpu.mtvec   = data; break;
+        case 6: cpu.mscratch= data; break;
+        case 7: cpu.mepc    = data; break;
+        case 8: cpu.mcause  = data; break;
         default: panic("Invalid CSR: 0x%x(%d) at pc=0x%08x(inst=0x%08x)", addr, addr, cpu.pc, cpu.inst);
     }
 }
