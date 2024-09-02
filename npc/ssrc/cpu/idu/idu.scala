@@ -88,7 +88,6 @@ class IDU extends Module {
     // io.out.bits.csr_waddr2 := CSRAddr.MCAUSE
     io.out.bits.csr_wd_sel := op.isEcall
 
-    
     io.out.bits.dnpc_sel := op.dnpcSel
 
     // val csrImm = Cat(0.U(27.W), io.in.bits.inst(19, 15))
