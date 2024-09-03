@@ -65,10 +65,6 @@ class EXU extends Module {
     io.out.bits.dnpc := Mux(io.in.bits.dnpc_sel, io.in.bits.csr_rdata, alu.io.result)
     io.out.bits.gpr_wdata := Mux(io.in.bits.gpr_ws(0).asBool, io.in.bits.csr_rdata, io.in.bits.snpc)
 
-    when (io.in.bits.gpr_wen) {
-        printf("%x\n", io.in.bits.csr_rdata)
-    }
-
     // Passthrough
     io.out.bits.mem_wen  := io.in.bits.mem_wen
     io.out.bits.mem_ren  := io.in.bits.mem_ren
