@@ -47,7 +47,7 @@ class IDU extends Module {
     io.out.bits.a_sel := op.aSel
     io.out.bits.b_sel := op.bSel
     io.out.bits.cmp_sel := op.cmpSel
-    io.out.bits.is_jmp := op.isJmp
+    // io.out.bits.is_jmp := op.isJmp
 
     val imm_i   = Cat(Fill(20, io.in.bits.inst(31)), io.in.bits.inst(31, 20))
     val imm_iu  = Cat(0.U(20.W), io.in.bits.inst(31, 20))

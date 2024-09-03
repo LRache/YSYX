@@ -17,7 +17,6 @@ class IDUMessage extends Bundle {
     val b_sel      = Bool()
     val alu_sel    = UInt(4.W)
     val cmp_sel    = UInt(3.W)
-    val is_jmp     = Bool()
     val csr_rdata  = UInt(32.W)
     val pc         = UInt(32.W)
 

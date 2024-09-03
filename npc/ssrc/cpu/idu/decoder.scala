@@ -15,6 +15,7 @@ import CmpSel.CmpSel
 import GPRWSel.GPRWSel
 import CSRWSel.CSRWSel
 import cpu.idu.CSRAddrSel.Ins
+import cpu.idu.Encode.Pos.{LENGTH => LENGTH}
 
 object InstType extends Enumeration {
     type InstType = Value
@@ -58,8 +59,7 @@ object Encode {
 
         val MemWen  = GPRWen + BoolLen
         val MemRen  = MemWen + BoolLen
-        val IsJmp   = MemRen + BoolLen
-        val IsBrk   = IsJmp + BoolLen
+        val IsBrk   = MemRen + BoolLen
         val IsIvd   = IsBrk + BoolLen
         val CSRWen  = IsIvd + BoolLen
 
@@ -79,6 +79,8 @@ object Encode {
         val CSRRAddrSelL = 2
 
         val IsECall = CSRRAddrSel + CSRRAddrSelL
+
+        val LENGTH = IsECall + 1
     }
     def toInt(boolValue: Boolean): Int = if(boolValue) 1 else 0
     
@@ -188,7 +190,7 @@ object Encode {
             bits |= (reg_wen    & 0b1   ).toLong << Pos.GPRWen
             bits |= (mem_wen    & 0b1   ).toLong << Pos.MemWen
             bits |= (mem_ren    & 0b1   ).toLong << Pos.MemRen
-            bits |= (is_jmp     & 0b1   ).toLong << Pos.IsJmp
+            // bits |= (is_jmp     & 0b1   ).toLong << Pos.IsJmp
             bits |= (is_brk     & 0b1   ).toLong << Pos.IsBrk
             bits |= (is_invalid & 0b1   ).toLong << Pos.IsIvd
             bits |= (csr_wen    & 0b1   ).toLong << Pos.CSRWen
@@ -199,7 +201,7 @@ object Encode {
             bits |= (csr_waddr_sel & 0b11).toLong << Pos.CSRWAddrSel
             bits |= (csr_raddr_sel & 0b11).toLong << Pos.CSRRAddrSel
             bits |= (is_ecall   & 0b1   ).toLong << Pos.IsECall
-            return BitPat(bits.U(48.W))
+            return BitPat(bits.U(LENGTH.W))
         }
     
     def encode_r(alu_sel: AluSel) : BitPat = encode(InstType.R, alu_sel, CmpSel.N, CSRWSel.W)
@@ -224,7 +226,7 @@ class OP(t : UInt) {
     val gprWen  = t(Pos.GPRWen  + Pos.BoolLen   - 1, Pos.GPRWen).asBool
     val memWen  = t(Pos.MemWen  + Pos.BoolLen   - 1, Pos.MemWen).asBool
     val menRen  = t(Pos.MemRen  + Pos.BoolLen   - 1, Pos.MemRen).asBool
-    val isJmp   = t(Pos.IsJmp   + Pos.BoolLen   - 1, Pos.IsJmp).asBool
+    // val isJmp   = t(Pos.IsJmp   + Pos.BoolLen   - 1, Pos.IsJmp).asBool
     val isBrk   = t(Pos.IsBrk   + Pos.BoolLen   - 1, Pos.IsBrk).asBool
     val isIvd   = t(Pos.IsIvd   + Pos.BoolLen   - 1, Pos.IsIvd).asBool
     // val rs1Sel  = t(Pos.Rs1Sel  + Pos.BoolLen   - 1, Pos.Rs1Sel).asBool
