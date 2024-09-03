@@ -43,6 +43,9 @@ class IDU extends Module {
         )
     )
     io.out.bits.csr_rdata := io.csr_rdata
+    when (op.gprWen) {
+      printf("%x\n", io.csr_rdata)
+    }
 
     // EXU
     io.out.bits.alu_sel := op.aluSel
