@@ -34,6 +34,19 @@ class IDU extends Module {
     io.out.bits.rs1 := io.gpr_rdata1
     io.out.bits.rs2 := io.gpr_rdata2
 
+    def csr_addr_translate(origin: UInt): UInt = {
+      MuxLookup(origin, 0.U) (Seq(
+        0x100.U(12.W) -> CSRAddr.NONE,
+        0x101.U(12.W) -> CSRAddr.MVENDORID,
+        0x180.U(12.W) -> CSRAddr.MARCHID,
+        0x300.U(12.W) -> CSRAddr.SATP,
+        0x305.U(12.W) -> CSRAddr.MSTATUS,
+        0x305.U(12.W) -> CSRAddr.MTVEC,
+        0x340.U(12.W) -> CSRAddr.MSCRATCH,
+        0x341.U(12.W) -> CSRAddr.MEPC,
+        0x342.U(12.W) -> CSRAddr.MCAUSE
+      ))
+    }
     io.csr_raddr := MuxLookup(op.csrRASel, 0.U(12.W))(
         Seq(
           CSRAddrSel.N.id.U   -> CSRAddr.NONE,
@@ -44,7 +57,7 @@ class IDU extends Module {
     )
     io.out.bits.csr_rdata := io.csr_rdata
     when (op.gprWen) {
-      printf("%x\n", io.csr_rdata)
+      printf("%x\n", io.csr_raddr)
     }
 
     // EXU
@@ -82,19 +95,6 @@ class IDU extends Module {
     io.out.bits.reg_wen := op.gprWen
     
     // CSR
-    def csr_addr_translate(origin: UInt): UInt = {
-      MuxLookup(origin, 0.U) (Seq(
-        0x100.U(12.W) -> CSRAddr.NONE,
-        0x101.U(12.W) -> CSRAddr.MVENDORID,
-        0x180.U(12.W) -> CSRAddr.MARCHID,
-        0x300.U(12.W) -> CSRAddr.SATP,
-        0x305.U(12.W) -> CSRAddr.MSTATUS,
-        0x305.U(12.W) -> CSRAddr.MTVEC,
-        0x340.U(12.W) -> CSRAddr.MSCRATCH,
-        0x341.U(12.W) -> CSRAddr.MEPC,
-        0x342.U(12.W) -> CSRAddr.MCAUSE
-      ))
-    }
     io.out.bits.csr_wen1 := ((op.csrWen && io.gpr_raddr1.orR) || is_ecall)
     io.out.bits.is_ecall := is_ecall
     io.out.bits.csr_imm := io.in.bits.inst(19, 15)
