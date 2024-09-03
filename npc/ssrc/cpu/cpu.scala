@@ -68,6 +68,9 @@ class HCPU(instStart : BigInt) extends Module {
     gpr.io.wdata := wbu.io.reg_wdata
     gpr.io.wen   := wbu.io.reg_wen
 
+    // ICache
+    icache.io.fence := idu.io.fence_i
+
     val debugger = Module(new Dbg())
     debugger.io.clk         := clock
     debugger.io.reset       := reset

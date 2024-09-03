@@ -15,9 +15,10 @@ class ICacheIO extends Bundle {
 
 class ICache (e: Int, s: Int) extends Module {
     val io = IO(new Bundle {
-        val io = new ICacheIO
-        val mem = new AXI4IO()
-        val perf = new ICachePerfCounter()
+        val io    = new ICacheIO
+        val mem   = new AXI4IO()
+        val perf  = new ICachePerfCounter()
+        val fence = Input(Bool())
     })
     val b = 4
     val S = 1 << s
@@ -80,7 +81,11 @@ class ICache (e: Int, s: Int) extends Module {
             memValid && groupCounter === i.U, 
             Cat(true.B, tag, io.mem.rdata, rdata2, rdata1, rdata0), 
             // Cat(true.B, tag, io.mem.rdata),
-            group(i)
+            Mux(
+                io.fence,
+                group(i).bitSet((B + t).U, false.B),
+                group(i)
+            )
         )
     }
 

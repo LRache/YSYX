@@ -19,7 +19,7 @@ import cpu.idu.Encode.Pos.{LENGTH => LENGTH}
 
 object InstType extends Enumeration {
     type InstType = Value
-    val R, IA, IJ, IU, IL, S, B, J, UL, UA, N, C, EB, EC, MR, IVD = Value
+    val R, IA, IJ, IU, IL, S, B, J, UL, UA, N, C, EB, EC, MR, FI, IVD = Value
     // UL for LUI
     // UA for AUIPC
 }
@@ -80,7 +80,9 @@ object Encode {
 
         val IsECall = CSRRAddrSel + CSRRAddrSelL
 
-        val LENGTH = IsECall + 1
+        val FenceI = IsECall + BoolLen
+
+        val LENGTH = FenceI + 1
     }
     def toInt(boolValue: Boolean): Int = if(boolValue) 1 else 0
     
@@ -179,6 +181,7 @@ object Encode {
             val is_ecall = toInt(instType == InstType.EC)
             // val rs1Sel = toInt(instType == InstType.CI)
             // val rs2Sel = toInt(instType == InstType.CR || instType == InstType.CI)
+            val is_fence_i = toInt(instType == InstType.FI)
             
             var bits: Long = 0L
             bits |= (imm_type   & 0b1111).toLong << Pos.ImmType
@@ -201,6 +204,7 @@ object Encode {
             bits |= (csr_waddr_sel & 0b11).toLong << Pos.CSRWAddrSel
             bits |= (csr_raddr_sel & 0b11).toLong << Pos.CSRRAddrSel
             bits |= (is_ecall   & 0b1   ).toLong << Pos.IsECall
+            bits |= (is_fence_i & 0b1   ).toLong << Pos.FenceI
             return BitPat(bits.U(LENGTH.W))
         }
     
@@ -237,6 +241,7 @@ class OP(t : UInt) {
     val csrRASel= t(Pos.CSRRAddrSel + Pos.CSRRAddrSelL - 1, Pos.CSRRAddrSel)
     val csrWSel = t(Pos.CSRWSel + Pos.CSRWSel   - 1, Pos.CSRWSel)
     val isEcall = t(Pos.IsECall + Pos.BoolLen   - 1, Pos.IsECall).asBool
+    val isFenceI= t(Pos.FenceI + Pos.BoolLen    - 1, Pos.FenceI).asBool
 }
 
 object Decoder {
@@ -284,6 +289,8 @@ object Decoder {
 
     val AUIPC   = BitPat("b?????????????????????_?????_001_0111")
     val LUI     = BitPat("b?????????????????????_?????_011_0111")
+
+    val FENCE_I = BitPat("b??????????????????_001_?????_000_1111")
 
     val CSRRW   = BitPat("b????????????_?????_001_?????_111_0011")
     val CSRRS   = BitPat("b????????????_?????_010_?????_111_0011")
@@ -354,6 +361,9 @@ object Decoder {
 
             AUIPC   -> Encode.encode(InstType.UA, AluSel. ADD, CmpSel.N, CSRWSel.W),
             LUI     -> Encode.encode(InstType.UL, AluSel.BSEL, CmpSel.N, CSRWSel.W),
+            
+            FENCE_I -> Encode.encode(InstType.FI, AluSel.   N, CmpSel.N, CSRWSel.W),
+            
             EBREAK  -> Encode.encode(InstType.EB, AluSel.   N, CmpSel.N, CSRWSel.W),
             ECALL   -> Encode.encode(InstType.EC, AluSel.   N, CmpSel.Y, CSRWSel.W),
             MRET    -> Encode.encode(InstType.MR, AluSel.BSEL, CmpSel.Y, CSRWSel.W)

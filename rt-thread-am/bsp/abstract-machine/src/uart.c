@@ -39,8 +39,8 @@ static int _uart_putc(struct rt_serial_device *serial, char c) {
 static int _uart_getc(struct rt_serial_device *serial) {
   // static const char *p = "help\ndate\nversion\nfree\nps\npwd\nls\nmemtrace\nmemcheck\nutest_list\n";
   // return (*p != '\0' ? *(p ++) : -1);
-  AM_UART_TX_T t;
-  ioe_read(AM_UART_TX, &t);
+  AM_UART_RX_T t;
+  ioe_read(AM_UART_RX, &t);
   return t.data;
 }
 

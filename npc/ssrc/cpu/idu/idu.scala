@@ -22,6 +22,8 @@ class IDU extends Module {
 
     val csr_raddr = Output(UInt(4.W))
     val csr_rdata = Input(UInt(32.W))
+
+    val fence_i = Output(Bool())
   })
 
     val op = Decoder.decode(io.in.bits.inst)
@@ -107,6 +109,9 @@ class IDU extends Module {
 
     // io.out.bits.rs1 := Mux(op.rs1Sel, csrImm, io.gpr_rdata1)
     // io.out.bits.rs2 := Mux(op.rs2Sel, io.csr_rdata, io.gpr_rdata2)
+
+    // FENCE
+    io.fence_i := op.isFenceI && io.in.valid
 
     // TAG
     io.out.bits.is_ivd := Mux(reset.asBool, 0.U, op.isIvd)
