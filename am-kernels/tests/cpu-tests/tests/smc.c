@@ -5,9 +5,9 @@ int main() {
                "la a2, again;"
                "li t2, 0x00008067;"  // 0x00008067 = ret
                "again:"
-               "fence.i;"
                "sb t1, (a1);"
                "sw t2, (a2);"
+               "fence.i;"
                "j again;"
               );
   return 0;

@@ -181,7 +181,7 @@ extern "C" {
     }
 
     void env_break() {
-        std::cout << "ebreak" << std::endl;
+        // std::cout << "ebreak" << std::endl;
         cpu.running = false;
     }
 
