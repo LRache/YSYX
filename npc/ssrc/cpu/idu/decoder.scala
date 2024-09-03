@@ -240,7 +240,7 @@ class OP(t : UInt) {
     val dnpcSel = t(Pos.DNPCSel + Pos.BoolLen   - 1, Pos.DNPCSel).asBool
     val csrWASel= t(Pos.CSRWAddrSel + Pos.CSRWAddrSelL - 1, Pos.CSRWAddrSel)
     val csrRASel= t(Pos.CSRRAddrSel + Pos.CSRRAddrSelL - 1, Pos.CSRRAddrSel)
-    val csrWSel = t(Pos.CSRWSel + Pos.CSRWSel   - 1, Pos.CSRWSel)
+    val csrWSel = t(Pos.CSRWSel + Pos.CSRWSelL  - 1, Pos.CSRWSel)
     val isEcall = t(Pos.IsECall + Pos.BoolLen   - 1, Pos.IsECall).asBool
     val isFenceI= t(Pos.FenceI + Pos.BoolLen    - 1, Pos.FenceI).asBool
 }
