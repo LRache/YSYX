@@ -238,7 +238,7 @@ class LSU extends Module {
     // io.out.bits.csr_waddr2 := io.in.bits.csr_waddr2
     io.out.bits.csr_wdata1 := io.in.bits.csr_wdata1
     // io.out.bits.csr_wdata2 := io.in.bits.csr_wdata2
-    io.out.bits.csr_wen1   := io.in.bits.csr_wen1
+    // io.out.bits.csr_wen1   := io.in.bits.csr_wen1
     // io.out.bits.csr_wen2   := io.in.bits.csr_wen2
     // io.out.bits.csr_wd_sel := io.in.bits.csr_wd_sel
     // io.out.bits.csr_ws     := io.in.bits.csr_ws

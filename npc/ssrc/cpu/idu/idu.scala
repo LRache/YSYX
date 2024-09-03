@@ -97,7 +97,7 @@ class IDU extends Module {
     
     // CSR
     // io.out.bits.csr_wen1 := ((op.csrWen && io.gpr_raddr1.orR) || is_ecall)
-    io.out.bits.csr_wen1 := ((op.csrWen && io.out.bits.gpr_raddr1.orR) || is_ecall)
+    // io.out.bits.csr_wen1 := ((op.csrWen && io.out.bits.gpr_raddr1.orR) || is_ecall)
     io.out.bits.is_ecall := is_ecall
     io.out.bits.csr_imm := io.in.bits.inst(19, 15)
     io.out.bits.csr_ws := op.csrWSel

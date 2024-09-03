@@ -79,7 +79,7 @@ class EXU extends Module {
     io.out.bits.csr_waddr1 := io.in.bits.csr_waddr1
     // io.out.bits.csr_waddr2 := io.in.bits.csr_waddr2
     io.out.bits.is_ecall   := io.in.bits.is_ecall
-    io.out.bits.csr_wen1   := io.in.bits.csr_wen1
+    // io.out.bits.csr_wen1   := io.in.bits.csr_wen1
     // io.out.bits.csr_wen2   := io.in.bits.csr_wen2
     io.out.bits.csr_wd_sel := io.in.bits.csr_wd_sel
     // io.out.bits.csr_ws     := io.in.bits.csr_ws

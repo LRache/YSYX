@@ -159,7 +159,7 @@ object Encode {
                 case _           => ImmType. N.id
             }
             // val csr_wen = toInt(instType == InstType.CR || instType == InstType.CI)
-            val csr_wen = toInt(instType == InstType.C)
+            // val csr_wen = toInt(instType == InstType.C)
             val csr_wsel = _csr_sel.id
             val dnpc_sel = toInt(instType == InstType.EC || instType == InstType.MR)
             val csr_waddr_sel = instType match {
@@ -195,7 +195,7 @@ object Encode {
             // bits |= (is_jmp     & 0b1   ).toLong << Pos.IsJmp
             bits |= (is_brk     & 0b1   ).toLong << Pos.IsBrk
             bits |= (is_invalid & 0b1   ).toLong << Pos.IsIvd
-            bits |= (csr_wen    & 0b1   ).toLong << Pos.CSRWen
+            // bits |= (csr_wen    & 0b1   ).toLong << Pos.CSRWen
             bits |= (csr_wsel   & 0b111 ).toLong << Pos.CSRWSel
             // bits |= (rs1Sel     & 0b1   ).toLong << Pos.Rs1Sel
             // bits |= (rs2Sel     & 0b1   ).toLong << Pos.Rs2Sel
