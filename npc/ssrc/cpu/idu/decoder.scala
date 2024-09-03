@@ -205,7 +205,7 @@ object Encode {
             bits |= (csr_raddr_sel & 0b11).toLong << Pos.CSRRAddrSel
             bits |= (is_ecall   & 0b1   ).toLong << Pos.IsECall
             bits |= (is_fence_i & 0b1   ).toLong << Pos.FenceI
-            println(CSRWSel)
+            println(Pos.CSRWSel)
             return BitPat(bits.U(LENGTH.W))
         }
     
