@@ -20,7 +20,7 @@ VTop top;
 static uint64_t timer = 0;
 std::string hdb::outputDir = "./";
 
-#define IMG_NAME test_img_athrimatic
+#define IMG_NAME test_img_csrrw
 
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
@@ -113,6 +113,7 @@ int hdb::run(uint64_t n) {
 }
 
 void hdb_set_csr(uint32_t addr, word_t data) {
+    if (addr == 0) return ;
     switch (addr)
     {
         case 3: cpu.satp    = data; break;
@@ -121,7 +122,7 @@ void hdb_set_csr(uint32_t addr, word_t data) {
         case 6: cpu.mscratch= data; break;
         case 7: cpu.mepc    = data; break;
         case 8: cpu.mcause  = data; break;
-        default: panic("Invalid CSR: 0x%x(%d) at pc=0x%08x(inst=0x%08x)", addr, addr, cpu.pc, cpu.inst);
+        default: panic("Invalid CSR: %d at pc=0x%08x(inst=0x%08x)", addr, addr, cpu.pc, cpu.inst);
     }
 }
 
