@@ -35,12 +35,11 @@ class IDU extends Module {
     io.out.bits.rs2 := io.gpr_rdata2
 
     def csr_addr_translate(origin: UInt): UInt = {
-      MuxLookup(origin, 0.U) (Seq(
-        0x100.U(12.W) -> CSRAddr.NONE,
-        0x101.U(12.W) -> CSRAddr.MVENDORID,
-        0x180.U(12.W) -> CSRAddr.MARCHID,
-        0x300.U(12.W) -> CSRAddr.SATP,
-        0x305.U(12.W) -> CSRAddr.MSTATUS,
+      MuxLookup(origin, CSRAddr.NONE) (Seq(
+        0x100.U(12.W) -> CSRAddr.MVENDORID,
+        0x101.U(12.W) -> CSRAddr.MARCHID,
+        0x180.U(12.W) -> CSRAddr.SATP,
+        0x300.U(12.W) -> CSRAddr.MSTATUS,
         0x305.U(12.W) -> CSRAddr.MTVEC,
         0x340.U(12.W) -> CSRAddr.MSCRATCH,
         0x341.U(12.W) -> CSRAddr.MEPC,
@@ -56,9 +55,9 @@ class IDU extends Module {
         )
     )
     io.out.bits.csr_rdata := io.csr_rdata
-    when (op.gprWen) {
-      printf("%x\n", io.csr_raddr)
-    }
+    // when (op.gprWen) {
+    //   printf("%x\n", io.csr_raddr)
+    // }
 
     // EXU
     io.out.bits.alu_sel := op.aluSel
