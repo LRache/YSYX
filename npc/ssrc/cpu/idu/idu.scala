@@ -90,8 +90,8 @@ class IDU extends Module {
     // WBU
     // GPR
     io.out.bits.rd := io.in.bits.inst(7 + Config.GPRAddrLength - 1, 7)
-    io.out.bits.reg_ws := op.gprWSel
-    io.out.bits.reg_wen := op.gprWen
+    io.out.bits.gpr_ws := op.gprWSel
+    io.out.bits.gpr_wen := op.gprWen
     
     // CSR
     io.out.bits.csr_wen1 := ((op.csrWen && io.gpr_raddr1.orR) || is_ecall)

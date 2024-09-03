@@ -46,6 +46,7 @@ class EXU extends Module {
     io.csr_wdata2 := io.in.bits.rs2
     io.is_ecall := io.in.bits.is_ecall && io.in.valid
     io.out.bits.dnpc := Mux(io.in.bits.dnpc_sel, io.in.bits.csr_rdata, alu.io.result)
+    io.out.bits.gpr_wdata := Mux(io.in.bits.gpr_ws(0).asBool, io.in.bits.csr_rdata, io.in.bits.snpc)
 
     // Passthrough
     io.out.bits.mem_wen  := io.in.bits.mem_wen
@@ -54,8 +55,8 @@ class EXU extends Module {
         
     io.out.bits.rd      := io.in.bits.rd
     io.out.bits.rs2     := io.in.bits.rs2
-    io.out.bits.gpr_wen := io.in.bits.reg_wen
-    io.out.bits.gpr_ws  := io.in.bits.reg_ws
+    io.out.bits.gpr_wen := io.in.bits.gpr_wen
+    io.out.bits.gpr_ws  := io.in.bits.gpr_ws
 
     io.out.bits.csr_waddr1 := io.in.bits.csr_waddr1
     // io.out.bits.csr_waddr2 := io.in.bits.csr_waddr2
@@ -65,8 +66,6 @@ class EXU extends Module {
     io.out.bits.csr_wd_sel := io.in.bits.csr_wd_sel
     // io.out.bits.csr_ws     := io.in.bits.csr_ws
     io.out.bits.csr_imm    := io.in.bits.csr_imm
-    io.out.bits.csr_rdata  := io.in.bits.csr_rdata
-    io.out.bits.snpc       := io.in.bits.snpc
     // io.out.bits.pc         := io.in.bits.pc
 
     io.out.bits.is_brk := io.in.bits.is_brk
