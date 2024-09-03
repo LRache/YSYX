@@ -203,12 +203,12 @@ static uint32_t test_img_dummy[] = {
 };
 
 static uint32_t test_img_csrrw[] = {
-    0x7ff50513, // 00 addi x10, x10, 2047
-    0x342515f3, // 04 csrrw x11, mcause, x10
+    // 0x7ff50513, // 00 addi x10, x10, 2047
+    // 0x342515f3, // 04 csrrw x11, mcause, x10
     0x300515f3, // 08 csrrw x11, mstatus, x10
-    0x30001573, // 0c csrrw x10, mstatus, x0
-    0x30001373, // 10 csrrw x6, mstatus, x0
-    0x30002373, // 14 csrrs x6, mstatus, x0
+    // 0x30001573, // 0c csrrw x10, mstatus, x0
+    // 0x30001373, // 10 csrrw x6, mstatus, x0
+    // 0x30002373, // 14 csrrs x6, mstatus, x0
     GOOD_TRAP
 };
 

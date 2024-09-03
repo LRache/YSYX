@@ -242,7 +242,7 @@ class OP(t : UInt) {
     val csrRASel= t(Pos.CSRRAddrSel + Pos.CSRRAddrSelL - 1, Pos.CSRRAddrSel)
     val csrWSel = t(Pos.CSRWSel + Pos.CSRWSelL  - 1, Pos.CSRWSel)
     val isEcall = t(Pos.IsECall + Pos.BoolLen   - 1, Pos.IsECall).asBool
-    val isFenceI= t(Pos.FenceI + Pos.BoolLen    - 1, Pos.FenceI).asBool
+    val isFenceI= t(Pos.FenceI  + Pos.BoolLen    - 1, Pos.FenceI).asBool
 }
 
 object Decoder {

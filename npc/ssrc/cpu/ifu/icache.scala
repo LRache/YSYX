@@ -82,12 +82,12 @@ class ICache (e: Int, s: Int) extends Module {
             memValid && groupCounter === i.U, 
             Cat(true.B, tag, io.mem.rdata, rdata2, rdata1, rdata0), 
             // Cat(true.B, tag, io.mem.rdata),
-            // Mux(
-            //     io.fence,
-            //     group(i).bitSet((B + t).U, false.B),
-            //     group(i)
-            // )
-            group(i)
+            Mux(
+                io.fence,
+                group(i).bitSet((B + t).U, false.B),
+                group(i)
+            )
+            // group(i)
         )
     }
 
