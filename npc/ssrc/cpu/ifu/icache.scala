@@ -34,7 +34,8 @@ class ICache (e: Int, s: Int) extends Module {
         groupIndex := io.io.raddr(s + b - 1, b)
     }
     val offset = io.io.raddr(b-1, 2)
-    val memRAddr = Cat(io.io.raddr(31, b), 0.U(b.W))
+    // val memRAddr = Cat(io.io.raddr(31, b), 0.U(b.W))
+    val memRAddr = io.io.raddr & 0xfffffff0L.U(32.W)
 
     val cache = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((B + t + 1).W))))))
     val group = cache(groupIndex)
