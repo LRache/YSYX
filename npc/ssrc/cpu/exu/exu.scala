@@ -35,7 +35,7 @@ class EXU extends Module {
     // alu.io.a    := Mux(io.in.bits.a_sel, io.in.bits.pc , io.in.bits.rs1)
     // alu.io.b    := Mux(io.in.bits.b_sel, io.in.bits.imm, io.in.bits.rs2)
     alu.io.a    := Mux(io.in.bits.a_sel, io.in.bits.pc , io.gpr_rdata1)
-    alu.io.a    := Mux(io.in.bits.b_sel, io.in.bits.imm, io.gpr_rdata2)
+    alu.io.b    := Mux(io.in.bits.b_sel, io.in.bits.imm, io.gpr_rdata2)
     alu.io.sel  := io.in.bits.alu_sel
 
     // io.out.bits.pc_sel := io.in.bits.is_jmp && cmp.io.res
