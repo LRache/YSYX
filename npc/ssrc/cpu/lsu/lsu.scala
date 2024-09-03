@@ -203,9 +203,9 @@ class LSU extends Module {
     //     GPRWSel. CSR.U -> io.in.bits.csr_rdata
     // ))
     io.out.bits.gpr_wdata := Mux(io.in.bits.gpr_ws(1), Mux(io.in.bits.gpr_ws(0), mem_rdata, io.in.bits.exu_result), io.in.bits.gpr_wdata)
-    // when (io.in.bits.gpr_wen) {
-    //     printf("%d\n", io.in.bits.csr_rdata)
-    // }
+    when (io.in.bits.gpr_wen) {
+        printf("%d\n", io.in.bits.gpr_wdata)
+    }
 
     assert(io.mem.rresp === 0.U)
 
