@@ -45,12 +45,18 @@ class HCPU(instStart : BigInt) extends Module {
     ifu.io.cache <> icache.io.io
 
     // IDU
-    gpr.io.raddr1 := idu.io.gpr_raddr1
-    gpr.io.raddr2 := idu.io.gpr_raddr2
-    idu.io.gpr_rdata1 := gpr.io.rdata1
-    idu.io.gpr_rdata2 := gpr.io.rdata2
+    // gpr.io.raddr1 := idu.io.gpr_raddr1
+    // gpr.io.raddr2 := idu.io.gpr_raddr2
+    // idu.io.gpr_rdata1 := gpr.io.rdata1
+    // idu.io.gpr_rdata2 := gpr.io.rdata2
     csr.io.raddr      := idu.io.csr_raddr
     idu.io.csr_rdata  := csr.io.rdata
+
+    // EXU
+    gpr.io.raddr1 := exu.io.gpr_raddr1
+    gpr.io.raddr2 := exu.io.gpr_raddr2
+    exu.io.gpr_rdata1 := gpr.io.rdata1
+    exu.io.gpr_raddr2 := gpr.io.rdata2
 
     // LSU
     lsu.io.mem <> arbiter.io.io2

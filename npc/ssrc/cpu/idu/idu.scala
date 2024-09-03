@@ -15,10 +15,10 @@ class IDU extends Module {
     val in = Flipped(Decoupled(new IFUMessage))
     val out = Decoupled(new IDUMessage)
 
-    val gpr_raddr1 = Output(UInt(Config.GPRAddrLength.W))
-    val gpr_raddr2 = Output(UInt(Config.GPRAddrLength.W))
-    val gpr_rdata1 = Input(UInt(32.W))
-    val gpr_rdata2 = Input(UInt(32.W))
+    // val gpr_raddr1 = Output(UInt(Config.GPRAddrLength.W))
+    // val gpr_raddr2 = Output(UInt(Config.GPRAddrLength.W))
+    // val gpr_rdata1 = Input(UInt(32.W))
+    // val gpr_rdata2 = Input(UInt(32.W))
 
     val csr_raddr = Output(UInt(4.W))
     val csr_rdata = Input(UInt(32.W))
@@ -29,10 +29,12 @@ class IDU extends Module {
     val op = Decoder.decode(io.in.bits.inst)
     val is_ecall = op.isEcall
 
-    io.gpr_raddr1 := io.in.bits.inst(15 + Config.GPRAddrLength - 1, 15)
-    io.gpr_raddr2 := Mux(is_ecall, 15.U(5.W), io.in.bits.inst(20 + Config.GPRAddrLength - 1, 20))
-    io.out.bits.rs1 := io.gpr_rdata1
-    io.out.bits.rs2 := io.gpr_rdata2
+    // io.gpr_raddr1 := io.in.bits.inst(15 + Config.GPRAddrLength - 1, 15)
+    // io.gpr_raddr2 := Mux(is_ecall, 15.U(5.W), io.in.bits.inst(20 + Config.GPRAddrLength - 1, 20))
+    io.out.bits.gpr_raddr1 := io.in.bits.inst(15 + Config.GPRAddrLength - 1, 15)
+    io.out.bits.gpr_raddr2 := Mux(is_ecall, 15.U(5.W), io.in.bits.inst(20 + Config.GPRAddrLength - 1, 20))
+    // io.out.bits.rs1 := io.gpr_rdata1
+    // io.out.bits.rs2 := io.gpr_rdata2
 
     def csr_addr_translate(origin: UInt): UInt = {
       MuxLookup(origin, CSRAddr.NONE) (Seq(
@@ -94,7 +96,8 @@ class IDU extends Module {
     io.out.bits.gpr_wen := op.gprWen
     
     // CSR
-    io.out.bits.csr_wen1 := ((op.csrWen && io.gpr_raddr1.orR) || is_ecall)
+    // io.out.bits.csr_wen1 := ((op.csrWen && io.gpr_raddr1.orR) || is_ecall)
+    io.out.bits.csr_wen1 := ((op.csrWen && io.out.bits.gpr_raddr1.orR) || is_ecall)
     io.out.bits.is_ecall := is_ecall
     io.out.bits.csr_imm := io.in.bits.inst(19, 15)
     io.out.bits.csr_ws := op.csrWSel

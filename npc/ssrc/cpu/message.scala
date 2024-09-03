@@ -10,8 +10,11 @@ class IFUMessage extends Bundle {
 }
 
 class IDUMessage extends Bundle {
-    val rs1        = UInt(32.W)
-    val rs2        = UInt(32.W)
+    // EXU
+    // val rs1        = UInt(32.W)
+    // val rs2        = UInt(32.W)
+    val gpr_raddr1 = UInt(Config.GPRAddrLength.W)
+    val gpr_raddr2 = UInt(Config.GPRAddrLength.W)
     val imm        = UInt(32.W)
     val a_sel      = Bool()
     val b_sel      = Bool()
@@ -20,10 +23,12 @@ class IDUMessage extends Bundle {
     val csr_rdata  = UInt(32.W)
     val pc         = UInt(32.W)
 
+    // LSU
     val mem_wen    = Bool()
     val mem_ren    = Bool()
     val mem_type   = UInt(3.W)
-        
+    
+    // WBU
     val rd         = UInt(GPRAddrLength.W)
     val gpr_wen    = Bool()
     val gpr_ws     = UInt(3.W)
