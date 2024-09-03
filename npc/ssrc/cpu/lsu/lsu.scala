@@ -203,7 +203,7 @@ class LSU extends Module {
         GPRWSel.CSR.id.U -> io.in.bits.csr_rdata
     ))
     when (io.in.bits.gpr_wen) {
-        printf("%d\n", io.in.bits.gpr_ws)
+        printf("%d\n", io.in.bits.csr_rdata)
     }
 
     assert(io.mem.rresp === 0.U)
