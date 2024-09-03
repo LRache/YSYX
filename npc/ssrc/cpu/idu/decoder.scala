@@ -12,7 +12,6 @@ import cpu.reg.CSRWSel
 
 import AluSel.AluSel
 import CmpSel.CmpSel
-import GPRWSel.GPRWSel
 import CSRWSel.CSRWSel
 import cpu.idu.CSRAddrSel.Ins
 import cpu.idu.Encode.Pos.{LENGTH => LENGTH}
@@ -106,17 +105,17 @@ object Encode {
             val mem_wen = toInt((instType == InstType. S))
             val mem_ren = toInt((instType == InstType.IL))
             val reg_ws = instType match {
-                case InstType. R => GPRWSel.EXU.id
-                case InstType.IA => GPRWSel.EXU.id
-                case InstType.IU => GPRWSel.EXU.id
-                case InstType.IL => GPRWSel.MEM.id
-                case InstType.IJ => GPRWSel. SN.id
-                case InstType. J => GPRWSel. SN.id
-                case InstType.UL => GPRWSel.EXU.id
-                case InstType.UA => GPRWSel.EXU.id
-                // case InstType.CR => GPRWSel.CSR.id
-                case InstType.C  => GPRWSel.CSR.id
-                case _           => GPRWSel.EXU.id
+                case InstType. R => GPRWSel. EXU
+                case InstType.IA => GPRWSel. EXU
+                case InstType.IU => GPRWSel. EXU
+                case InstType.IL => GPRWSel. MEM
+                case InstType.IJ => GPRWSel.SNPC
+                case InstType. J => GPRWSel.SNPC
+                case InstType.UL => GPRWSel. EXU
+                case InstType.UA => GPRWSel. EXU
+                // case InstType.CR => GPRWSel.CSR
+                case InstType.C  => GPRWSel. CSR
+                case _           => GPRWSel. EXU
             }
             val REG_WEN_SEQ = Seq(
                 InstType. R,

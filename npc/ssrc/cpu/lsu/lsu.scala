@@ -197,10 +197,10 @@ class LSU extends Module {
     mem_rdata := Mux(state === s_wait_mem && mem_ren, Cat(mem_rdata_3, mem_rdata_2, mem_rdata_1, mem_rdata_0), mem_rdata)
     
     io.out.bits.gpr_wdata :=  MuxLookup(io.in.bits.gpr_ws, 0.U)(Seq (
-        GPRWSel.EXU.id.U -> io.in.bits.exu_result,
-        GPRWSel.MEM.id.U -> mem_rdata,
-        GPRWSel. SN.id.U -> io.in.bits.snpc,
-        GPRWSel.CSR.id.U -> io.in.bits.csr_rdata
+        GPRWSel. EXU.U -> io.in.bits.exu_result,
+        GPRWSel. MEM.U -> mem_rdata,
+        GPRWSel.SNPC.U -> io.in.bits.snpc,
+        GPRWSel. CSR.U -> io.in.bits.csr_rdata
     ))
     // when (io.in.bits.gpr_wen) {
     //     printf("%d\n", io.in.bits.csr_rdata)
