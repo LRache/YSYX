@@ -21,8 +21,8 @@ class EXU extends Module {
         val is_ecall = Output(Bool())
         val csr_wdata2 = Output(UInt(32.W))
     })
-    io.gpr_rdata1 := io.in.bits.gpr_raddr1
-    io.gpr_rdata2 := io.in.bits.gpr_raddr2
+    io.gpr_raddr1 := io.in.bits.gpr_raddr1
+    io.gpr_raddr2 := io.in.bits.gpr_raddr2
 
     val cmp = Module(new Cmp())
     // cmp.io.a    := io.in.bits.rs1
