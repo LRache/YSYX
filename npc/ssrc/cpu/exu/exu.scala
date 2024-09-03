@@ -47,6 +47,10 @@ class EXU extends Module {
     io.is_ecall := io.in.bits.is_ecall && io.in.valid
     io.out.bits.dnpc := Mux(io.in.bits.dnpc_sel, io.in.bits.csr_rdata, alu.io.result)
 
+    when (io.in.bits.reg_wen) {
+        printf("%d\n", io.in.bits.csr_rdata)
+    }
+
     // Passthrough
     io.out.bits.mem_wen  := io.in.bits.mem_wen
     io.out.bits.mem_ren  := io.in.bits.mem_ren
