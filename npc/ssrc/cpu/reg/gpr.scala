@@ -35,9 +35,9 @@ class GPR(addrLength : Int) extends Module {
     })
     val gprCount = (1 << addrLength) - 1
 
-    val raddr1 = io.raddr1(addrLength - 1, 0)
-    val raddr2 = io.raddr2(addrLength - 1, 0)
-    val waddr  = io.waddr (addrLength - 1, 0)
+    val raddr1 = io.raddr1
+    val raddr2 = io.raddr2
+    val waddr  = io.waddr 
 
     val registers = RegInit(VecInit(Seq.fill(gprCount)(0.U(32.W))))
     for (i <- 0 to gprCount - 1) {

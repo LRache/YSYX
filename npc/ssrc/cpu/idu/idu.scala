@@ -105,7 +105,7 @@ class IDU extends Module {
     io.out.bits.csr_imm := io.in.bits.inst(19, 15)
     io.out.bits.csr_ws := op.csrWSel
     io.out.bits.csr_waddr1 := MuxLookup(op.csrWASel, 0.U(12.W))(Seq(
-        CSRAddrSel.N.id.U   -> CSRAddr.NONE,
+        CSRAddrSel.  N.id.U   -> CSRAddr.NONE,
         CSRAddrSel.VEC.id.U -> CSRAddr.MTVEC,
         CSRAddrSel.EPC.id.U -> CSRAddr.MEPC,
         CSRAddrSel.Ins.id.U -> csr_addr_translate(io.in.bits.inst(31, 20))
