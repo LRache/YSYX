@@ -47,9 +47,6 @@ class EXU extends Module {
         io.in.bits.csr_wd_sel,
         io.in.bits.pc,
         MuxLookup(io.in.bits.csr_ws, 0.U(32.W))(Seq (
-            // CSRWSel. W.id.U -> io.in.bits.rs1,
-            // CSRWSel. S.id.U -> (io.in.bits.csr_rdata |   io.in.bits.rs1 ),
-            // CSRWSel. C.id.U -> (io.in.bits.csr_rdata & (~io.in.bits.rs1)),
             CSRWSel. W.id.U -> io.gpr_rdata1,
             CSRWSel. S.id.U -> (io.in.bits.csr_rdata |   io.gpr_rdata1 ),
             CSRWSel. C.id.U -> (io.in.bits.csr_rdata & (~io.gpr_rdata1)),
@@ -63,7 +60,7 @@ class EXU extends Module {
     io.csr_wdata2 := io.gpr_rdata2
     io.is_ecall := io.in.bits.is_ecall && io.in.valid
     io.out.bits.dnpc := Mux(io.in.bits.dnpc_sel, io.in.bits.csr_rdata, alu.io.result)
-    io.out.bits.gpr_wdata := Mux(io.in.bits.gpr_ws(0).asBool, io.in.bits.csr_rdata, io.in.bits.snpc)
+    io.out.bits.gpr_wdata := Mux(io.in.bits.gpr_ws(0), io.in.bits.csr_rdata, io.in.bits.snpc)
 
     // Passthrough
     io.out.bits.mem_wen  := io.in.bits.mem_wen

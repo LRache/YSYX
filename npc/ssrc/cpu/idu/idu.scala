@@ -80,7 +80,8 @@ class IDU extends Module {
             ImmType.S.id.U -> imm_s,
             ImmType.U.id.U -> imm_u,
             ImmType.B.id.U -> imm_b,
-            ImmType.J.id.U -> imm_j
+            ImmType.J.id.U -> imm_j,
+            ImmType.C.id.U -> imm_c,
         )
     )
 
