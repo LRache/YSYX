@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util.MuxLookup
 
 import cpu.Config
+import chisel3.util.RegEnable
 
 object GPRWSel {
     val SNPC = 0b00
@@ -39,11 +40,12 @@ class GPR(addrLength : Int) extends Module {
     val raddr2 = io.raddr2
     val waddr  = io.waddr 
 
-    val registers = RegInit(VecInit(Seq.fill(gprCount)(0.U(32.W))))
-    for (i <- 0 to gprCount - 1) {
-        registers(i) := Mux((waddr === (i+1).U && io.wen), io.wdata, registers(i))
-    }
-    val table: Seq[(UInt, UInt)] = (for (i <- 0 to gprCount - 1) yield((i+1).U, registers(i)))
+    // val registers = RegInit(VecInit(Seq.fill(gprCount)(0.U(32.W))))
+    // for (i <- 0 to gprCount - 1) {
+    //     registers(i) := Mux((waddr === (i+1).U && io.wen), io.wdata, registers(i))
+    // }
+    val gpr = VecInit((1 until gprCount).map(i => RegEnable(io.wdata, 0.U, (waddr === (i+1).U && io.wen))))
+    val table: Seq[(UInt, UInt)] = (for (i <- 0 to gprCount - 1) yield((i+1).U, gpr(i)))
     io.rdata1 := Mux(raddr1.orR, MuxLookup(raddr1, 0.U)(table), 0.U)
     io.rdata2 := Mux(raddr2.orR, MuxLookup(raddr2, 0.U)(table), 0.U)
 
