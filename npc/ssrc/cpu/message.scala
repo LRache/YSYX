@@ -72,7 +72,6 @@ class EXUMessage extends Bundle {
     // val csr_waddr2 = UInt(12.W)
     // val csr_wen1   = Bool()
     // val csr_wen2   = UInt(32.W)
-    val csr_wd_sel = Bool()
     // val csr_ws     = UInt(3.W)
     val csr_imm    = UInt(5.W)
     // val csr_rdata  = UInt(32.W)
@@ -86,7 +85,6 @@ class EXUMessage extends Bundle {
 }
 
 class LSUMessage extends Bundle {
-    // val mem_rdata  = UInt(32.W)
     val gpr_wdata  = UInt(32.W)
 
     // Passthrough
@@ -95,21 +93,14 @@ class LSUMessage extends Bundle {
         
     val rd         = UInt(GPRAddrLength.W)
     val gpr_wen    = Bool()
-    // val reg_ws     = UInt(3.W)
 
     val csr_waddr1 = UInt(4.W)
     val is_ecall   = Bool()
-    // val csr_waddr2 = UInt(12.W)
     val csr_wdata1 = UInt(32.W)
     // val csr_wdata2 = UInt(32.W)
     // val csr_wen1   = Bool()
-    // val csr_wen2   = Bool()
-    // val csr_wd_sel = Bool()
-    // val csr_ws     = UInt(3.W)
     // val csr_imm    = UInt(32.W)
     // val csr_rdata  = UInt(32.W)
-    // val snpc       = UInt(32.W)
-    // val pc         = UInt(32.W)
     
     val dnpc = UInt(32.W)
 

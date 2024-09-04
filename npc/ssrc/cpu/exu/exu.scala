@@ -71,7 +71,6 @@ class EXU extends Module {
     io.out.bits.mem_type := io.in.bits.mem_type
         
     io.out.bits.rd      := io.in.bits.rd
-    // io.out.bits.rs2     := io.in.bits.rs2
     io.out.bits.rs2     := io.gpr_rdata2
     io.out.bits.gpr_wen := io.in.bits.gpr_wen
     io.out.bits.gpr_ws  := io.in.bits.gpr_ws
@@ -81,7 +80,6 @@ class EXU extends Module {
     io.out.bits.is_ecall   := io.in.bits.is_ecall
     // io.out.bits.csr_wen1   := io.in.bits.csr_wen1
     // io.out.bits.csr_wen2   := io.in.bits.csr_wen2
-    io.out.bits.csr_wd_sel := io.in.bits.csr_wd_sel
     // io.out.bits.csr_ws     := io.in.bits.csr_ws
     io.out.bits.csr_imm    := io.in.bits.csr_imm
     // io.out.bits.pc         := io.in.bits.pc

@@ -57,19 +57,15 @@ class IDU extends Module {
         )
     )
     io.out.bits.csr_rdata := io.csr_rdata
-    when (op.gprWen) {
-      printf("%x %x\n", io.csr_raddr, io.csr_rdata)
-    }
 
     // EXU
     io.out.bits.alu_sel := op.aluSel
     io.out.bits.a_sel := op.aSel
     io.out.bits.b_sel := op.bSel
     io.out.bits.cmp_sel := op.cmpSel
-    // io.out.bits.is_jmp := op.isJmp
-    // when (io.out.bits.gpr_wen) {
-    //     printf("%x\n%x", io.csr_raddr, io.csr_rdata)
-    // }
+    when (io.out.bits.gpr_wen) {
+        printf("%x\n%x", io.csr_raddr, io.csr_rdata)
+    }
 
     val imm_i   = Cat(Fill(20, io.in.bits.inst(31)), io.in.bits.inst(31, 20))
     val imm_iu  = Cat(0.U(20.W), io.in.bits.inst(31, 20))
@@ -114,9 +110,6 @@ class IDU extends Module {
     io.out.bits.csr_wd_sel := op.isEcall
 
     io.out.bits.dnpc_sel := op.dnpcSel
-
-    // io.out.bits.rs1 := Mux(op.rs1Sel, csrImm, io.gpr_rdata1)
-    // io.out.bits.rs2 := Mux(op.rs2Sel, io.csr_rdata, io.gpr_rdata2)
 
     // FENCE
     io.fence_i := op.isFenceI && io.in.valid
