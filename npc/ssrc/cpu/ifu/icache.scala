@@ -37,12 +37,15 @@ class ICache (e: Int, s: Int) extends Module {
     val memRAddr = Cat(io.io.raddr(31, b), 0.U(b.W))
     // val memRAddr = io.io.raddr & 0xfffffff0L.U(32.W)
 
-    val cache = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((B + t + 1).W))))))
+    // val cache = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((B + t + 1).W))))))
+    val cache = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(VecInit(Seq.fill(b)(0.U(32.W))))))))
+    val meta = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((t+1).W))))))
     val group = cache(groupIndex)
     
     val lineHits = Wire(Vec(E, Bool()))
     for (i <- 0 to E-1) {
-        lineHits(i) := group(i)(B + t - 1, B) === tag && group(i)(B + t) 
+        // lineHits(i) := group(i)(B + t - 1, B) === tag && group(i)(B + t) 
+        lineHits(i) := meta(groupIndex)(i)(t-1, 0) === tag && meta(groupIndex)(i)(t)
     }
     val isHit = lineHits.asUInt.orR
     val hitLineIndex = PriorityEncoder(lineHits)
@@ -78,20 +81,26 @@ class ICache (e: Int, s: Int) extends Module {
     val groupCounter = counter(groupIndex)
     counter(groupIndex) := Mux(memValid, groupCounter+1.U, groupCounter)
     for (i <- 0 to E-1) {
-        group(i) := Mux(
-            memValid && groupCounter === i.U, 
-            Cat(true.B, tag, io.mem.rdata, rdata2, rdata1, rdata0), 
-            // Cat(true.B, tag, io.mem.rdata),
-            Mux(
-                io.fence,
-                group(i).bitSet((B + t).U, false.B),
-                group(i)
-            )
-            // group(i)
-        )
+        // group(i) := Mux(
+        //     memValid && groupCounter === i.U, 
+        //     Cat(true.B, tag, io.mem.rdata, rdata2, rdata1, rdata0), 
+        //     // Cat(true.B, tag, io.mem.rdata),
+        //     Mux(
+        //         io.fence,
+        //         group(i).bitSet((B + t).U, false.B),
+        //         group(i)
+        //     )
+        //     // group(i)
+        // )
+        group(i)(0) := Mux(memValid && groupCounter === i.U, rdata0, group(i)(0))
+        group(i)(1) := Mux(memValid && groupCounter === i.U, rdata1, group(i)(1))
+        group(i)(2) := Mux(memValid && groupCounter === i.U, rdata2, group(i)(2))
+        group(i)(3) := Mux(memValid && groupCounter === i.U, io.mem.rdata, group(i)(3))
+        meta(groupIndex)(i) := Mux(memValid && groupCounter === i.U, Cat(true.B, tag), meta(groupIndex)(i))
     }
 
-    val hitDataMuxSeq : Seq[(UInt, UInt)] = for (i <- 0 to 3) yield (i.U, hitEntry(i * 32 + 31, i * 32))
+    // val hitDataMuxSeq : Seq[(UInt, UInt)] = for (i <- 0 to 3) yield (i.U, hitEntry(i * 32 + 31, i * 32))
+    val hitDataMuxSeq : Seq[(UInt, UInt)] = for (i <- 0 to 3) yield (i.U, hitEntry(i))
     val hitData = MuxLookup(offset, 0.U)(hitDataMuxSeq)
 
     io.io.valid := hitValid || state === s_mem_valid
