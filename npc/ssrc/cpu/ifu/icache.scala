@@ -96,7 +96,7 @@ class ICache (e: Int, s: Int) extends Module {
         group(i)(1) := Mux(memValid && groupCounter === i.U, rdata1, group(i)(1))
         group(i)(2) := Mux(memValid && groupCounter === i.U, rdata2, group(i)(2))
         group(i)(3) := Mux(memValid && groupCounter === i.U, io.mem.rdata, group(i)(3))
-        meta(groupIndex)(i) := Mux(memValid && groupCounter === i.U, Cat(true.B, tag), meta(groupIndex)(i))
+        meta(groupIndex)(i) := Mux(memValid && groupCounter === i.U, Cat(true.B, tag), Mux(io.fence, meta(groupIndex)(i).bitSet(t.U, false.B), meta(groupIndex)(i)))
     }
 
     // val hitDataMuxSeq : Seq[(UInt, UInt)] = for (i <- 0 to 3) yield (i.U, hitEntry(i * 32 + 31, i * 32))
