@@ -34,10 +34,7 @@ class IDUMessage extends Bundle {
     val gpr_ws     = UInt(3.W)
 
     val csr_waddr1 = UInt(4.W)
-    // val csr_waddr2 = UInt(12.W)
     val is_ecall   = Bool()
-    // val csr_wen1   = Bool()
-    // val csr_wen2   = UInt(32.W)
     val csr_wd_sel = Bool()
     val csr_ws     = UInt(3.W)
     // val csr_imm    = UInt(5.W)
