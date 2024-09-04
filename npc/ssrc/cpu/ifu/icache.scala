@@ -98,7 +98,7 @@ class ICache (e: Int, s: Int) extends Module {
         group(i)(2) := Mux(io.mem.rvalid && state === s_wait_mem_2 && groupCounter === i.U, io.mem.rdata, group(i)(2))
         group(i)(3) := Mux(memValid && groupCounter === i.U, io.mem.rdata, group(i)(3))
         // meta(groupIndex)(i) := Mux(memValid && groupCounter === i.U, Cat(true.B, tag), Mux(io.fence, meta(groupIndex)(i).bitSet(t.U, false.B), meta(groupIndex)(i)))
-        tag(groupIndex)(i) := Mux(memValid && groupCounter === i.U, tag, metaTag(groupIndex)(i));
+        metaTag(groupIndex)(i) := Mux(memValid && groupCounter === i.U, tag, metaTag(groupIndex)(i));
         metaValid(groupIndex)(i) := Mux(memValid && groupCounter === i.U, true.B, Mux(io.fence, false.B, metaValid(groupIndex)(i)))
     }
 
