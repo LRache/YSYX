@@ -46,7 +46,7 @@ class ICache (e: Int, s: Int) extends Module {
     for (i <- 0 to E-1) {
         // lineHits(i) := group(i)(B + t - 1, B) === tag && group(i)(B + t) 
         // lineHits(i) := meta(groupIndex)(i)(t-1, 0) === tag && meta(groupIndex)(i)(t)
-        lineHits(i) := tag(groupIndex)(i) === tag && metaValid(groupIndex)(i)
+        lineHits(i) := metaTag(groupIndex)(i) === tag && metaValid(groupIndex)(i)
     }
     val isHit = lineHits.asUInt.orR
     val hitLineIndex = PriorityEncoder(lineHits)
