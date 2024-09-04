@@ -40,7 +40,7 @@ class IDUMessage extends Bundle {
     // val csr_wen2   = UInt(32.W)
     val csr_wd_sel = Bool()
     val csr_ws     = UInt(3.W)
-    val csr_imm    = UInt(5.W)
+    // val csr_imm    = UInt(5.W)
     val snpc       = UInt(32.W)
     
     val dnpc_sel   = Bool()
