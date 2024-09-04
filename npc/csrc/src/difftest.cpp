@@ -36,7 +36,7 @@ void difftest::init() {
     difftestCount = 0;
 }
 
-static void inline reg_cmp(int i, uint32_t dut) {
+static void inline gpr_cmp(int i, uint32_t dut) {
     if (refRegs[i] != dut) {
         panic(
             "Difftest failed.\nDifferent reg:\nx%d, dut=%d(0x%08x), ref=%d(0x%08x)\ndut.pc=0x%08x inst=0x%08x",
@@ -48,7 +48,7 @@ static void inline reg_cmp(int i, uint32_t dut) {
 void difftest::regs() {
     nemu_difftest_regcpy(refRegs, DIFFTEST_TO_DUT);
     for (int i = 0; i < DIFFTEST_COMMON_REG_COUNT; i++) {
-        reg_cmp(i, cpu.gpr[i]);
+        gpr_cmp(i, cpu.gpr[i]);
     }
 }
 
