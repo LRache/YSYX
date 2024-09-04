@@ -33,7 +33,7 @@ class WBU extends Module {
     io.reg_wen := io.in.bits.gpr_wen && io.in.valid
 
     io.csr_waddr1 := Mux(io.in.valid, io.in.bits.csr_waddr1, CSRAddr.NONE)
-    io.csr_wdata1 := io.csr_wdata1
+    io.csr_wdata1 := io.in.bits.csr_wdata1
     io.csr_wen1 := true.B
     io.is_ecall := io.in.bits.is_ecall && io.in.valid
     io.is_brk := io.in.bits.is_brk && io.in.valid
