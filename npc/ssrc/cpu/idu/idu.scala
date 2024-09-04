@@ -73,6 +73,7 @@ class IDU extends Module {
     val imm_b   = Cat(Fill(20, io.in.bits.inst(31)), io.in.bits.inst(31), io.in.bits.inst(7), io.in.bits.inst(30, 25), io.in.bits.inst(11, 8), 0.B)
     val imm_u   = Cat(io.in.bits.inst(31, 12), 0.U(12.W))
     val imm_j   = Cat(Fill(11, io.in.bits.inst(31)), io.in.bits.inst(31), io.in.bits.inst(19, 12), io.in.bits.inst(20), io.in.bits.inst(30, 21), 0.B)
+    val imm_c   = Cat(0.U(27.W), io.in.bits.inst(19, 15))
     io.out.bits.imm := MuxLookup(op.immType, 0.U(32.W))(Seq(
             ImmType.I.id.U -> imm_i,
             ImmType.IU.id.U -> imm_iu,
@@ -98,7 +99,7 @@ class IDU extends Module {
     // io.out.bits.csr_wen1 := ((op.csrWen && io.gpr_raddr1.orR) || is_ecall)
     // io.out.bits.csr_wen1 := ((op.csrWen && io.out.bits.gpr_raddr1.orR) || is_ecall)
     io.out.bits.is_ecall := is_ecall
-    io.out.bits.csr_imm := io.in.bits.inst(19, 15)
+    // io.out.bits.csr_imm := io.in.bits.inst(19, 15)
     io.out.bits.csr_ws := op.csrWSel
     io.out.bits.csr_waddr1 := MuxLookup(op.csrWASel, 0.U(12.W))(Seq(
         CSRAddrSel.  N.id.U   -> CSRAddr.NONE,

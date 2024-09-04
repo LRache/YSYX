@@ -53,9 +53,9 @@ class EXU extends Module {
             CSRWSel. W.id.U -> io.gpr_rdata1,
             CSRWSel. S.id.U -> (io.in.bits.csr_rdata |   io.gpr_rdata1 ),
             CSRWSel. C.id.U -> (io.in.bits.csr_rdata & (~io.gpr_rdata1)),
-            CSRWSel.WI.id.U -> Cat(0.U(27.W), io.in.bits.csr_imm),
-            CSRWSel.SI.id.U -> (io.in.bits.csr_rdata |   io.in.bits.csr_imm ),
-            CSRWSel.CI.id.U -> (io.in.bits.csr_rdata & (~io.in.bits.csr_imm)),
+            CSRWSel.WI.id.U -> io.in.bits.imm,
+            CSRWSel.SI.id.U -> (io.in.bits.csr_rdata |   io.in.bits.imm ),
+            CSRWSel.CI.id.U -> (io.in.bits.csr_rdata & (~io.in.bits.imm)),
         ))
     )
     // io.out.bits.csr_wdata2 := io.in.bits.rs2
@@ -81,7 +81,6 @@ class EXU extends Module {
     // io.out.bits.csr_wen1   := io.in.bits.csr_wen1
     // io.out.bits.csr_wen2   := io.in.bits.csr_wen2
     // io.out.bits.csr_ws     := io.in.bits.csr_ws
-    io.out.bits.csr_imm    := io.in.bits.csr_imm
     // io.out.bits.pc         := io.in.bits.pc
 
     io.out.bits.is_brk := io.in.bits.is_brk

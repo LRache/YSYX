@@ -26,7 +26,7 @@ import InstType.InstType
 
 object ImmType extends Enumeration {
     type ImmType = Value
-    val N, I, IU, S, B, U, J = Value
+    val N, I, IU, S, B, U, J, C = Value
 }
 
 object CSRAddrSel extends Enumeration {
@@ -156,6 +156,7 @@ object Encode {
                 case InstType.UA => ImmType. U.id
                 case InstType.UL => ImmType. U.id
                 case InstType. J => ImmType. J.id
+                case InstType. C => ImmType. C.id
                 case _           => ImmType. N.id
             }
             // val csr_wen = toInt(instType == InstType.CR || instType == InstType.CI)

@@ -42,11 +42,8 @@ class CSR extends Module {
     val io = IO(new Bundle {
         val waddr1  = Input (UInt(4.W))
         val is_ecall= Input (Bool())
-        // val waddr2  = Input (UInt(12.W))
         val wdata1  = Input (UInt(32.W))
         val wdata2  = Input (UInt(32.W))
-        val wen1    = Input (Bool())
-        // val wen2    = Input (Bool())
         val raddr   = Input (UInt(4.W))
         val rdata   = Output(UInt(32.W))
     })
@@ -76,15 +73,15 @@ class CSR extends Module {
     // mscratch := Mux(io.wen1 && io.waddr1 === CSRAddr.MSCRATCH, io.wdata1, Mux(io.wen2 && io.waddr2 === CSRAddr.MSCRATCH, io.wdata2, mscratch))
     // mepc     := Mux(io.wen1 && io.waddr1 === CSRAddr.MEPC    , io.wdata1, Mux(io.wen2 && io.waddr2 === CSRAddr.MEPC    , io.wdata2, mepc    ))
     // mcause   := Mux(io.wen1 && io.waddr1 === CSRAddr.MCAUSE  , io.wdata1, Mux(io.wen2 && io.waddr2 === CSRAddr.MCAUSE  , io.wdata2, mcause  ))
-    mstatus  := Mux(io.wen1 && io.waddr1 === CSRAddr.MSTATUS , io.wdata1, mstatus )
-    mtvec    := Mux(io.wen1 && io.waddr1 === CSRAddr.MTVEC   , io.wdata1, mtvec   )
-    mscratch := Mux(io.wen1 && io.waddr1 === CSRAddr.MSCRATCH, io.wdata1, mscratch)
-    mepc     := Mux(io.wen1 && io.waddr1 === CSRAddr.MEPC    , io.wdata1, mepc    )
-    mcause   := Mux(io.wen1 && io.waddr1 === CSRAddr.MCAUSE  , io.wdata1, Mux(io.is_ecall, io.wdata2, mcause))
+    mstatus  := Mux(io.waddr1 === CSRAddr.MSTATUS , io.wdata1, mstatus )
+    mtvec    := Mux(io.waddr1 === CSRAddr.MTVEC   , io.wdata1, mtvec   )
+    mscratch := Mux(io.waddr1 === CSRAddr.MSCRATCH, io.wdata1, mscratch)
+    mepc     := Mux(io.waddr1 === CSRAddr.MEPC    , io.wdata1, mepc    )
+    mcause   := Mux(io.waddr1 === CSRAddr.MCAUSE  , io.wdata1, Mux(io.is_ecall, io.wdata2, mcause))
 
     val debugger = Module(new CSRDebugger())
     debugger.io.clk := clock
-    debugger.io.wen := io.wen1
+    debugger.io.wen := true.B
     debugger.io.waddr := io.waddr1
     debugger.io.wdata := io.wdata1
 

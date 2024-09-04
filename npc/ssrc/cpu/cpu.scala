@@ -68,7 +68,6 @@ class HCPU(instStart : BigInt) extends Module {
     csr.io.wdata1 := wbu.io.csr_wdata1
     // csr.io.wdata2 := wbu.io.csr_wdata2
     csr.io.wdata2 := exu.io.csr_wdata2
-    csr.io.wen1   := wbu.io.csr_wen1
     // csr.io.wen2   := wbu.io.csr_wen2
     gpr.io.waddr := wbu.io.reg_waddr
     gpr.io.wdata := wbu.io.reg_wdata

@@ -73,7 +73,7 @@ class EXUMessage extends Bundle {
     // val csr_wen1   = Bool()
     // val csr_wen2   = UInt(32.W)
     // val csr_ws     = UInt(3.W)
-    val csr_imm    = UInt(5.W)
+    // val csr_imm    = UInt(5.W)
     // val csr_rdata  = UInt(32.W)
     // val snpc       = UInt(32.W)
     // val pc         = UInt(32.W)
