@@ -64,12 +64,12 @@ class ICache (e: Int, s: Int) extends Module {
         // s_wait_mem_3 -> Mux(io.mem.rvalid, s_idle,  s_wait_mem_3),
         s_mem_valid  -> s_idle,
     ))
-    val rdata0 = RegInit(0.U(32.W))
-    val rdata1 = RegInit(0.U(32.W))
-    val rdata2 = RegInit(0.U(32.W))
-    rdata0 := Mux(io.mem.rvalid && state === s_wait_mem_0, io.mem.rdata, rdata0)    
-    rdata1 := Mux(io.mem.rvalid && state === s_wait_mem_1, io.mem.rdata, rdata1)    
-    rdata2 := Mux(io.mem.rvalid && state === s_wait_mem_2, io.mem.rdata, rdata2)    
+    // val rdata0 = RegInit(0.U(32.W))
+    // val rdata1 = RegInit(0.U(32.W))
+    // val rdata2 = RegInit(0.U(32.W))
+    // rdata0 := Mux(io.mem.rvalid && state === s_wait_mem_0, io.mem.rdata, rdata0)    
+    // rdata1 := Mux(io.mem.rvalid && state === s_wait_mem_1, io.mem.rdata, rdata1)    
+    // rdata2 := Mux(io.mem.rvalid && state === s_wait_mem_2, io.mem.rdata, rdata2)    
 
     val ready = (state === s_idle) && io.io.ready
     val hitValid = ready && isHit
@@ -92,9 +92,9 @@ class ICache (e: Int, s: Int) extends Module {
         //     )
         //     // group(i)
         // )
-        group(i)(0) := Mux(memValid && groupCounter === i.U, rdata0, group(i)(0))
-        group(i)(1) := Mux(memValid && groupCounter === i.U, rdata1, group(i)(1))
-        group(i)(2) := Mux(memValid && groupCounter === i.U, rdata2, group(i)(2))
+        group(i)(0) := Mux(io.mem.rvalid && state === s_wait_mem_0 && groupCounter === i.U, io.mem.rdata, group(i)(0))
+        group(i)(1) := Mux(io.mem.rvalid && state === s_wait_mem_1 && groupCounter === i.U, io.mem.rdata, group(i)(1))
+        group(i)(2) := Mux(io.mem.rvalid && state === s_wait_mem_2 && groupCounter === i.U, io.mem.rdata, group(i)(2))
         group(i)(3) := Mux(memValid && groupCounter === i.U, io.mem.rdata, group(i)(3))
         meta(groupIndex)(i) := Mux(memValid && groupCounter === i.U, Cat(true.B, tag), Mux(io.fence, meta(groupIndex)(i).bitSet(t.U, false.B), meta(groupIndex)(i)))
     }
