@@ -63,9 +63,9 @@ class IDU extends Module {
     io.out.bits.a_sel := op.aSel
     io.out.bits.b_sel := op.bSel
     io.out.bits.cmp_sel := op.cmpSel
-    when (io.out.bits.gpr_wen) {
-        printf("%x\n%x", io.csr_raddr, io.csr_rdata)
-    }
+    // when (io.out.bits.gpr_wen) {
+    //     printf("%x\n%x", io.csr_raddr, io.csr_rdata)
+    // }
 
     val imm_i   = Cat(Fill(20, io.in.bits.inst(31)), io.in.bits.inst(31, 20))
     val imm_iu  = Cat(0.U(20.W), io.in.bits.inst(31, 20))
