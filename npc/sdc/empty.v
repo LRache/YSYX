@@ -1,10 +1,10 @@
-module RegFileDebugger(
+module GPRDebugger(
     input clk,
-    input [4:0]  waddr,
+    input [3:0]  waddr,
     input [31:0] wdata,
     input wen
 );
-endmodule //RegisterFileDebugger
+endmodule //GPRDebugger
 
 module CSRDebugger(
     input clk,

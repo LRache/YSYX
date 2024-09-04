@@ -21,7 +21,7 @@ class HCPU(instStart : BigInt) extends Module {
         val interrupt = Input(Bool())
     })
     
-    val gpr = Module(new GPR(4))
+    val gpr = Module(new GPR(Config.GPRAddrLength))
     val csr = Module(new CSR)
 
     val icache = Module(new ICache(2, 0))
@@ -45,12 +45,18 @@ class HCPU(instStart : BigInt) extends Module {
     ifu.io.cache <> icache.io.io
 
     // IDU
-    gpr.io.raddr1 := idu.io.gpr_raddr1
-    gpr.io.raddr2 := idu.io.gpr_raddr2
-    idu.io.gpr_rdata1 := gpr.io.rdata1
-    idu.io.gpr_rdata2 := gpr.io.rdata2
+    // gpr.io.raddr1 := idu.io.gpr_raddr1
+    // gpr.io.raddr2 := idu.io.gpr_raddr2
+    // idu.io.gpr_rdata1 := gpr.io.rdata1
+    // idu.io.gpr_rdata2 := gpr.io.rdata2
     csr.io.raddr      := idu.io.csr_raddr
     idu.io.csr_rdata  := csr.io.rdata
+
+    // EXU
+    gpr.io.raddr1 := exu.io.gpr_raddr1
+    gpr.io.raddr2 := exu.io.gpr_raddr2
+    exu.io.gpr_rdata1 := gpr.io.rdata1
+    exu.io.gpr_rdata2 := gpr.io.rdata2
 
     // LSU
     lsu.io.mem <> arbiter.io.io2
@@ -62,11 +68,13 @@ class HCPU(instStart : BigInt) extends Module {
     csr.io.wdata1 := wbu.io.csr_wdata1
     // csr.io.wdata2 := wbu.io.csr_wdata2
     csr.io.wdata2 := exu.io.csr_wdata2
-    csr.io.wen1   := wbu.io.csr_wen1
     // csr.io.wen2   := wbu.io.csr_wen2
     gpr.io.waddr := wbu.io.reg_waddr
     gpr.io.wdata := wbu.io.reg_wdata
     gpr.io.wen   := wbu.io.reg_wen
+
+    // ICache
+    icache.io.fence := idu.io.fence_i
 
     val debugger = Module(new Dbg())
     debugger.io.clk         := clock
