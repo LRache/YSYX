@@ -10,11 +10,12 @@ import cpu.lsu.MemType
 import cpu.reg.GPRWSel
 import cpu.reg.CSRWSel
 
-import AluSel.AluSel
 import CmpSel.CmpSel
 import CSRWSel.CSRWSel
-import cpu.idu.CSRAddrSel.Ins
+import AluSel.AluSel
+import cpu.idu.CSRAddrSel
 import cpu.idu.Encode.Pos.{LENGTH => LENGTH}
+import cpu.exu
 
 object InstType extends Enumeration {
     type InstType = Value
@@ -41,14 +42,15 @@ object Encode {
         val ImmType = 0
         val ImmTypeL= 4
         
+        // EXU
         val ALUSel  = ImmType + ImmTypeL
-        val ALUSelL = 4
+        val ALUSelL = 2
         
         val ASel    = ALUSel + ALUSelL
-        
         val BSel    = ASel + BoolLen
+        val EXUTag  = BSel + BoolLen // for signed or sub
         
-        val CmpSel  = BSel + BoolLen
+        val CmpSel  = EXUTag + BoolLen
         val CmpSelL = 3
 
         val GPRWSel = CmpSel + CmpSelL
@@ -86,12 +88,26 @@ object Encode {
     def toInt(boolValue: Boolean): Int = if(boolValue) 1 else 0
     
     def encode (
-        instType: InstType, 
-        _alu_sel:   AluSel,
+        instType: InstType,
+        exuTag:     Boolean,
         _cmp_sel:   CmpSel,
         _csr_sel:   CSRWSel,
         ): BitPat = {
-            var alu_sel = _alu_sel.id
+            val aluSelAddInstSeq = Seq(
+                InstType.IL, // load
+                InstType. S, // save
+                InstType.UA, // auipc
+                InstType. B, // branch
+                InstType. J  // jal jalr
+            )
+            val aluSelBInstSeq = Seq(
+                InstType.UL, // lui
+                InstType.MR  // mret
+            )
+            var aluSel = exu.AluSel.FUNCT3
+            if (aluSelAddInstSeq.contains(instType)) {aluSel = AluSel.ADD}
+            else if (aluSelBInstSeq.contains(instType)) {aluSel = AluSel.BSEL}
+            
             val cmp_sel = _cmp_sel.id
             
             val is_brk  = toInt(instType == InstType.EB)
@@ -185,7 +201,7 @@ object Encode {
             
             var bits: Long = 0L
             bits |= (imm_type   & 0b1111).toLong << Pos.ImmType
-            bits |= (alu_sel    & 0b1111).toLong << Pos.ALUSel
+            bits |= (aluSel     & 0b11  ).toLong << Pos.ALUSel
             bits |= (a_sel      & 0b1   ).toLong << Pos.ASel
             bits |= (b_sel      & 0b1   ).toLong << Pos.BSel
             bits |= (cmp_sel    & 0b111 ).toLong << Pos.CmpSel
@@ -208,15 +224,15 @@ object Encode {
             return BitPat(bits.U(LENGTH.W))
         }
     
-    def encode_r(alu_sel: AluSel) : BitPat = encode(InstType.R, alu_sel, CmpSel.N, CSRWSel.W)
-    def encode_i(instType: InstType, alu_sel: AluSel) : BitPat = encode(instType, alu_sel, CmpSel.N, CSRWSel.W)
-    def encode_ia(alu_sel: AluSel) : BitPat = encode_i(InstType.IA, alu_sel)
-    def encode_iu(alu_sel: AluSel) : BitPat = encode_i(InstType.IU, alu_sel)
-    def encode_load() : BitPat = encode(InstType.IL, AluSel.ADD, CmpSel.N, CSRWSel.W)
-    def encode_save() : BitPat = encode(InstType. S, AluSel.ADD, CmpSel.N, CSRWSel.W)
-    def encode_jump(instType: InstType) : BitPat = encode(instType, AluSel.ADD, CmpSel.Y, CSRWSel.W)
-    def encode_brch(cmpSel: CmpSel) : BitPat = encode(InstType.B, AluSel.ADD, cmpSel, CSRWSel.W)
-    def encode_csr(csrWSel: CSRWSel) : BitPat = encode(InstType.C, AluSel.N, CmpSel.N, csrWSel)
+    def encode_r(exuTag: Boolean) : BitPat = encode(InstType.R, exuTag, CmpSel.N, CSRWSel.W)
+    def encode_i(instType: InstType) : BitPat = encode(instType, CmpSel.N, CSRWSel.W)
+    def encode_ia(alu_sel: AluSel) : BitPat = encode_i(InstType.IA)
+    def encode_iu(alu_sel: AluSel) : BitPat = encode_i(InstType.IU)
+    def encode_load() : BitPat = encode(InstType.IL, false, AluSel.ADD, CmpSel.N, CSRWSel.W)
+    def encode_save() : BitPat = encode(InstType. S, false, AluSel.ADD, CmpSel.N, CSRWSel.W)
+    def encode_jump(instType: InstType) : BitPat = encode(instType, false, AluSel.ADD, CmpSel.Y, CSRWSel.W)
+    def encode_brch(cmpSel: CmpSel) : BitPat = encode(InstType.B, false, AluSel.ADD, cmpSel, CSRWSel.W)
+    def encode_csr(csrWSel: CSRWSel) : BitPat = encode(InstType.C, false, AluSel.N, CmpSel.N, csrWSel)
 }
 
 import Encode.Pos
@@ -229,7 +245,7 @@ class OP(t : UInt) {
     val gprWSel = t(Pos.GPRWSel + Pos.GPRWSelL  - 1, Pos.GPRWSel)
     val gprWen  = t(Pos.GPRWen  + Pos.BoolLen   - 1, Pos.GPRWen).asBool
     val memWen  = t(Pos.MemWen  + Pos.BoolLen   - 1, Pos.MemWen).asBool
-    val menRen  = t(Pos.MemRen  + Pos.BoolLen   - 1, Pos.MemRen).asBool
+    val memRen  = t(Pos.MemRen  + Pos.BoolLen   - 1, Pos.MemRen).asBool
     // val isJmp   = t(Pos.IsJmp   + Pos.BoolLen   - 1, Pos.IsJmp).asBool
     val isBrk   = t(Pos.IsBrk   + Pos.BoolLen   - 1, Pos.IsBrk).asBool
     val isIvd   = t(Pos.IsIvd   + Pos.BoolLen   - 1, Pos.IsIvd).asBool

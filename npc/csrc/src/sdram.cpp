@@ -9,6 +9,7 @@ uint16_t sdram[4][8192][512];
 
 extern "C" void sdram_read (int bank, int row, int column, uint16_t *data) {
     // Log("SDRAM Read [%d][%d][%d]=" FMT_WORD, bank, row, column, sdram[bank][row][column]);
+    // assert(0);
     *data = sdram[bank][row][column];
 }
 

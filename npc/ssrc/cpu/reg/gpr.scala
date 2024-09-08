@@ -18,7 +18,7 @@ object GPRWSel {
 class GPRDebugger(addrLength : Int) extends BlackBox {
     val io = IO(new Bundle {
         val clk     = Input(Clock())
-        val waddr   = Input(UInt(addrLength.W))
+        val waddr   = Input(UInt(32.W))
         val wdata   = Input(UInt(32.W))
         val wen     = Input(Bool())
     })
