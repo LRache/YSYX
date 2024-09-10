@@ -470,7 +470,7 @@ object Encode {
     def encode_load() : BitPat = encode(InstType. L, EXUTag.DontCare)
     def encode_save() : BitPat = encode(InstType. S, EXUTag.DontCare)
     def encode_jump(instType: InstType) : BitPat = encode(instType, EXUTag.DontCare)
-    def encode_brch(exuTag: EXUTag) : BitPat = encode(InstType. B, exuTag)
+    def encode_brch() : BitPat = encode(InstType. B, EXUTag.DontCare)
     def encode_csrr() : BitPat = encode(InstType.CR, EXUTag.DontCare)
     def encode_csri() : BitPat = encode(InstType.CI, EXUTag.DontCare)
 }
@@ -626,12 +626,12 @@ object Decoder {
             JALR    -> Encode.encode_jump(InstType.IJ),
             JAL     -> Encode.encode_jump(InstType. J),
 
-            BEQ     -> Encode.encode_brch(EXUTag.F),
-            BNE     -> Encode.encode_brch(EXUTag.F),
-            BGE     -> Encode.encode_brch(EXUTag.F),
-            BGEU    -> Encode.encode_brch(EXUTag.T),
-            BLT     -> Encode.encode_brch(EXUTag.F),
-            BLTU    -> Encode.encode_brch(EXUTag.F),
+            BEQ     -> Encode.encode_brch(),
+            BNE     -> Encode.encode_brch(),
+            BGE     -> Encode.encode_brch(),
+            BGEU    -> Encode.encode_brch(),
+            BLT     -> Encode.encode_brch(),
+            BLTU    -> Encode.encode_brch(),
 
             CSRRW   -> Encode.encode_csrr(),
             CSRRS   -> Encode.encode_csrr(),
