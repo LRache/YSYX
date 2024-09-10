@@ -1,7 +1,7 @@
 #pragma once
 
 #define __EBREAK 0x00100073
-#define GOOD_TRAP 0x00000513, __EBREAK
+#define GOOD_TRAP 0x00000513, __EBREAK,
 
 static uint32_t test_img_ebreak[] = {
     __EBREAK
@@ -149,7 +149,7 @@ static uint32_t test_img_mrom[] = {
     0x00000517, // 00 auipc x10, 0
     0x01750513, // 04 addi x10, x10, 0x17
     0x00054583, // 08 lbu x11, 0(x10)
-    GOOD_TRAP,  // 0c 10
+    GOOD_TRAP  // 0c 10
     0x01020304  // 14        
 };
 
@@ -377,6 +377,20 @@ static uint32_t test_img_control_hazard1[] = {
     0x0080016f, // 00 jal x2, 8
     0x00000000, // invalid
 
+    GOOD_TRAP
+    0x00000000, // invalid
+
     0x00100093, // 08 addi x1, x0, 1
+    0x00008067, // jalr x0, 0(x1)
+};
+
+static uint32_t test_img_control_hazard2[] = {
+    0xa00000b7, // 00 lui x1, 0xa0000
+    0x01008193, // 04 addi x3, x1, 16
+    0x12345137, // 08 lui x2, 0x12345
+    0x2a610113, // 0c addi x2, x2, 678
+    0x0020a023, // 10 sw x2, 0(x1)
+    0x00408093, // 14 addi x1, x1, 4
+    0xfe309ce3, // 18 bne x1, x3, -8
     GOOD_TRAP
 };
