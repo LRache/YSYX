@@ -385,6 +385,14 @@ static uint32_t test_img_control_hazard1[] = {
 };
 
 static uint32_t test_img_control_hazard2[] = {
+    0x00000093, // 00 li x1, 0
+    0x01008193, // 04 addi x3, x1, 16
+    0x00408093, // 14 addi x1, x1, 4
+    0xfe309ee3, // 18 bne x1, x3, -4
+    GOOD_TRAP
+};
+
+static uint32_t test_img_control_hazard3[] = {
     0xa00000b7, // 00 lui x1, 0xa0000
     0x01008193, // 04 addi x3, x1, 16
     0x12345137, // 08 lui x2, 0x12345
