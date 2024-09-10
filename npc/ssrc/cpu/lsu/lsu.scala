@@ -131,7 +131,7 @@ class LSU extends Module {
     io.out.valid := (nothingToDo || done) && io.in.valid
 
     when(done) {
-        printf("%d\n", mem_rdata)
+        printf("mem read: %d\n", mem_rdata)
     }
 
     io.perf.isWaiting := state === s_wait_mem_valid
