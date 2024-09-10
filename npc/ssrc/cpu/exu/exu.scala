@@ -43,7 +43,7 @@ class EXU extends Module {
     io.jmp := jmp
 
     when(io.out.valid) {
-        printf("%d\n", alu.io.result)
+        printf("%d %d\n", alu.io.a, alu.io.b)
     }
 
     // CSR
