@@ -6,15 +6,10 @@ import chisel3._
 import chisel3.util._
 import chisel3.util.experimental.decode._
 
-import cpu.exu.AluSel
 import cpu.exu.CmpSel
 import cpu.lsu.MemType
 import cpu.reg.GPRWSel
 import cpu.reg.CSRWSel
-
-import CSRWSel.CSRWSel
-import AluSel.AluSel
-import cpu.idu.CSRAddrSel.Ins
 
 object InstType extends Enumeration {
     type InstType = Value
