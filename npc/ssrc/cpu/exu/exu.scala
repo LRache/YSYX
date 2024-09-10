@@ -16,18 +16,12 @@ class EXU extends Module {
         // Data Hazard
         val gpr_waddr = Output(UInt(Config.CSRAddrLength.W))
 
-        // val csr_raddr = Output(UInt(Config.CSRAddrLength.W))
-        // val csr_rdata = Input (UInt(32.W))
-
         val jmp = Output(Bool())
         val dnpc = Output(UInt(32.W))
-        // val predict_failed = Input(Bool())
 
         val is_ecall = Output(Bool())
         val csr_wdata2 = Output(UInt(32.W))
     })
-    // io.gpr_raddr1 := io.in.bits.gpr_raddr1
-    // io.gpr_raddr2 := io.in.bits.gpr_raddr2
     val rs1 = io.in.bits.rs1
     val rs2 = io.in.bits.rs2
     val func3 = io.in.bits.func3
@@ -39,8 +33,8 @@ class EXU extends Module {
     cmp.io.func3 := func3
     
     val alu = Module(new Alu())
-    alu.io.a := rs1
-    alu.io.b := rs2
+    alu.io.a := io.in.bits.cmp1
+    alu.io.b := io.in.bits.cmp2
     alu.io.func3 := func3
     alu.io.tag := io.in.bits.exu_tag
 

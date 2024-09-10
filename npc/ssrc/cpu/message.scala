@@ -23,6 +23,8 @@ class IDUMessage extends Bundle {
     val func3   = Output(UInt(3.W))
     val rs1     = Output(UInt(32.W))
     val rs2     = Output(UInt(32.W))
+    val cmp1    = Output(UInt(32.W))
+    val cmp2    = Output(UInt(32.W))
     val exu_tag = Output(Bool())
     val is_branch = Output(Bool())
     val is_jmp  = Output(Bool())

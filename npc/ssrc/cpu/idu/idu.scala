@@ -94,6 +94,8 @@ class IDU extends Module {
     ))
     io.out.bits.rs1 := rs1
     io.out.bits.rs2 := rs2
+    io.out.bits.cmp1 := io.gpr_rdata1
+    io.out.bits.cmp2 := io.gpr_rdata2
 
     io.out.bits.exu_tag := op.exuTag
     io.out.bits.is_branch := op.isBranch
@@ -133,15 +135,9 @@ class IDU extends Module {
     io. in.ready := io.out.ready && !io.raw
     io.out.valid := io.in.valid && !io.predict_failed && !io.raw
 
-    // when(io.in.valid) {
-    //     printf("in valid: IDU %d %x\n", io.out.bits.gpr_waddr, io.in.bits.pc)
-    // }
-    // when(io.in.valid && io.out.ready) {
-    //     printf("set IDU %d\n", io.out.bits.rd)
-    // }
     // DEBUG
     io.out.bits.dbg.pc := io.in.bits.dbg.pc
-    // when(io.in.valid) {
-    //     printf("IDU 0x%x\n", io.in.bits.dbg.pc)
-    // }
+    when (io.out.valid) {
+        printf("%d\n", io.gpr_rdata1)
+    }
 }

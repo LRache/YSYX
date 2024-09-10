@@ -93,7 +93,7 @@ class HCPU(instStart : BigInt) extends Module {
     icache.io.fence := idu.io.fence_i
 
     // Data Hazard
-    def is_raw(raddr: UInt, ren: Bool, waddr: UInt, wen: Bool, valid: Bool) = (waddr === raddr && waddr.orR && wen && valid)
+    def is_raw(raddr: UInt, ren: Bool, waddr: UInt, wen: Bool, valid: Bool) = (waddr === raddr && ren && waddr.orR && wen && valid)
     // exu.io.gpr_rdata1 := Mux(exu.io.gpr_raddr1 === lsu.io.gpr_waddr && lsu.io.gpr_wen && lsu.io.out.valid, lsu.io.gpr_wdata, gpr.io.rdata1)
     // exu.io.gpr_rdata2 := Mux(exu.io.gpr_raddr2 === lsu.io.gpr_waddr && lsu.io.gpr_wen && lsu.io.out.valid, lsu.io.gpr_wdata, gpr.io.rdata2)
     val exuRaw1 = is_raw(idu.io.gpr_raddr1, idu.io.gpr_ren1, exu.io.out.bits.gpr_waddr, exu.io.out.bits.gpr_wen, exu.io.out.valid)
