@@ -1,11 +1,11 @@
 module Dbg(
     input clk,
     input reset,
-    input is_ebreak,
-    input is_invalid,
+    input brk,
+    input ivd,
     input [31:0] pc,
     input [31:0] inst,
-    input valid
+    input done
 );
     import "DPI-C" function void env_break();
     import "DPI-C" function void invalid_inst();
@@ -16,8 +16,8 @@ module Dbg(
 
     always @(posedge clk) 
     begin
-        if (is_ebreak)  env_break();
-        if (is_invalid) invalid_inst();
+        if (brk) env_break();
+        if (ivd) invalid_inst();
     end
 
     always @(reset)
@@ -35,9 +35,9 @@ module Dbg(
         update_inst(inst);
     end
 
-    always @(valid)
+    always @(done)
     begin
-        update_valid({7'b0, valid});
+        update_valid({7'b0, done});
     end
 
 endmodule //Dbg

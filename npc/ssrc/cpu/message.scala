@@ -10,7 +10,8 @@ class IFUMessage extends Bundle {
     val snpc = Output(UInt(32.W))
 
     val dbg = new Bundle {
-        val pc = UInt(32.W)
+        val pc   = Output(UInt(32.W))
+        val inst = Output(UInt(32.W))
     }
 }
 
@@ -47,8 +48,8 @@ class IDUMessage extends Bundle {
     val is_ivd     = Output(Bool())
 
     val dbg = new Bundle {
-        val pc = Output(UInt(32.W))
-        // val inst = Output(UInt(32.W))
+        val pc   = Output(UInt(32.W))
+        val inst = Output(UInt(32.W))
     }
 }
 
@@ -75,7 +76,8 @@ class EXUMessage extends Bundle {
     val is_ivd     = Output(Bool())
 
     val dbg = new Bundle {
-        val pc = UInt(32.W)
+        val pc   = Output(UInt(32.W))
+        val inst = Output(UInt(32.W))
     }
 }
 
@@ -95,18 +97,6 @@ class LSUMessage extends Bundle {
 
     val dbg = new Bundle {
         val pc   = Output(UInt(32.W))
-        // val inst = Output(UInt(32.W))
-    }
-}
-
-class WBUMessage extends Bundle {
-    // val dnpc = UInt(32.W)
-    // val pc_sel = Bool()
-
-    // val is_brk     = Bool()
-    // val is_ivd     = Bool()
-
-    val dbg = new Bundle {
-        val pc = UInt(32.W)
+        val inst = Output(UInt(32.W))
     }
 }
