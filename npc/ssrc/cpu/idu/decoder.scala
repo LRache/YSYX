@@ -236,6 +236,8 @@ object Encode {
         m += ("GPRRen1" -> toInt(gprRen1)) 
         val gprRen2 = bSel == BSel.GPR2
         m += ("GPRRen2" -> toInt(gprRen2))
+        val csrRen = aSel == ASel.CSR || bSel == BSel.CSR
+        m += ("CSRRen" -> toInt(csrRen))
 
         val csrRRAddrSel = instType match {
             case InstType.EC => CSRAddrSel.VEC
