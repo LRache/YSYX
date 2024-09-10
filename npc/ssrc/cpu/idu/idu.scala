@@ -83,7 +83,7 @@ class IDU extends Module {
     
     val rs1 = MuxLookup(op.aSel, 0.U(32.W))(Seq(
         ASel.  PC.id.U -> io.in.bits.pc,
-        ASel.GPR1.id.U -> io.gpr_raddr1,
+        ASel.GPR1.id.U -> io.gpr_rdata1,
         ASel. CSR.id.U -> io.csr_rdata,
     ))
     val rs2 = MuxLookup(op.bSel, 0.U(32.W))(Seq(
