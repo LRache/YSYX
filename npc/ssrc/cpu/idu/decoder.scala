@@ -190,9 +190,9 @@ object Encode {
         val dSel = instType == InstType.L
         m += ("DSel" -> toInt(dSel))
             
-        val gprRen1 = aSel == ASel.GPR1 || bSel == BSel.GPR1 || Seq(InstType.J, InstType.IJ).contains(instType)
+        val gprRen1 = aSel == ASel.GPR1 || bSel == BSel.GPR1 || Seq(InstType.J, InstType.IJ, InstType.B).contains(instType)
         m += ("GPRRen1" -> toInt(gprRen1)) 
-        val gprRen2 = bSel == BSel.GPR2 || Seq(InstType.J, InstType.IJ, InstType.S).contains(instType)
+        val gprRen2 = bSel == BSel.GPR2 || Seq(InstType.J, InstType.IJ, InstType.S, InstType.B).contains(instType)
         m += ("GPRRen2" -> toInt(gprRen2))
         val csrRen = aSel == ASel.CSR || bSel == BSel.CSR
         m += ("CSRRen" -> toInt(csrRen))
@@ -319,27 +319,6 @@ object Encode {
 }
 
 class OP(bits : UInt) {
-    // val immType = t(Pos.ImmType + Pos.ImmTypeL  - 1, Pos.ImmType)
-    // val aluSel  = t(Pos.ALUSel  + Pos.ALUSelL   - 1, Pos.ALUSel)
-    // val aSel    = t(Pos.ASel    + Pos.BoolLen   - 1, Poss.ASel).asBool
-    // val bSel    = t(Pos.BSel    + Pos.BoolLen   - 1, Pos.BSel).asBool
-    // val cmpSel  = t(Pos.CmpSel  + Pos.CSRWSelL  - 1, Pos.CmpSel)
-    // val gprWSel = t(Pos.GPRWSel + Pos.GPRWSelL  - 1, Pos.GPRWSel)
-    // val gprWen  = t(Pos.GPRWen  + Pos.BoolLen   - 1, Pos.GPRWen).asBool
-    // val memWen  = t(Pos.MemWen  + Pos.BoolLen   - 1, Pos.MemWen).asBool
-    // val memRen  = t(Pos.MemRen  + Pos.BoolLen   - 1, Pos.MemRen).asBool
-    // // val isJmp   = t(Pos.IsJmp   + Pos.BoolLen   - 1, Pos.IsJmp).asBool
-    // val isBrk   = t(Pos.IsBrk   + Pos.BoolLen   - 1, Pos.IsBrk).asBool
-    // val isIvd   = t(Pos.IsIvd   + Pos.BoolLen   - 1, Pos.IsIvd).asBool
-    // // val rs1Sel  = t(Pos.Rs1Sel  + Pos.BoolLen   - 1, Pos.Rs1Sel).asBool
-    // // val rs2Sel  = t(Pos.Rs2Sel  + Pos.BoolLen   - 1, Pos.Rs2Sel).asBool
-    // val csrWen  = t(Pos.CSRWen  + Pos.BoolLen   - 1, Pos.CSRWen).asBool
-    // val dnpcSel = t(Pos.DNPCSel + Pos.BoolLen   - 1, Pos.DNPCSel).asBool
-    // val csrWASel= t(Pos.CSRWAddrSel + Pos.CSRWAddrSelL - 1, Pos.CSRWAddrSel)
-    // val csrRASel= t(Pos.CSRRAddrSel + Pos.CSRRAddrSelL - 1, Pos.CSRRAddrSel)
-    // val csrWSel = t(Pos.CSRWSel + Pos.CSRWSelL  - 1, Pos.CSRWSel)
-    // val isEcall = t(Pos.IsECall + Pos.BoolLen   - 1, Pos.IsECall).asBool
-    // val isFenceI= t(Pos.FenceI  + Pos.BoolLen    - 1, Pos.FenceI).asBool
     // IDU
     val immType = Encode.get_tag("ImmType", bits)
     val aSel = Encode.get_tag("ASel", bits)
