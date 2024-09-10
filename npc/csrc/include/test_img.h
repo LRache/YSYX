@@ -368,7 +368,7 @@ static uint32_t test_img_simple_mem3[] = {
     0x00551423, // 08 sh x5, 8(x10)
     0x00852303, // 0c lw x6, 8(x10)
     0x00551523, // 10 sh x5, 10(x10)
-    0x00852303, // 14 lw x6, 8(x10)
+    0x00852383, // 14 lw x7, 8(x10)
 
     GOOD_TRAP
 };
