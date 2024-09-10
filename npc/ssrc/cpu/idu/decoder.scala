@@ -335,8 +335,8 @@ object Encode {
         val csrWen = csrWAddrSel == CSRAddrSel.N
         m += ("CSRWen" -> toInt(csrWen))
 
-        val isECall = instType == InstType.EC
-        m += ("IsECall" -> toInt(isECall))
+        val isEcall = instType == InstType.EC
+        m += ("IsEcall" -> toInt(isEcall))
 
         val isBrk = instType == InstType.EB
         m += ("IsBrk" -> toInt(isBrk))
