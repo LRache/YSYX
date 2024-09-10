@@ -1,6 +1,6 @@
 module GPRDebugger(
     input clk,
-    input [3:0]  waddr,
+    input [31:0]  waddr,
     input [31:0] wdata,
     input wen
 );
@@ -8,7 +8,7 @@ module GPRDebugger(
 
     always @(posedge clk) begin
         if (wen && waddr != 0) begin
-            set_reg({28'b0, waddr}, wdata);
+            set_reg(waddr, wdata);
         end
     end
 endmodule //RegisterFileDebugger

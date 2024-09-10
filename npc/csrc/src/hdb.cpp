@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
+#include <queue>
 
 #include "memory.h"
 #include "debug.h"
@@ -20,8 +21,7 @@ VTop top;
 static uint64_t timer = 0;
 std::string hdb::outputDir = "./";
 
-#define IMG_NAME test_img_csrrw
-
+#define IMG_NAME test_img_branch
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
 
@@ -29,6 +29,7 @@ static void exec_once() {
     top.clock = 0; top.eval();
     top.clock = 1; top.eval();
     cpu.clockCount ++;
+    // Log("Exec once");
     nvboard::update();
 }
 
@@ -69,10 +70,11 @@ void hdb::step() {
         Log("Is not running!");
         return;
     }
+    exec_once();
     while (!cpu.valid && cpu.running) {
         exec_once();
     }
-    exec_once(); // update PC for difftest.
+    // exec_once(); // update PC for difftest.
     if (cpu.running) difftest::step();
     cpu.instCount++;
 }
@@ -128,7 +130,7 @@ void hdb_set_csr(uint32_t addr, word_t data) {
 }
 
 void hdb_set_reg(uint32_t addr, word_t data) {
-    // Log("Set register x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
+    Log("Set register x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
     cpu.gpr[addr] = data;
 }
 
@@ -146,7 +148,7 @@ void hdb_update_pc(uint32_t pc) {
         panic("Invalid PC = " FMT_WORD, pc);
     }
     itrace::trace(pc);
-    // Log("Exec to pc=" FMT_WORD, pc);
+    // Log("Exec to pc=" FMT_WORD " at clock=%lu", pc, cpu.clockCount);
 }
 
 void hdb_update_inst(uint32_t inst) {
@@ -183,7 +185,7 @@ extern "C" {
     }
 
     void env_break() {
-        // std::cout << "ebreak" << std::endl;
+        std::cout << "ebreak" << std::endl;
         cpu.running = false;
     }
 

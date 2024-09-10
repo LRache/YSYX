@@ -4,7 +4,6 @@ import chisel3._
 import chisel3.util._
 import bus.AXI4IO
 import cpu.ICachePerfCounter
-import coursier.cache.loggers.RefreshInfo
 
 class ICacheIO extends Bundle {
     val raddr = Input (UInt(32.W))
@@ -37,8 +36,8 @@ class ICache (e: Int, s: Int) extends Module {
     val memRAddr = Cat(io.io.raddr(31, b), 0.U(b.W))
 
     // val cache = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((B + t + 1).W))))))
-    val cache = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(VecInit(Seq.fill(b)(0.U(32.W))))))))
-    val metaTag = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((t).W))))))
+    val cache     = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(VecInit(Seq.fill(b)(0.U(32.W))))))))
+    val metaTag   = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((t).W))))))
     val metaValid = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(false.B)))))
     val group = cache(groupIndex)
     

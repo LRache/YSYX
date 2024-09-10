@@ -3,36 +3,39 @@ package cpu.exu
 import chisel3._
 import chisel3.util._
 
-object CmpSel extends Enumeration {
-    type CmpSel = Value
-    val EQ, NE, GE, GEU, LT, LTU, N, Y = Value
+object CmpSel{
+    val EQ = 0b000.U(3.W)
+    val NE = 0b001.U(3.W)
+    val LT = 0b100.U(3.W)
+    val GE = 0b101.U(3.W)
+    val BLTU = 0b110.U(3.W)
+    val BGEU = 0b111.U(3.W)
 }
 
 class Cmp extends Module {
     val io = IO(new Bundle {
-        val sel = Input (UInt(3.W))
-        val a   = Input (UInt(32.W))
-        val b   = Input (UInt(32.W))
-        val res = Output(Bool())
+        val a     = Input (UInt(32.W))
+        val b     = Input (UInt(32.W))
+        val func3 = Input (UInt(3.W))
+        val res  = Output(Bool())
     })
-    val signed_a = io.a.asSInt
-    val signed_b = io.b.asSInt
-    
-    val cmp_eq  = io.a === io.b
-    val cmp_ne  = !cmp_eq
-    val cmp_lt  = signed_a < signed_b
-    val cmp_ge  = !cmp_lt
-    val cmp_ltu = io.a < io.b
-    val cmp_geu = !cmp_ltu
+    val func3 = io.func3
+    val sa = io.a.asSInt
+    val sb = io.b.asSInt
+    val ua = io.a.asUInt
+    val ub = io.b.asUInt
 
-    io.res := MuxLookup(io.sel, true.B)(Seq(
-        CmpSel. EQ.id.U -> cmp_eq,
-        CmpSel. NE.id.U -> cmp_ne,
-        CmpSel. LT.id.U -> cmp_lt,
-        CmpSel.LTU.id.U -> cmp_ltu,
-        CmpSel. GE.id.U -> cmp_ge,
-        CmpSel.GEU.id.U -> cmp_geu,
-        CmpSel.  N.id.U -> false.B,
-        CmpSel.  Y.id.U -> true.B
-    ))
+    val eq = ua === ub
+    val lt = sa < sb
+    val ltu = ua < ub
+    val t = Mux(
+        func3(2),
+        Mux(
+            func3(1),
+            ltu,
+            lt
+        ),
+        eq
+    )
+    io.res := Mux(func3(0), !t, t)
 }
