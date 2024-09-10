@@ -8,10 +8,6 @@ import circt.stage.ChiselStage
 //     type AluSel = Value
 //     val ADD, SUB, AND, OR, XOR, SLL, SRL, SRA, SLT, SLTU, ASEL, BSEL, AN, N = Value
 // }
-object AluSel extends Enumeration{
-    type AluSel = Value
-    val ADD, BSEL, FUNCT3 = Value
-}
 
 object AluFunc3 {
     val ADD  = 0.U(3.W)

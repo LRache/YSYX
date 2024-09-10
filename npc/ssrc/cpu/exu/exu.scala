@@ -32,15 +32,16 @@ class EXU extends Module {
     val alu = Module(new Alu())
     alu.io.a := rs1
     alu.io.b := rs2
-    alu.io.func3 := func3
+    alu.io.func3 := Mux(io.in.bits.alu_add, AluFunc3.ADD, func3)
     alu.io.tag := io.in.bits.exu_tag
+    val alu_result = Mux(io.in.bits.alu_bsel, rs2, alu.io.result)
 
     val cmp = Module(new Cmp())
     cmp.io.a := rs3
     cmp.io.b := rs4
     cmp.io.func3 := func3
 
-    io.out.bits.exu_result := alu.io.result
+    io.out.bits.exu_result := alu_result
     val jmp = (io.in.bits.is_branch && cmp.io.res) || io.in.bits.is_jmp
     io.jmp := jmp
 
@@ -60,7 +61,7 @@ class EXU extends Module {
     )
     io.csr_wdata2 := rs1
     io.is_ecall := io.in.bits.is_ecall && io.in.valid
-    io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu.io.result)
+    io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_result)
     
     io.out.bits.gpr_wdata := Mux(io.in.bits.gpr_ws(0), rs1, rs3)
 

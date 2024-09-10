@@ -98,6 +98,8 @@ class IDU extends Module {
     io.out.bits.rs4 := io.gpr_rdata2
 
     io.out.bits.exu_tag := op.exuTag
+    io.out.bits.alu_bsel := op.aluBSel
+    io.out.bits.alu_add := op.aluAdd
     io.out.bits.is_branch := op.isBranch
     io.out.bits.is_jmp := op.isJmp
 
