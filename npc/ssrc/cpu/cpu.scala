@@ -62,8 +62,10 @@ class HCPU(instStart : BigInt) extends Module {
     // IDU
     gpr.io.raddr1 := idu.io.gpr_raddr1
     gpr.io.raddr2 := idu.io.gpr_raddr2
-    // idu.io.gpr_rdata1 := gpr.io.rdata1
-    // idu.io.gpr_rdata2 := gpr.io.rdata2
+    csr.io.raddr  := idu.io.csr_raddr
+    idu.io.gpr_rdata1 := gpr.io.rdata1
+    idu.io.gpr_rdata2 := gpr.io.rdata2
+    idu.io.csr_rdata  := csr.io.rdata
     // csr.io.raddr      := exu.io.csr_raddr
     // exu.io.csr_rdata  := csr.io.rdata
 
