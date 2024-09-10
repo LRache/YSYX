@@ -393,14 +393,6 @@ static uint32_t test_img_control_hazard2[] = {
 };
 
 static uint32_t test_img_control_hazard3[] = {
-    0x00100093, // 00 li x1, 1  
-    0x00000113, // 04 li x2, 0
-    0x00209463, // 08 bne x1, x2, 8
-    0x00a00513, // 0c addi x10, x0, 10
-    GOOD_TRAP
-};
-
-static uint32_t test_img_control_hazard4[] = {
     0xa00000b7, // 00 lui x1, 0xa0000
     0x01008193, // 04 addi x3, x1, 16
     0x12345137, // 08 lui x2, 0x12345
@@ -408,5 +400,12 @@ static uint32_t test_img_control_hazard4[] = {
     0x0020a023, // 10 sw x2, 0(x1)
     0x00408093, // 14 addi x1, x1, 4
     0xfe309ce3, // 18 bne x1, x3, -8
+    GOOD_TRAP
+};
+
+static uint32_t test_img_control_hazard4[] = {
+    0x0000c097, // 00 auipc x1, 12
+    0x00008067, // 04 jalr x0, 0(x1)
+    0x00000000, // 08 invalid
     GOOD_TRAP
 };
