@@ -53,13 +53,10 @@ class IDUMessage extends Bundle {
 }
 
 class EXUMessage extends Bundle {
-    // val pc_sel     = Bool()
     val exu_result = Output(UInt(32.W))
-    // val dnpc = UInt(32.W)
 
     val gpr_wdata = Output(UInt(32.W))
     val csr_wdata = Output(UInt(32.W))
-    // val csr_wdata2 = UInt(32.W)
 
     // Passthrough
     val func3   = Output(UInt(3.W))

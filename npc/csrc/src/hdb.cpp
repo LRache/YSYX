@@ -130,7 +130,7 @@ void hdb_set_csr(uint32_t addr, word_t data) {
 }
 
 void hdb_set_reg(uint32_t addr, word_t data) {
-    Log("Set register x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
+    // Log("Set register x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
     cpu.gpr[addr] = data;
 }
 
