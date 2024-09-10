@@ -31,11 +31,13 @@ class IFU(instStart : BigInt) extends Module {
     io.cache.raddr := pc
     io.cache.ready := true.B
     pc := Mux(io.out.ready && io.cache.valid, Mux(state === s_skip_once, io.dnpc, snpc), pc)
+    val inst = io.cache.rdata
     
     io.out.bits.pc   := pc
     io.out.bits.snpc := snpc
-    io.out.bits.inst := io.cache.rdata
+    io.out.bits.inst := inst
     
     io.out.valid := io.cache.valid && state === s_fetch && !io.predict_failed
-    io.out.bits.dbg.pc := pc
+    io.out.bits.dbg.pc   := pc
+    io.out.bits.dbg.inst := inst
 }

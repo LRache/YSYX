@@ -138,8 +138,5 @@ class IDU extends Module {
     io.out.valid := io.in.valid && !io.predict_failed && !io.raw
 
     // DEBUG
-    io.out.bits.dbg.pc := io.in.bits.dbg.pc
-    // when (io.in.valid) {
-    //     printf("%d\n", io.raw)
-    // }
+    io.out.bits.dbg <> io.in.bits.dbg
 }

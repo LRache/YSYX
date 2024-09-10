@@ -16,6 +16,7 @@ class EXU extends Module {
         // Data Hazard
         val gpr_waddr = Output(UInt(Config.CSRAddrLength.W))
 
+        // Control Hazard
         val jmp = Output(Bool())
         val dnpc = Output(UInt(32.W))
 
@@ -91,5 +92,5 @@ class EXU extends Module {
     // }
 
     // DEBUG
-    io.out.bits.dbg.pc := io.in.bits.dbg.pc
+    io.out.bits.dbg <> io.in.bits.dbg
 }

@@ -113,15 +113,8 @@ class LSU extends Module {
     
     // val mem_rdata = RegInit(0.U(32.W))
     val mem_rdata = Cat(mem_rdata_3, mem_rdata_2, mem_rdata_1, mem_rdata_0)
-    // io.out.bits.gpr_wdata := Mux(io.in.bits.gpr_ws(1), Mux(io.in.bits.gpr_ws(0), mem_rdata, io.in.bits.exu_result), io.in.bits.gpr_wdata)
     val gpr_wdata = Mux(io.in.bits.gpr_ws(1), Mux(io.in.bits.gpr_ws(0), mem_rdata, io.in.bits.exu_result), io.in.bits.gpr_wdata)
     io.out.bits.gpr_wdata := gpr_wdata
-    // when(io.out.valid) {
-    //     printf("%d %d\n", gpr_wdata, io.in.bits.exu_result)
-    // }
-    // io.gpr_wdata := Mux(io.in.bits.gpr_waddr.orR, gpr_wdata, 0.U(32.W))
-    // io.gpr_waddr := io.in.bits.gpr_waddr
-    // io.gpr_wen   := io.in.bits.gpr_wen
 
     val done = (state === s_wait_mem_valid && memValid)
     val nothingToDo = state === s_idle && !(memRen || memWen)
@@ -173,10 +166,5 @@ class LSU extends Module {
     // }
 
     // DEBUG
-    io.out.bits.dbg.pc := io.in.bits.dbg.pc
-    // assert(io.in.bits.dbg.pc =/= 0x3000000c.U)
-    // when (io.in.valid) {
-    //     printf("LSU 0x%x\n", io.in.bits.dbg.pc)
-    // }
-    // assert(!(io.in.bits.is_ivd && io.in.valid))
+    io.out.bits.dbg <> io.in.bits.dbg
 }
