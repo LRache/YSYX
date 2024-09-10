@@ -130,30 +130,9 @@ class LSU extends Module {
     // io.out.valid := ((!(io.in.bits.mem_ren || io.in.bits.mem_wen)) || (state === s_wait_mem_valid && memValid)) && io.in.valid
     io.out.valid := (nothingToDo || done) && io.in.valid
 
-    // when((state === s_wait_mem_valid && memValid)) {
-    //     printf("Mem valid %x %d\n", io.out.bits.gpr_wdata, io.out.bits.gpr_waddr)
-    // }
-    // when(io.mem.arvalid) {
-    //     printf("arvalid\n")
-    // }
-    // when(io.mem.rready) {
-    //     printf("rready\n")
-    // }
-    // when(state === s_idle) {
-    //     printf("s_idle %d %d\n", io.in.ready, io.in.bits.mem_ren)
-    // }
-    // when(state === s_wait_mem_ready) {
-    //     printf("s_wait_mem_ready [0x%x] %d %x\n", io.in.bits.dbg.pc, io.in.bits.mem_ren, addr)
-    // }
-    // when(state === s_wait_mem_ready && io.mem.arready) {
-    //     printf("mem ready [0x%x]\n", io.in.bits.dbg.pc)
-    // }
-    // when(state === s_wait_mem_valid) {
-    //     printf("s_wait_mem_valid %d %x\n", memRen, io.in.bits.mem_type)
-    // }
-    // when(io.in.valid && io.in.ready) {
-    //     printf("LSU 0x%x 0x%x %d\n", addr, io.in.bits.dbg.pc, io.in.bits.mem_ren)
-    // }
+    when(done) {
+        printf("%d\n", mem_rdata)
+    }
 
     io.perf.isWaiting := state === s_wait_mem_valid
     io.perf.addr := addr

@@ -96,8 +96,4 @@ class EXU extends Module {
 
     // DEBUG
     io.out.bits.dbg.pc := io.in.bits.dbg.pc
-    // assert(io.in.bits.dbg.pc =/= 0x3000000c.U)
-    // when (io.in.valid) {
-    //     printf("EXU 0x%x\n", io.in.bits.dbg.pc)
-    // }
 }
