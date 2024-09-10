@@ -516,7 +516,7 @@ class OP(bits : UInt) {
     // Jump
     val dnpcSel = Encode.get_tag("DNPCSel", bits).asBool
     val isJmp = Encode.get_tag("IsJmp", bits).asBool
-    val isBranch = Encode.get_tag("IsBrance", bits).asBool
+    val isBranch = Encode.get_tag("IsBranch", bits).asBool
     
     // LSU
     val memRen = Encode.get_tag("MemRen", bits).asBool
