@@ -14,7 +14,7 @@ extern "C" void sdram_read (int bank, int row, int column, uint16_t *data) {
 }
 
 extern "C" void sdram_write(int bank, int row, int column, uint16_t data, uint8_t _mask) {
-    Log("SDRAM Write [%d][%d][%d]=" FMT_WORD " mask=%d", bank, row, column, data, _mask);
+    // Log("SDRAM Write [%d][%d][%d]=" FMT_WORD " mask=%d", bank, row, column, data, _mask);
     uint16_t mask = 0;
     switch (_mask) 
     {
