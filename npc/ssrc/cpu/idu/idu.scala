@@ -138,6 +138,6 @@ class IDU extends Module {
     // DEBUG
     io.out.bits.dbg.pc := io.in.bits.dbg.pc
     when (io.out.valid) {
-        printf("%d %d %d\n", io.out.bits.func3, io.out.bits.rs1, io.out.bits.rs2)
+        printf("%d %d\n", io.out.bits.rs1, io.out.bits.rs2)
     }
 }
