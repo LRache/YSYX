@@ -92,6 +92,8 @@ class IDU extends Module {
         BSel. Imm.id.U -> imm,
         BSel. CSR.id.U -> io.csr_rdata
     ))
+    io.out.bits.rs1 := rs1
+    io.out.bits.rs2 := rs2
 
     io.out.bits.exu_tag := op.exuTag
     io.out.bits.is_branch := op.isBranch

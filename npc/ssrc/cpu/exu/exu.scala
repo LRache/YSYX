@@ -67,6 +67,7 @@ class EXU extends Module {
     io.out.bits.gpr_wdata := Mux(io.in.bits.gpr_ws(0), rs1, io.in.bits.snpc)
 
     // Passthrough
+    io.out.bits.func3    := func3
     io.out.bits.mem_wen  := io.in.bits.mem_wen
     io.out.bits.mem_ren  := io.in.bits.mem_ren
         

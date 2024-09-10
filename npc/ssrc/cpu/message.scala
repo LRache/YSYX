@@ -26,7 +26,7 @@ class IDUMessage extends Bundle {
     val exu_tag = Output(Bool())
     val is_branch = Output(Bool())
     val is_jmp  = Output(Bool())
-    val is_link = Output(Bool())
+    // val is_link = Output(Bool())
     // val gpr_rdata1 = Output(UInt(32.W))
     // val gpr_rdata2 = Output(UInt(32.W))
     // val csr_raddr  = Output(UInt(Config.CSRAddrLength.W))
