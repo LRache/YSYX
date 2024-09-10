@@ -190,9 +190,9 @@ object Encode {
         val dSel = instType == InstType.L
         m += ("DSel" -> toInt(dSel))
             
-        val gprRen1 = aSel == ASel.GPR1 || bSel == BSel.GPR1 || Seq(InstType.J, InstType.IJ, InstType.B).contains(instType)
+        val gprRen1 = aSel == ASel.GPR1 || bSel == BSel.GPR1 || Seq(InstType.B).contains(instType)
         m += ("GPRRen1" -> toInt(gprRen1)) 
-        val gprRen2 = bSel == BSel.GPR2 || Seq(InstType.J, InstType.IJ, InstType.S, InstType.B).contains(instType)
+        val gprRen2 = bSel == BSel.GPR2 || Seq(InstType.S, InstType.B).contains(instType)
         m += ("GPRRen2" -> toInt(gprRen2))
         val csrRen = aSel == ASel.CSR || bSel == BSel.CSR
         m += ("CSRRen" -> toInt(csrRen))
