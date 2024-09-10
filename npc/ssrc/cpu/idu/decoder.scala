@@ -14,6 +14,7 @@ import cpu.reg.CSRWSel
 
 import CSRWSel.CSRWSel
 import AluSel.AluSel
+import cpu.idu.CSRAddrSel.Ins
 
 object InstType extends Enumeration {
     type InstType = Value
@@ -81,6 +82,7 @@ object Encode {
     add_tag("ImmType",  4)
     add_tag("ASel",     2)
     add_tag("BSel",     2)
+    add_tag("CSel",     1)
     add_tag("GPRRen1",  1)
     add_tag("GPRRen2",  1)
     add_tag("CSRRAddrSel", 2)
@@ -231,10 +233,16 @@ object Encode {
             case _ => BSel.Imm // Dont care
         }
         m += ("BSel" -> bSel.id)
+
+        val cSel = Seq(
+            InstType.IJ,
+            InstType. J
+        ).contains(instType)
+        m += ("CSel" -> toInt(cSel))
             
-        val gprRen1 = aSel == ASel.GPR1 || bSel == BSel.GPR1
+        val gprRen1 = aSel == ASel.GPR1 || bSel == BSel.GPR1 || Seq(InstType.J, InstType.IJ).contains(instType)
         m += ("GPRRen1" -> toInt(gprRen1)) 
-        val gprRen2 = bSel == BSel.GPR2
+        val gprRen2 = bSel == BSel.GPR2 || Seq(InstType.J, InstType.IJ).contains(instType)
         m += ("GPRRen2" -> toInt(gprRen2))
         val csrRen = aSel == ASel.CSR || bSel == BSel.CSR
         m += ("CSRRen" -> toInt(csrRen))
@@ -501,6 +509,7 @@ class OP(bits : UInt) {
     val immType = Encode.get_tag("ImmType", bits)
     val aSel = Encode.get_tag("ASel", bits)
     val bSel = Encode.get_tag("BSel", bits)
+    val cSel = Encode.get_tag("CSel", bits).asBool
     val gprRen1 = Encode.get_tag("GPRRen1", bits).asBool
     val gprRen2 = Encode.get_tag("GPRRen2", bits).asBool
     val csrRAddrSel = Encode.get_tag("CSRRAddrSel", bits)

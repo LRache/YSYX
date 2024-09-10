@@ -25,20 +25,20 @@ class EXU extends Module {
     val func3 = io.in.bits.func3
     val rs1 = io.in.bits.rs1
     val rs2 = io.in.bits.rs2
-    val cmp1 = io.in.bits.cmp1
-    val cmp2 = io.in.bits.cmp2
+    val rs3 = io.in.bits.rs3
+    val rs4 = io.in.bits.rs4
     io.gpr_waddr := io.in.bits.gpr_waddr
-
-    val cmp = Module(new Cmp())
-    cmp.io.a := cmp1
-    cmp.io.b := cmp2
-    cmp.io.func3 := func3
-    
+ 
     val alu = Module(new Alu())
     alu.io.a := rs1
     alu.io.b := rs2
     alu.io.func3 := func3
     alu.io.tag := io.in.bits.exu_tag
+
+    val cmp = Module(new Cmp())
+    cmp.io.a := rs3
+    cmp.io.b := rs4
+    cmp.io.func3 := func3
 
     io.out.bits.exu_result := alu.io.result
     val jmp = (io.in.bits.is_branch && cmp.io.res) || io.in.bits.is_jmp
@@ -62,7 +62,7 @@ class EXU extends Module {
     io.is_ecall := io.in.bits.is_ecall && io.in.valid
     io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu.io.result)
     
-    io.out.bits.gpr_wdata := Mux(io.in.bits.gpr_ws(0), rs1, io.in.bits.snpc)
+    io.out.bits.gpr_wdata := Mux(io.in.bits.gpr_ws(0), rs1, rs3)
 
     // Passthrough
     io.out.bits.func3    := func3

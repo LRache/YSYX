@@ -15,29 +15,16 @@ class IFUMessage extends Bundle {
 }
 
 class IDUMessage extends Bundle {
-    // COMMON
-
     // EXU
-    // val gpr_raddr1 = Output(UInt(Config.GPRAddrLength.W))
-    // val gpr_raddr2 = Output(UInt(Config.GPRAddrLength.W))
     val func3   = Output(UInt(3.W))
     val rs1     = Output(UInt(32.W))
     val rs2     = Output(UInt(32.W))
-    val cmp1    = Output(UInt(32.W))
-    val cmp2    = Output(UInt(32.W))
+    val rs3     = Output(UInt(32.W))
+    val rs4     = Output(UInt(32.W))
     val exu_tag = Output(Bool())
     val is_branch = Output(Bool())
     val is_jmp  = Output(Bool())
-    // val is_link = Output(Bool())
-    // val gpr_rdata1 = Output(UInt(32.W))
-    // val gpr_rdata2 = Output(UInt(32.W))
-    // val csr_raddr  = Output(UInt(Config.CSRAddrLength.W))
-    // val imm        = Output(UInt(32.W))
-    // val a_sel      = Output(Bool())
-    // val b_sel      = Output(Bool())
-    // val alu_sel    = Output(UInt(4.W))
-    // val cmp_sel    = Output(UInt(3.W))
-    // val pc         = Output(UInt(32.W))
+    val dnpc_sel   = Output(Bool())
 
     // LSU
     val mem_wen    = Output(Bool())
@@ -52,9 +39,7 @@ class IDUMessage extends Bundle {
     val is_ecall   = Output(Bool())
     // val csr_wd_sel = Output(Bool())
     // val csr_ws     = Output(UInt(3.W))
-    val snpc       = Output(UInt(32.W))
-    
-    val dnpc_sel   = Output(Bool())
+    // val snpc       = Output(UInt(32.W))
 
     val is_brk     = Output(Bool())
     val is_ivd     = Output(Bool())
