@@ -69,9 +69,9 @@ class EXU extends Module {
     io.out.bits.func3    := func3
     io.out.bits.mem_wen  := io.in.bits.mem_wen
     io.out.bits.mem_ren  := io.in.bits.mem_ren
+    io.out.bits.mem_wdata:= rs4
         
     io.out.bits.gpr_waddr  := io.in.bits.gpr_waddr
-    io.out.bits.gpr_rdata2 := rs2
     io.out.bits.gpr_wen    := io.in.bits.gpr_wen
     io.out.bits.gpr_ws     := io.in.bits.gpr_ws
 

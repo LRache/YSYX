@@ -78,6 +78,7 @@ object Encode {
     add_tag("ASel",     2)
     add_tag("BSel",     2)
     add_tag("CSel",     1)
+    add_tag("DSel",     1)
     add_tag("GPRRen1",  1)
     add_tag("GPRRen2",  1)
     add_tag("CSRRAddrSel", 2)
@@ -121,55 +122,6 @@ object Encode {
         return bits(tag.start + tag.length - 1, tag.start)
     }
 
-    // object Pos {
-    //     val BoolLen = 1
-
-    //     val ImmType = 0
-    //     val ImmTypeL= 4
-        
-    //     // EXU
-    //     val ALUSel  = ImmType + ImmTypeL
-    //     val ALUSelL = 2
-        
-    //     val ASel    = ALUSel + ALUSelL
-    //     val BSel    = ASel + BoolLen
-    //     val EXUTag  = BSel + BoolLen // for signed or sub
-        
-    //     val CmpSel  = EXUTag + BoolLen
-    //     val CmpSelL = 3
-
-    //     val GPRWSel = CmpSel + CmpSelL
-    //     val GPRWSelL= 2
-
-    //     val GPRWen  = GPRWSel + GPRWSelL
-
-    //     val MemWen  = GPRWen + BoolLen
-    //     val MemRen  = MemWen + BoolLen
-    //     val IsBrk   = MemRen + BoolLen
-    //     val IsIvd   = IsBrk + BoolLen
-    //     val CSRWen  = IsIvd + BoolLen
-
-    //     val CSRWSel = CSRWen + BoolLen
-    //     val CSRWSelL= 3
-
-    //     // val Rs1Sel = CSRWSel + CSRWSelL
-    //     // val Rs2Sel = Rs1Sel + BoolLen
-
-    //     // val DNPCSel = Rs2Sel + BoolLen
-    //     val DNPCSel = CSRWSel + CSRWSelL
-
-    //     val CSRWAddrSel = DNPCSel + BoolLen
-    //     val CSRWAddrSelL = 2
-
-    //     val CSRRAddrSel = CSRWAddrSel + CSRWAddrSelL
-    //     val CSRRAddrSelL = 2
-
-    //     val IsECall = CSRRAddrSel + CSRRAddrSelL
-
-    //     val FenceI = IsECall + BoolLen
-
-    //     val LENGTH = FenceI + 1
-    // }
     def toInt(boolValue: Boolean): Int = if(boolValue) 1 else 0
     
     def encode (
@@ -234,6 +186,9 @@ object Encode {
             InstType. J
         ).contains(instType)
         m += ("CSel" -> toInt(cSel))
+
+        val dSel = instType == InstType.L
+        m += ("DSel" -> toInt(dSel))
             
         val gprRen1 = aSel == ASel.GPR1 || bSel == BSel.GPR1 || Seq(InstType.J, InstType.IJ).contains(instType)
         m += ("GPRRen1" -> toInt(gprRen1)) 
@@ -505,6 +460,7 @@ class OP(bits : UInt) {
     val aSel = Encode.get_tag("ASel", bits)
     val bSel = Encode.get_tag("BSel", bits)
     val cSel = Encode.get_tag("CSel", bits).asBool
+    val dSel = Encode.get_tag("DSel", bits).asBool
     val gprRen1 = Encode.get_tag("GPRRen1", bits).asBool
     val gprRen2 = Encode.get_tag("GPRRen2", bits).asBool
     val csrRAddrSel = Encode.get_tag("CSRRAddrSel", bits)

@@ -65,7 +65,7 @@ class LSU extends Module {
     val wmask = Mux(memType(1), wmask_w, Mux(memType(0), wmask_h, wmask_b))
 
     // WDATA
-    val rs = io.in.bits.gpr_rdata2
+    val rs = io.in.bits.mem_wdata
     val wdata_b = Fill(4, rs( 7, 0))
     val wdata_h = Fill(2, rs(15, 0))
     val wdata_w = rs

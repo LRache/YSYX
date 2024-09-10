@@ -65,9 +65,9 @@ class EXUMessage extends Bundle {
     val func3   = Output(UInt(3.W))
     val mem_wen = Output(Bool())
     val mem_ren = Output(Bool())
+    val mem_wdata = Output(UInt(32.W))
         
     val gpr_waddr  = Output(UInt(GPRAddrLength.W))
-    val gpr_rdata2 = Output(UInt(32.W))
     val gpr_wen    = Output(Bool())
     val gpr_ws     = Output(UInt(3.W))
 
