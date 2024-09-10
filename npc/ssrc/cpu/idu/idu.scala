@@ -140,7 +140,7 @@ class IDU extends Module {
     when (io.out.valid) {
         printf("%d %d\n", io.out.bits.rs1, io.out.bits.rs2)
     }
-    when (io.in.ready) {
+    when (io.in.valid) {
         printf("%d\n", io.raw)
     }
 }
