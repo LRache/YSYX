@@ -192,7 +192,7 @@ object Encode {
             
         val gprRen1 = aSel == ASel.GPR1 || bSel == BSel.GPR1 || Seq(InstType.J, InstType.IJ).contains(instType)
         m += ("GPRRen1" -> toInt(gprRen1)) 
-        val gprRen2 = bSel == BSel.GPR2 || Seq(InstType.J, InstType.IJ).contains(instType)
+        val gprRen2 = bSel == BSel.GPR2 || Seq(InstType.J, InstType.IJ, InstType.L).contains(instType)
         m += ("GPRRen2" -> toInt(gprRen2))
         val csrRen = aSel == ASel.CSR || bSel == BSel.CSR
         m += ("CSRRen" -> toInt(csrRen))
