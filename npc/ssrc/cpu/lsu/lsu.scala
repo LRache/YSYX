@@ -116,6 +116,9 @@ class LSU extends Module {
     // io.out.bits.gpr_wdata := Mux(io.in.bits.gpr_ws(1), Mux(io.in.bits.gpr_ws(0), mem_rdata, io.in.bits.exu_result), io.in.bits.gpr_wdata)
     val gpr_wdata = Mux(io.in.bits.gpr_ws(1), Mux(io.in.bits.gpr_ws(0), mem_rdata, io.in.bits.exu_result), io.in.bits.gpr_wdata)
     io.out.bits.gpr_wdata := gpr_wdata
+    when(io.out.valid) {
+        printf("%d %d\n", gpr_wdata, io.in.bits.exu_result)
+    }
     // io.gpr_wdata := Mux(io.in.bits.gpr_waddr.orR, gpr_wdata, 0.U(32.W))
     // io.gpr_waddr := io.in.bits.gpr_waddr
     // io.gpr_wen   := io.in.bits.gpr_wen
