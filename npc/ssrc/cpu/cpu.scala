@@ -104,7 +104,7 @@ class HCPU(instStart : BigInt) extends Module {
     idu.io.gpr_rdata1 := Mux(lsuRaw1, lsu.io.out.bits.gpr_wdata, gpr.io.rdata1)
     idu.io.gpr_rdata2 := Mux(lsuRaw2, lsu.io.out.bits.gpr_wdata, gpr.io.rdata2)
     when(idu.io.in.valid) {
-        printf("%d %d\n", lsuRaw1, lsuRaw2)
+        printf("%d %d %d\n", lsuRaw1, lsuRaw2, lsu.io.out.bits.gpr_wdata)
     }
     
     // when (exuRaw1 || exuRaw2 || lsuRaw1 || lsuRaw2) {
