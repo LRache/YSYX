@@ -45,7 +45,7 @@ class EXU extends Module {
     val jmp = (io.in.bits.is_branch && cmp.io.res) || io.in.bits.is_jmp
     io.jmp := jmp
     when(io.in.bits.is_branch) {
-        printf("%d %d %d\n", io.in.bits.is_branch, cmp.io.res, func3)
+        printf("%d %d %d\n", io.in.bits.is_branch, cmp.io.res, rs3 === rs4)
     }
 
     // when(io.out.valid) {
