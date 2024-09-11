@@ -2,7 +2,7 @@
 #define __CONFIG_H__
 
 // #define HAS_NVBOARD
-#define DIFFTEST
+// #define DIFFTEST
 // #define ITRACE
 #define PERF
 
