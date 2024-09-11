@@ -93,11 +93,9 @@ void exec_once(Decode *s, vaddr_t pc) {
 }
 
 void execute(uint64_t n) {
-    Log("excute");
     Decode s;
     for (;n > 0; n --) {
         exec_once(&s, cpu.pc);
-        Log("Exec to " FMT_WORD, cpu.pc);
         g_nr_guest_inst ++;
         trace_and_difftest(&s, cpu.pc);
         if (nemu_state.state != NEMU_RUNNING) break ;
