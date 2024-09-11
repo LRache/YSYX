@@ -100,7 +100,6 @@ void difftest::pc() {
 }
 
 void difftest::step() {
-    pc();
     nemu_difftest_exec(1);
     bool nemu_skip;
     nemu_difftest_skip(&nemu_skip, DIFFTEST_TO_DUT);
@@ -114,6 +113,7 @@ void difftest::step() {
         regs();
         csr();
         mem();
+        pc();
     }
     difftestCount++;
 }
