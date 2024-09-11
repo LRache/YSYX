@@ -23,6 +23,7 @@ module Dbg(
     begin
         if (brk) env_break();
         if (ivd) invalid_inst();
+        if (gpr_wen) set_reg(gpr_waddr, gpr_wdata);
     end
 
     always @(reset)
@@ -43,12 +44,6 @@ module Dbg(
     always @(done)
     begin
         update_valid({7'b0, done});
-    end
-
-    always @(posedge clk) begin
-        if (gpr_wen) begin
-            set_reg(gpr_waddr, gpr_wdata);
-        end
     end
 
 endmodule //Dbg
