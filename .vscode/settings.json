@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.ld": "mapfile",
         "*.py": "python",
         "typeinfo": "cpp",
         "iostream": "cpp",
@@ -99,7 +100,8 @@
         "strstream": "cpp",
         "typeindex": "cpp",
         "difftest.h": "c",
-        "locale.h": "c"
+        "locale.h": "c",
+        "utils.h": "c"
     },
     "files.watcherExclude": {
         "**/target": true

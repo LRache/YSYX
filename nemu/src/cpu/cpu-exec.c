@@ -105,6 +105,7 @@ void execute(uint64_t n) {
     //   word_t dnpc = isa_raise_intr(intr, cpu.pc-4);
     //   cpu.pc = dnpc;
     // }
+    Log("Exec to " FMT_WORD, cpu.pc);
   }
 }
 
