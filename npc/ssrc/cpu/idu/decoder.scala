@@ -423,7 +423,7 @@ object Decoder {
             XOR     -> Encode.encode_r(EXUTag.F),
             SLL     -> Encode.encode_r(EXUTag.F),
             SRL     -> Encode.encode_r(EXUTag.F),
-            SRA     -> Encode.encode_r(EXUTag.F),
+            SRA     -> Encode.encode_r(EXUTag.T),
             SLT     -> Encode.encode_r(EXUTag.F),
             SLTU    -> Encode.encode_r(EXUTag.T),
 
