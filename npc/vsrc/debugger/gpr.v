@@ -1,6 +1,6 @@
 module GPRDebugger(
     input clk,
-    input [31:0]  waddr,
+    input [31:0] waddr,
     input [31:0] wdata,
     input wen
 );

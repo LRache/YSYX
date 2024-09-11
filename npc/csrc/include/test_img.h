@@ -404,9 +404,7 @@ static uint32_t test_img_control_hazard3[] = {
 };
 
 static uint32_t test_img_control_hazard4[] = {
-    0x00000097, // 00 auipc x1, 0
-    0x0000a103, // 04 lw x2, 0(x1)
-    0x00008067, // 08 jalr x0, 0(x1)
-    0x00000000, // 0c invalid
+    0x0040006f, // jal x0, 4
+    0x0040006f, // jal x0, 4
     GOOD_TRAP
 };
