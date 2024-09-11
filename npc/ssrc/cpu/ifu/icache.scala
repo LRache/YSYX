@@ -75,7 +75,7 @@ class ICache (e: Int, s: Int) extends Module {
         metaValid(groupIndex)(i) := Mux(memValid && groupCounter === i.U, true.B, Mux(io.fence, false.B, metaValid(groupIndex)(i)))
     }
 
-    val hitDataMuxSeq : Seq[(UInt, UInt)] = for (i <- 0 to 3) yield (i.U, hitEntry(i))
+    val hitDataMuxSeq : Seq[(UInt, UInt)] = for (i <- 0 to E - 1) yield (i.U, hitEntry(i))
     val hitData = MuxLookup(offset, 0.U)(hitDataMuxSeq)
 
     io.io.valid := hitValid || state === s_mem_valid
