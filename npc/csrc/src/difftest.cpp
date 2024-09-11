@@ -108,7 +108,7 @@ void difftest::step() {
         skip = false;
         nemu_skip = false;
         nemu_difftest_regcpy(cpu.gpr, DIFFTEST_TO_REF);
-        nemu_difftest_pc(&cpu.pc, DIFFTEST_TO_REF);
+        // nemu_difftest_pc(&cpu.pc, DIFFTEST_TO_REF);
         nemu_difftest_skip(&nemu_skip, DIFFTEST_TO_REF);
     } else {
         regs();
