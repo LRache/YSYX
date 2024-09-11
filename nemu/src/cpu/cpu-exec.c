@@ -99,14 +99,14 @@ void execute(uint64_t n) {
         exec_once(&s, cpu.pc);
         g_nr_guest_inst ++;
         trace_and_difftest(&s, cpu.pc);
-        if (nemu_state.state != NEMU_RUNNING) break;
+        if (nemu_state.state != NEMU_RUNNING) break ;
+        Log("Exec to " FMT_WORD, cpu.pc);
         IFDEF(CONFIG_DEVICE, device_update());
         // word_t intr = isa_query_intr();
         // if (intr != INTR_EMPTY) {
         //   word_t dnpc = isa_raise_intr(intr, cpu.pc-4);
         //   cpu.pc = dnpc;
         // }
-        Log("Exec to " FMT_WORD, cpu.pc);
     }
 }
 
