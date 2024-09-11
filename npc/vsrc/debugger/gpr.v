@@ -11,4 +11,4 @@ module GPRDebugger(
             set_reg(waddr, wdata);
         end
     end
-endmodule //RegisterFileDebugger
+endmodule // GPRDebugger
