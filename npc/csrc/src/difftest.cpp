@@ -40,7 +40,7 @@ static void inline gpr_cmp(int i, uint32_t dut) {
     if (refRegs[i] != dut) {
         panic(
             "Difftest failed.\nDifferent GPR:\nx%d, dut=%d(0x%08x), ref=%d(0x%08x)\ndut.pc=0x%08x inst=0x%08x",
-            i, dut, dut, refRegs[i], refRegs[i], lastPC, cpu.inst
+            i, dut, dut, refRegs[i], refRegs[i], cpu.pc, cpu.inst
         );
     }
 }
@@ -55,7 +55,7 @@ void difftest::regs() {
 #define csr_cmp(i, name) \
     Assert(refCSR[i] == cpu.name , "Difftest FAILED\nDifferent CSR: %s ref=" FMT_WORD \
     ", dut=" FMT_WORD " at pc=" FMT_WORD "(inst=" FMT_WORD ")", \
-    #name, refCSR[i], cpu.name, lastPC, cpu.inst);
+    #name, refCSR[i], cpu.name, cpu.pc, cpu.inst);
 
 void difftest::csr() {
     nemu_difftest_csrcpy(refCSR, DIFFTEST_TO_DUT);

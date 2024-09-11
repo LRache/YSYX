@@ -74,7 +74,6 @@ void hdb::step() {
     while (!cpu.valid && cpu.running) {
         exec_once();
     }
-    // exec_once(); // update PC for difftest.
     if (cpu.running) difftest::step();
     cpu.instCount++;
 }
