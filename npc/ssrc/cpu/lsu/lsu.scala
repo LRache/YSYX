@@ -127,11 +127,6 @@ class LSU extends Module {
     //     printf("mem read: %d\n", io.mem.rdata)
     // }
 
-    io.perf.isWaiting := state === s_wait_mem_valid
-    io.perf.addr := addr
-    io.perf.wen := io.in.bits.mem_wen
-    io.perf.ren := io.in.bits.mem_ren
-
     // Unused
     io.mem.awid    := 0.U
     io.mem.awlen   := 0.U
@@ -164,6 +159,12 @@ class LSU extends Module {
     // when(io.in.valid && io.out.ready) {
     //     printf("set: LSU %d\n", io.out.bits.rd)
     // }
+
+    // PERF
+    io.perf.isWaiting := state === s_wait_mem_valid
+    io.perf.addr := addr
+    io.perf.wen := io.in.bits.mem_wen
+    io.perf.ren := io.in.bits.mem_ren
 
     // DEBUG
     io.out.bits.dbg <> io.in.bits.dbg

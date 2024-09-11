@@ -36,19 +36,6 @@ class Alu extends Module {
     val shift = b(4,0)
     val tag = io.tag
 
-    // val resultTable = Seq(
-    //     (AluSel. ADD.id.U) -> (io.a + io.b),
-    //     (AluSel. SUB.id.U) -> (io.a - io.b),
-    //     (AluSel. AND.id.U) -> (io.a & io.b),
-    //     (AluSel.  OR.id.U) -> (io.a | io.b),
-    //     (AluSel. XOR.id.U) -> (io.a ^ io.b),
-    //     (AluSel. SLL.id.U) -> (io.a << shift),
-    //     (AluSel. SRL.id.U) -> (io.a >> shift),
-    //     (AluSel. SRA.id.U) -> ((signed_a >> shift).asUInt),
-    //     (AluSel. SLT.id.U) -> (signed_a < signed_b).asUInt,
-    //     (AluSel.SLTU.id.U) -> (io.a < io.b).asUInt,
-    //     (AluSel.BSEL.id.U) -> io.b,
-    // )
     val resultTable = Seq(
         AluFunc3. ADD -> (a + Mux(tag, neg_b, b)),
         AluFunc3. AND -> (io.a & io.b),

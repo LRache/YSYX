@@ -130,8 +130,8 @@ void hdb_set_csr(uint32_t addr, word_t data) {
 }
 
 void hdb_set_reg(uint32_t addr, word_t data) {
-    // Log("Set register x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
-    cpu.gpr[addr] = data;
+    Log("Set register x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
+    if (addr != 0) cpu.gpr[addr] = data;
 }
 
 void hdb_invalid_inst() {
@@ -148,7 +148,7 @@ void hdb_update_pc(uint32_t pc) {
         panic("Invalid PC = " FMT_WORD, pc);
     }
     itrace::trace(pc);
-    // Log("Exec to pc=" FMT_WORD " at clock=%lu", pc, cpu.clockCount);
+    Log("Exec to pc=" FMT_WORD " at clock=%lu", pc, cpu.clockCount);
 }
 
 void hdb_update_inst(uint32_t inst) {
