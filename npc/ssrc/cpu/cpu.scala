@@ -33,7 +33,7 @@ class HCPU(instStart : BigInt) extends Module {
     val gpr = Module(new GPR(Config.GPRAddrLength))
     val csr = Module(new CSR)
 
-    val icache = Module(new ICache(2, 0))
+    val icache = Module(new ICache(1, 0))
     
     val arbiter = Module(new AXI4Arbiter)
     arbiter.io.sel <> io.master
