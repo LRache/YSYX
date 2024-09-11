@@ -74,6 +74,7 @@ void hdb::step() {
     while (!cpu.valid && cpu.running) {
         exec_once();
     }
+    Log("T");
     if (cpu.running) difftest::step();
     cpu.instCount++;
 }
