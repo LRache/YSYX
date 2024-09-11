@@ -432,8 +432,8 @@ object Decoder {
             ORI     -> Encode.encode_ia(EXUTag.F),
             XORI    -> Encode.encode_ia(EXUTag.F),
             SLLI    -> Encode.encode_ia(EXUTag.F),
-            SRLI    -> Encode.encode_ia(EXUTag.T),
-            SRAI    -> Encode.encode_ia(EXUTag.F),
+            SRLI    -> Encode.encode_ia(EXUTag.F),
+            SRAI    -> Encode.encode_ia(EXUTag.T),
             SLTI    -> Encode.encode_ia(EXUTag.F),
             SLTIU   -> Encode.encode_iu(),
 
