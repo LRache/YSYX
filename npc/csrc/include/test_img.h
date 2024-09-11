@@ -420,7 +420,7 @@ static uint32_t test_img_control_hazard4[] = {
 };
 
 static uint32_t test_img_temp[] = {
-    0x100007b7, // lui	a5,0x10000
-    0x0007c703, // lbu	a4,3(a5)
+    0x0f0007b7, // lui	a5,0x10000
+    0x0007c703, // lbu	a4,0(a5)
     GOOD_TRAP
 };
