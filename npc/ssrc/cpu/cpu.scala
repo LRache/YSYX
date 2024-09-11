@@ -62,18 +62,10 @@ class HCPU(instStart : BigInt) extends Module {
     // IDU
     gpr.io.raddr1 := idu.io.gpr_raddr1
     gpr.io.raddr2 := idu.io.gpr_raddr2
-    // idu.io.gpr_rdata1 := gpr.io.rdata1
-    // idu.io.gpr_rdata2 := gpr.io.rdata2
-    csr.io.raddr      := exu.io.csr_raddr
-    exu.io.csr_rdata  := csr.io.rdata
-
-    // EXU
-    // gpr.io.raddr1 := exu.io.gpr_raddr1
-    // gpr.io.raddr2 := exu.io.gpr_raddr2
-    // gpr.io.raddr1 := idu.io.gpr_raddr1
-    // gpr.io.raddr2 := idu.io.gpr_raddr2
-    // exu.io.gpr_rdata1 := Mux(exu.io.gpr_raddr1 === lsu.io.gpr_waddr && lsu.io.gpr_wen && lsu.io.out.valid, lsu.io.gpr_wdata, Mux(exu.io.gpr_raddr1 === wbu.io.gpr_waddr && wbu.io.gpr_wen, wbu.io.gpr_wdata, gpr.io.rdata1))
-    // exu.io.gpr_rdata2 := Mux(exu.io.gpr_raddr2 === lsu.io.gpr_waddr && lsu.io.gpr_wen && lsu.io.out.valid, lsu.io.gpr_wdata, Mux(exu.io.gpr_raddr2 === wbu.io.gpr_waddr && wbu.io.gpr_wen, wbu.io.gpr_wdata, gpr.io.rdata2))
+    csr.io.raddr  := idu.io.csr_raddr
+    idu.io.gpr_rdata1 := gpr.io.rdata1
+    idu.io.gpr_rdata2 := gpr.io.rdata2
+    idu.io.csr_rdata  := csr.io.rdata
 
     // LSU
     lsu.io.mem <> arbiter.io.lsu
@@ -91,44 +83,34 @@ class HCPU(instStart : BigInt) extends Module {
     icache.io.fence := idu.io.fence_i
 
     // Data Hazard
-    def is_raw(raddr: UInt, waddr: UInt, wen: Bool, valid: Bool) = (waddr === raddr && waddr.orR && wen && valid)
-    // exu.io.gpr_rdata1 := Mux(exu.io.gpr_raddr1 === lsu.io.gpr_waddr && lsu.io.gpr_wen && lsu.io.out.valid, lsu.io.gpr_wdata, gpr.io.rdata1)
-    // exu.io.gpr_rdata2 := Mux(exu.io.gpr_raddr2 === lsu.io.gpr_waddr && lsu.io.gpr_wen && lsu.io.out.valid, lsu.io.gpr_wdata, gpr.io.rdata2)
-    val exuRaw1 = is_raw(idu.io.gpr_raddr1, exu.io.out.bits.gpr_waddr, exu.io.out.bits.gpr_wen, exu.io.out.valid)
-    val exuRaw2 = is_raw(idu.io.gpr_raddr2, exu.io.out.bits.gpr_waddr, exu.io.out.bits.gpr_wen, exu.io.out.valid)
-    val lsuRaw1 = is_raw(idu.io.gpr_raddr1, lsu.io.out.bits.gpr_waddr, lsu.io.out.bits.gpr_wen, lsu.io.out.valid)
-    val lsuRaw2 = is_raw(idu.io.gpr_raddr2, lsu.io.out.bits.gpr_waddr, lsu.io.out.bits.gpr_wen, lsu.io.out.valid)
+    def is_raw(raddr: UInt, ren: Bool, waddr: UInt, wen: Bool, valid: Bool) = (waddr === raddr && ren && waddr.orR && wen && valid)
+    val exuRaw1 = is_raw(idu.io.gpr_raddr1, idu.io.gpr_ren1, exu.io.out.bits.gpr_waddr, exu.io.out.bits.gpr_wen, exu.io.out.valid)
+    val exuRaw2 = is_raw(idu.io.gpr_raddr2, idu.io.gpr_ren2, exu.io.out.bits.gpr_waddr, exu.io.out.bits.gpr_wen, exu.io.out.valid)
+    val lsuRaw1 = is_raw(idu.io.gpr_raddr1, idu.io.gpr_ren1, lsu.io.out.bits.gpr_waddr, lsu.io.out.bits.gpr_wen, lsu.io.out.valid)
+    val lsuRaw2 = is_raw(idu.io.gpr_raddr2, idu.io.gpr_ren2, lsu.io.out.bits.gpr_waddr, lsu.io.out.bits.gpr_wen, lsu.io.out.valid)
     idu.io.raw := exuRaw1 || exuRaw2
     idu.io.gpr_rdata1 := Mux(lsuRaw1, lsu.io.out.bits.gpr_wdata, gpr.io.rdata1)
     idu.io.gpr_rdata2 := Mux(lsuRaw2, lsu.io.out.bits.gpr_wdata, gpr.io.rdata2)
-    
-    // when (exuRaw1 || exuRaw2 || lsuRaw1 || lsuRaw2) {
-    //     printf("%d %d %d %d\n", exuRaw1, exuRaw2, lsuRaw1, lsuRaw2)
-    //     printf("%d %d 0x%x\n", idu.io.gpr_raddr2, exu.io.out.bits.gpr_waddr, idu.io.out.bits.dbg.pc)
-    //     assert(0.B)
-    // }
 
     // Branch predict
-    // val predict_failed = RegEnable(exu.io.jmp, false.B, exu.io.out.valid)
     val predict_failed = exu.io.jmp && exu.io.out.valid
     ifu.io.predict_failed := predict_failed
     idu.io.predict_failed := predict_failed
-    // exu.io.predict_failed := predict_failed
     ifu.io.dnpc := RegEnable(exu.io.dnpc, exu.io.out.valid)
-    // assert(!predict_failed)
 
     io.slave := DontCare
 
     val debugger = Module(new Dbg())
-    debugger.io.clk         := clock
-    debugger.io.reset       := reset
-    // debugger.io.is_ebreak   := ifu.io.in.bits.is_brk
-    // debugger.io.is_invalid  := ifu.io.in.bits.is_ivd
-    debugger.io.is_ebreak   := wbu.io.is_brk
-    debugger.io.is_invalid  := wbu.io.is_inv
-    debugger.io.pc          := wbu.io.dbg_pc
-    debugger.io.inst        := ifu.io.out.bits.inst
-    debugger.io.valid       := wbu.io.valid
+    debugger.io.clk   := clock
+    debugger.io.reset := reset
+    debugger.io.brk   := wbu.io.dbg.brk
+    debugger.io.ivd   := wbu.io.dbg.ivd
+    debugger.io.pc    := wbu.io.dbg.pc
+    debugger.io.inst  := wbu.io.dbg.inst
+    debugger.io.done  := wbu.io.dbg.done
+    debugger.io.gpr_waddr := gpr.io.waddr
+    debugger.io.gpr_wdata := gpr.io.wdata
+    debugger.io.gpr_wen   := gpr.io.wen
 
     val counter = Module(new PerfCounter())
     counter.io.ifu_valid := ifu.io.out.valid

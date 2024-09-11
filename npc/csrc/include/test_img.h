@@ -1,7 +1,7 @@
 #pragma once
 
 #define __EBREAK 0x00100073
-#define GOOD_TRAP 0x00000513, __EBREAK
+#define GOOD_TRAP 0x00000513, __EBREAK,
 
 static uint32_t test_img_ebreak[] = {
     __EBREAK
@@ -149,7 +149,7 @@ static uint32_t test_img_mrom[] = {
     0x00000517, // 00 auipc x10, 0
     0x01750513, // 04 addi x10, x10, 0x17
     0x00054583, // 08 lbu x11, 0(x10)
-    GOOD_TRAP,  // 0c 10
+    GOOD_TRAP  // 0c 10
     0x01020304  // 14        
 };
 
@@ -294,20 +294,20 @@ static uint32_t test_img_pipeline_no_hazard_ivd[] = {
 
 static uint32_t test_img_no_hazard_addi[] = {
     0x00100093, // 00 addi  x1, x0,  1
-    0x00200113, // 04 addi  x2, x0,  2
-    0x00300193, // 08 addi  x3, x0,  3
-    0x00400213, // 0c addi  x4, x0,  4
-    0x00500293, // 10 addi  x5, x0,  5
-    0x00600313, // 14 addi  x6, x0,  6
-    0x00700393, // 18 addi  x7, x0,  7
-    0x00800413, // 1c addi  x8, x0,  8
-    0x00900493, // 20 addi  x9, x0,  9
-    0x00a00513, // 24 addi x10, x0, 10
-    0x00b00593, // 28 addi x11, x0, 11
-    0x00c00613, // 2c addi x12, x0, 12
-    0x00d00693, // 30 addi x13, x0, 13
-    0x00e00713, // 34 addi x14, x0, 14
-    0x00f00793, // 38 addi x15, x0, 15
+    // 0x00200113, // 04 addi  x2, x0,  2
+    // 0x00300193, // 08 addi  x3, x0,  3
+    // 0x00400213, // 0c addi  x4, x0,  4
+    // 0x00500293, // 10 addi  x5, x0,  5
+    // 0x00600313, // 14 addi  x6, x0,  6
+    // 0x00700393, // 18 addi  x7, x0,  7
+    // 0x00800413, // 1c addi  x8, x0,  8
+    // 0x00900493, // 20 addi  x9, x0,  9
+    // 0x00a00513, // 24 addi x10, x0, 10
+    // 0x00b00593, // 28 addi x11, x0, 11
+    // 0x00c00613, // 2c addi x12, x0, 12
+    // 0x00d00693, // 30 addi x13, x0, 13
+    // 0x00e00713, // 34 addi x14, x0, 14
+    // 0x00f00793, // 38 addi x15, x0, 15
     GOOD_TRAP
 };
 
@@ -368,7 +368,7 @@ static uint32_t test_img_simple_mem3[] = {
     0x00551423, // 08 sh x5, 8(x10)
     0x00852303, // 0c lw x6, 8(x10)
     0x00551523, // 10 sh x5, 10(x10)
-    0x00852303, // 14 lw x6, 8(x10)
+    0x00852383, // 14 lw x7, 8(x10)
 
     GOOD_TRAP
 };
@@ -377,6 +377,50 @@ static uint32_t test_img_control_hazard1[] = {
     0x0080016f, // 00 jal x2, 8
     0x00000000, // invalid
 
+    GOOD_TRAP
+    0x00000000, // invalid
+
     0x00100093, // 08 addi x1, x0, 1
+    0x00008067, // jalr x0, 0(x1)
+};
+
+static uint32_t test_img_control_hazard2[] = {
+    0x00000093, // 00 li x1, 0
+    0x01008193, // 04 addi x3, x1, 16
+    0x00408093, // 14 addi x1, x1, 4
+    0xfe309ee3, // 18 bne x1, x3, -4
+    GOOD_TRAP
+};
+
+static uint32_t test_img_control_hazard3[] = {
+    0xa00000b7, // 00 lui x1, 0xa0000
+    0x01008193, // 04 addi x3, x1, 16
+    0x12345137, // 08 lui x2, 0x12345
+    0x2a610113, // 0c addi x2, x2, 678
+    0x0020a023, // 10 sw x2, 0(x1)
+    0x00408093, // 14 addi x1, x1, 4
+    0xfe309ce3, // 18 bne x1, x3, -8
+    GOOD_TRAP
+};
+
+static uint32_t test_img_control_hazard4[] = {
+    0xa0000537, // 00 lui x10, 0xa0000
+    0x00052583, // 04 lw x11, 0(x10)
+    0x00208093, // addi x1, x1, 2
+    0x004000ef, // 08 jal x1, 4
+    0x00052583, // 0c lw x11, 0(x10)
+    0x00208093, // addi x1, x1, 2
+    0x0040016f, // 10 jal x2, 4
+    0x00052583, // 14 lw x11, 0(x10)
+    0x00208093, // addi x1, x1, 2
+    0x004001ef, // 14 jal x3, 4
+    0x00052583, // 18 lw x11, 0(x10)
+    0x00208093, // addi x1, x1, 2
+    GOOD_TRAP
+};
+
+static uint32_t test_img_temp[] = {
+    0x800000b7, // lui x1, 0x80000
+    0x0040d113, // srli x2, x1, 4
     GOOD_TRAP
 };

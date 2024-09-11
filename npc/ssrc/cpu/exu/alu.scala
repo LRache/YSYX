@@ -8,10 +8,6 @@ import circt.stage.ChiselStage
 //     type AluSel = Value
 //     val ADD, SUB, AND, OR, XOR, SLL, SRL, SRA, SLT, SLTU, ASEL, BSEL, AN, N = Value
 // }
-object AluSel extends Enumeration{
-    type AluSel = Value
-    val ADD, BSEL, FUNCT3 = Value
-}
 
 object AluFunc3 {
     val ADD  = 0.U(3.W)
@@ -40,26 +36,13 @@ class Alu extends Module {
     val shift = b(4,0)
     val tag = io.tag
 
-    // val resultTable = Seq(
-    //     (AluSel. ADD.id.U) -> (io.a + io.b),
-    //     (AluSel. SUB.id.U) -> (io.a - io.b),
-    //     (AluSel. AND.id.U) -> (io.a & io.b),
-    //     (AluSel.  OR.id.U) -> (io.a | io.b),
-    //     (AluSel. XOR.id.U) -> (io.a ^ io.b),
-    //     (AluSel. SLL.id.U) -> (io.a << shift),
-    //     (AluSel. SRL.id.U) -> (io.a >> shift),
-    //     (AluSel. SRA.id.U) -> ((signed_a >> shift).asUInt),
-    //     (AluSel. SLT.id.U) -> (signed_a < signed_b).asUInt,
-    //     (AluSel.SLTU.id.U) -> (io.a < io.b).asUInt,
-    //     (AluSel.BSEL.id.U) -> io.b,
-    // )
     val resultTable = Seq(
         AluFunc3. ADD -> (a + Mux(tag, neg_b, b)),
         AluFunc3. AND -> (io.a & io.b),
         AluFunc3.  OR -> (io.a | io.b),
         AluFunc3. XOR -> (io.a ^ io.b),
         AluFunc3. SLL -> (io.a << shift),
-        AluFunc3.  SR -> Mux(tag, (signed_a >> shift).asUInt, io.a >> shift),
+        AluFunc3.  SR -> Mux(tag, a >> shift, (signed_a >> shift).asUInt),
         AluFunc3. SLT -> (signed_a < signed_b).asUInt,
         AluFunc3.SLTU -> (io.a < io.b).asUInt,
     )

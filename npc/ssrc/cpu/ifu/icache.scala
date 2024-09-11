@@ -4,7 +4,6 @@ import chisel3._
 import chisel3.util._
 import bus.AXI4IO
 import cpu.ICachePerfCounter
-import coursier.cache.loggers.RefreshInfo
 
 class ICacheIO extends Bundle {
     val raddr = Input (UInt(32.W))
@@ -36,16 +35,13 @@ class ICache (e: Int, s: Int) extends Module {
     val offset = io.io.raddr(b-1, 2)
     val memRAddr = Cat(io.io.raddr(31, b), 0.U(b.W))
 
-    // val cache = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((B + t + 1).W))))))
-    val cache = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(VecInit(Seq.fill(b)(0.U(32.W))))))))
-    val metaTag = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((t).W))))))
+    val cache     = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(VecInit(Seq.fill(b)(0.U(32.W))))))))
+    val metaTag   = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((t).W))))))
     val metaValid = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(false.B)))))
     val group = cache(groupIndex)
     
     val lineHits = Wire(Vec(E, Bool()))
     for (i <- 0 to E-1) {
-        // lineHits(i) := group(i)(B + t - 1, B) === tag && group(i)(B + t) 
-        // lineHits(i) := meta(groupIndex)(i)(t-1, 0) === tag && meta(groupIndex)(i)(t)
         lineHits(i) := metaTag(groupIndex)(i) === tag && metaValid(groupIndex)(i)
     }
     val isHit = lineHits.asUInt.orR
@@ -55,55 +51,31 @@ class ICache (e: Int, s: Int) extends Module {
     val s_idle :: s_wait_mem_0 :: s_wait_mem_1 :: s_wait_mem_2 :: s_wait_mem_3 :: s_mem_valid :: Nil = Enum(6)
     val state = RegInit(s_idle)
     state := MuxLookup(state, s_idle)(Seq (
-        // s_idle       -> Mux(io.io.ready, Mux(isHit, s_idle, Mux(io.mem.arready, s_wait_mem_0, s_idle)), s_idle),
         s_idle       -> Mux(io.io.ready, Mux(isHit, s_idle, Mux(io.mem.arready, s_wait_mem_0, s_idle)), s_idle),
-        // s_idle       -> Mux(io.io.ready, Mux(isHit, s_idle, Mux(io.mem.arready, s_wait_mem_3, s_idle)), s_idle),
         s_wait_mem_0 -> Mux(io.mem.rvalid, s_wait_mem_1, s_wait_mem_0),
         s_wait_mem_1 -> Mux(io.mem.rvalid, s_wait_mem_2, s_wait_mem_1),
         s_wait_mem_2 -> Mux(io.mem.rvalid, s_wait_mem_3, s_wait_mem_2),
         s_wait_mem_3 -> Mux(io.mem.rvalid, s_mem_valid,  s_wait_mem_3),
-        // s_wait_mem_3 -> Mux(io.mem.rvalid, s_idle,  s_wait_mem_3),
         s_mem_valid  -> s_idle,
-    ))
-    // val rdata0 = RegInit(0.U(32.W))
-    // val rdata1 = RegInit(0.U(32.W))
-    // val rdata2 = RegInit(0.U(32.W))
-    // rdata0 := Mux(io.mem.rvalid && state === s_wait_mem_0, io.mem.rdata, rdata0)    
-    // rdata1 := Mux(io.mem.rvalid && state === s_wait_mem_1, io.mem.rdata, rdata1)    
-    // rdata2 := Mux(io.mem.rvalid && state === s_wait_mem_2, io.mem.rdata, rdata2)    
+    )) 
 
     val ready = (state === s_idle) && io.io.ready
     val hitValid = ready && isHit
     val memValid = (state === s_wait_mem_3) && io.mem.rvalid
-    // val valid = hitValid || memValid
-    // val valid = hitValid || state === s_mem_valid
     
     val counter = RegInit(VecInit(Seq.fill(S)(0.U(e.W))))
     val groupCounter = counter(groupIndex)
     counter(groupIndex) := Mux(memValid, groupCounter+1.U, groupCounter)
     for (i <- 0 to E-1) {
-        // group(i) := Mux(
-        //     memValid && groupCounter === i.U, 
-        //     Cat(true.B, tag, io.mem.rdata, rdata2, rdata1, rdata0), 
-        //     // Cat(true.B, tag, io.mem.rdata),
-        //     Mux(
-        //         io.fence,
-        //         group(i).bitSet((B + t).U, false.B),
-        //         group(i)
-        //     )
-        //     // group(i)
-        // )
         group(i)(0) := Mux(io.mem.rvalid && state === s_wait_mem_0 && groupCounter === i.U, io.mem.rdata, group(i)(0))
         group(i)(1) := Mux(io.mem.rvalid && state === s_wait_mem_1 && groupCounter === i.U, io.mem.rdata, group(i)(1))
         group(i)(2) := Mux(io.mem.rvalid && state === s_wait_mem_2 && groupCounter === i.U, io.mem.rdata, group(i)(2))
         group(i)(3) := Mux(memValid && groupCounter === i.U, io.mem.rdata, group(i)(3))
-        // meta(groupIndex)(i) := Mux(memValid && groupCounter === i.U, Cat(true.B, tag), Mux(io.fence, meta(groupIndex)(i).bitSet(t.U, false.B), meta(groupIndex)(i)))
         metaTag(groupIndex)(i) := Mux(memValid && groupCounter === i.U, tag, metaTag(groupIndex)(i));
         metaValid(groupIndex)(i) := Mux(memValid && groupCounter === i.U, true.B, Mux(io.fence, false.B, metaValid(groupIndex)(i)))
     }
 
-    // val hitDataMuxSeq : Seq[(UInt, UInt)] = for (i <- 0 to 3) yield (i.U, hitEntry(i * 32 + 31, i * 32))
-    val hitDataMuxSeq : Seq[(UInt, UInt)] = for (i <- 0 to 3) yield (i.U, hitEntry(i))
+    val hitDataMuxSeq : Seq[(UInt, UInt)] = for (i <- 0 to E-1) yield (i.U, hitEntry(i))
     val hitData = MuxLookup(offset, 0.U)(hitDataMuxSeq)
 
     io.io.valid := hitValid || state === s_mem_valid

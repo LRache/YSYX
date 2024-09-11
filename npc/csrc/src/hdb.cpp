@@ -21,7 +21,7 @@ VTop top;
 static uint64_t timer = 0;
 std::string hdb::outputDir = "./";
 
-#define IMG_NAME test_img_branch
+#define IMG_NAME test_img_control_hazard4
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
 
@@ -74,7 +74,7 @@ void hdb::step() {
     while (!cpu.valid && cpu.running) {
         exec_once();
     }
-    // exec_once(); // update PC for difftest.
+    // Log("T");
     if (cpu.running) difftest::step();
     cpu.instCount++;
 }
@@ -130,8 +130,8 @@ void hdb_set_csr(uint32_t addr, word_t data) {
 }
 
 void hdb_set_reg(uint32_t addr, word_t data) {
-    Log("Set register x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
-    cpu.gpr[addr] = data;
+    // Log("Set register x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
+    if (addr != 0) cpu.gpr[addr] = data;
 }
 
 void hdb_invalid_inst() {

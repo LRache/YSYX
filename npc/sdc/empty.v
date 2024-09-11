@@ -1,11 +1,3 @@
-module GPRDebugger(
-    input clk,
-    input [3:0]  waddr,
-    input [31:0] wdata,
-    input wen
-);
-endmodule //GPRDebugger
-
 module CSRDebugger(
     input clk,
     input wen,
@@ -35,11 +27,15 @@ endmodule //PrefCounter
 module Dbg(
     input clk,
     input reset,
-    input is_ebreak,
-    input is_invalid,
+    input brk,
+    input ivd,
     input [31:0] pc,
     input [31:0] inst,
-    input valid
+    input done,
+
+    input [31:0] gpr_waddr,
+    input [31:0] gpr_wdata,
+    input gpr_wen
 );
 
 endmodule //Dbg

@@ -46,7 +46,7 @@ class LSU extends Module {
     // COMMON
     val addr = io.in.bits.exu_result
     val offset = addr(1,0)
-    val memType = io.in.bits.mem_type
+    val memType = io.in.bits.func3
     val size = Cat(0.B, memType(1, 0))
 
     // WRITE
@@ -65,7 +65,7 @@ class LSU extends Module {
     val wmask = Mux(memType(1), wmask_w, Mux(memType(0), wmask_h, wmask_b))
 
     // WDATA
-    val rs = io.in.bits.gpr_rdata2
+    val rs = io.in.bits.mem_wdata
     val wdata_b = Fill(4, rs( 7, 0))
     val wdata_h = Fill(2, rs(15, 0))
     val wdata_w = rs
@@ -113,12 +113,8 @@ class LSU extends Module {
     
     // val mem_rdata = RegInit(0.U(32.W))
     val mem_rdata = Cat(mem_rdata_3, mem_rdata_2, mem_rdata_1, mem_rdata_0)
-    // io.out.bits.gpr_wdata := Mux(io.in.bits.gpr_ws(1), Mux(io.in.bits.gpr_ws(0), mem_rdata, io.in.bits.exu_result), io.in.bits.gpr_wdata)
     val gpr_wdata = Mux(io.in.bits.gpr_ws(1), Mux(io.in.bits.gpr_ws(0), mem_rdata, io.in.bits.exu_result), io.in.bits.gpr_wdata)
     io.out.bits.gpr_wdata := gpr_wdata
-    // io.gpr_wdata := Mux(io.in.bits.gpr_waddr.orR, gpr_wdata, 0.U(32.W))
-    // io.gpr_waddr := io.in.bits.gpr_waddr
-    // io.gpr_wen   := io.in.bits.gpr_wen
 
     val done = (state === s_wait_mem_valid && memValid)
     val nothingToDo = state === s_idle && !(memRen || memWen)
@@ -127,35 +123,9 @@ class LSU extends Module {
     // io.out.valid := ((!(io.in.bits.mem_ren || io.in.bits.mem_wen)) || (state === s_wait_mem_valid && memValid)) && io.in.valid
     io.out.valid := (nothingToDo || done) && io.in.valid
 
-    // when((state === s_wait_mem_valid && memValid)) {
-    //     printf("Mem valid %x %d\n", io.out.bits.gpr_wdata, io.out.bits.gpr_waddr)
+    // when(done) {
+    //     printf("mem read: %d\n", io.mem.rdata)
     // }
-    // when(io.mem.arvalid) {
-    //     printf("arvalid\n")
-    // }
-    // when(io.mem.rready) {
-    //     printf("rready\n")
-    // }
-    // when(state === s_idle) {
-    //     printf("s_idle %d %d\n", io.in.ready, io.in.bits.mem_ren)
-    // }
-    // when(state === s_wait_mem_ready) {
-    //     printf("s_wait_mem_ready [0x%x] %d %x\n", io.in.bits.dbg.pc, io.in.bits.mem_ren, addr)
-    // }
-    // when(state === s_wait_mem_ready && io.mem.arready) {
-    //     printf("mem ready [0x%x]\n", io.in.bits.dbg.pc)
-    // }
-    // when(state === s_wait_mem_valid) {
-    //     printf("s_wait_mem_valid %d %x\n", memRen, io.in.bits.mem_type)
-    // }
-    // when(io.in.valid && io.in.ready) {
-    //     printf("LSU 0x%x 0x%x %d\n", addr, io.in.bits.dbg.pc, io.in.bits.mem_ren)
-    // }
-
-    io.perf.isWaiting := state === s_wait_mem_valid
-    io.perf.addr := addr
-    io.perf.wen := io.in.bits.mem_wen
-    io.perf.ren := io.in.bits.mem_ren
 
     // Unused
     io.mem.awid    := 0.U
@@ -190,11 +160,12 @@ class LSU extends Module {
     //     printf("set: LSU %d\n", io.out.bits.rd)
     // }
 
+    // PERF
+    io.perf.isWaiting := state === s_wait_mem_valid
+    io.perf.addr := addr
+    io.perf.wen := io.in.bits.mem_wen
+    io.perf.ren := io.in.bits.mem_ren
+
     // DEBUG
-    io.out.bits.dbg.pc := io.in.bits.dbg.pc
-    // assert(io.in.bits.dbg.pc =/= 0x3000000c.U)
-    // when (io.in.valid) {
-    //     printf("LSU 0x%x\n", io.in.bits.dbg.pc)
-    // }
-    // assert(!(io.in.bits.is_ivd && io.in.valid))
+    io.out.bits.dbg <> io.in.bits.dbg
 }
