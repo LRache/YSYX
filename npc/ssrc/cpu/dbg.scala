@@ -11,5 +11,9 @@ class Dbg extends BlackBox {
         val pc    = Input(UInt(32.W))
         val inst  = Input(UInt(32.W))
         val done  = Input(Bool())
+
+        val gpr_waddr = Input(UInt(32.W))
+        val gpr_wdata = Input(UInt(32.W))
+        val gpr_wen   = Input(Bool())
     })
 }

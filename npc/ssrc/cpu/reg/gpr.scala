@@ -49,9 +49,9 @@ class GPR(addrLength : Int) extends Module {
     io.rdata1 := Mux(raddr1.orR, MuxLookup(raddr1, 0.U)(table), 0.U)
     io.rdata2 := Mux(raddr2.orR, MuxLookup(raddr2, 0.U)(table), 0.U)
 
-    val debugger = Module(new GPRDebugger(addrLength))
-    debugger.io.clk   := clock
-    debugger.io.waddr := io.waddr
-    debugger.io.wdata := io.wdata
-    debugger.io.wen   := io.wen
+    // val debugger = Module(new GPRDebugger(addrLength))
+    // debugger.io.clk   := clock
+    // debugger.io.waddr := io.waddr
+    // debugger.io.wdata := io.wdata
+    // debugger.io.wen   := io.wen
 }
