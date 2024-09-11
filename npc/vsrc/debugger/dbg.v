@@ -5,7 +5,7 @@ module Dbg(
     input ivd,
     input [31:0] pc,
     input [31:0] inst,
-    input done
+    input done,
 
     input [31:0] gpr_waddr,
     input [31:0] gpr_wdata,
