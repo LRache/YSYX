@@ -420,7 +420,7 @@ static uint32_t test_img_control_hazard4[] = {
 };
 
 static uint32_t test_img_temp[] = {
-    0x004000ef,
+    // 0x004000ef,
     0x100007b7,
     0x0037c703,
     0x08076713,
