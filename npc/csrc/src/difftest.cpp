@@ -103,6 +103,7 @@ void difftest::step() {
     nemu_difftest_exec(1);
     bool nemu_skip;
     nemu_difftest_skip(&nemu_skip, DIFFTEST_TO_DUT);
+    Log("%d", nemu_skip);
     if (skip || nemu_skip) {
         skip = false;
         nemu_skip = false;
