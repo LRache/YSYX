@@ -94,7 +94,7 @@ void difftest::pc() {
         uint32_t refPC;
         nemu_difftest_pc(&refPC, DIFFTEST_TO_DUT);
         if (refPC != cpu.pc) {
-            // panic("Difftest FAILED.\ndut.pc=" FMT_WORD ", ref.pc=" FMT_WORD "\nlastPC=" FMT_WORD "(inst=" FMT_WORD ")", cpu.pc, refPC, lastPC, lastInst);
+            panic("Difftest FAILED.\ndut.pc=" FMT_WORD ", ref.pc=" FMT_WORD "\nlastPC=" FMT_WORD "(inst=" FMT_WORD ")", cpu.pc, refPC, lastPC, lastInst);
         }
     }
 }
