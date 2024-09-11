@@ -21,7 +21,7 @@ class WBU extends Module {
 
         val dbg = new Bundle {
             val brk = Output(Bool())
-            val inv = Output(Bool())
+            val ivd = Output(Bool())
             val done  = Output(Bool())
             val pc = Output(UInt(32.W))
             val inst = Output(UInt(32.W))
@@ -37,9 +37,9 @@ class WBU extends Module {
     io.in.ready := true.B
     
     // DEBUG
-    io.dbg.brk  := io.in.bits.is_brk
-    io.dbg.inv  := io.in.bits.is_ivd
-    io.dbg.pc   := io.in.bits.dbg.pc
-    io.dbg.inst := io.in.bits.dbg.inst
-    io.dbg.done := io.in.valid
+    io.dbg.brk  := RegEnable(io.in.bits.is_brk, io.in.valid)
+    io.dbg.ivd  := RegEnable(io.in.bits.is_ivd, io.in.valid)
+    io.dbg.pc   := RegEnable(io.in.bits.dbg.pc, io.in.valid)
+    io.dbg.inst := RegEnable(io.in.bits.dbg.inst, io.in.valid)
+    io.dbg.done := RegNext(io.in.valid)
 }

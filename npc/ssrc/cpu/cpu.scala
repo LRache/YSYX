@@ -100,16 +100,14 @@ class HCPU(instStart : BigInt) extends Module {
 
     io.slave := DontCare
 
-    val wbuDbg = RegEnable(wbu.io.dbg, wbu.io.in.valid)
-
     val debugger = Module(new Dbg())
     debugger.io.clk   := clock
     debugger.io.reset := reset
-    debugger.io.brk   := wbuDbg.brk
-    debugger.io.ivd   := wbuDbg.inv
-    debugger.io.pc    := wbuDbg.pc
-    debugger.io.inst  := wbuDbg.inst
-    debugger.io.done  := wbuDbg.done
+    debugger.io.brk   := wbu.io.dbg.brk
+    debugger.io.ivd   := wbu.io.dbg.ivd
+    debugger.io.pc    := wbu.io.dbg.pc
+    debugger.io.inst  := wbu.io.dbg.inst
+    debugger.io.done  := wbu.io.dbg.done
 
     val counter = Module(new PerfCounter())
     counter.io.ifu_valid := ifu.io.out.valid
