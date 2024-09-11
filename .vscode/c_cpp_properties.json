@@ -131,12 +131,12 @@
             "cppStandard": "c++11",
             "intelliSenseMode": "linux-gcc-x64",
             "includePath": [
-                "/usr/local/share/verilator/include/",
-                "/usr/local/share/verilator/include/vltstd/",
+                "/usr/local/share/verilator/include",
+                "/usr/local/share/verilator/include/vltstd",
                 "${workspaceFolder}/nvboard/usr/include/",
-                "${workspaceFolder}/npc/csrc/include/",
-                "${workspaceFolder}/npc/obj/",
-                "${workspaceFolder}/npc/utils/*/include/"
+                "${workspaceFolder}/npc/csrc/include",
+                "${workspaceFolder}/npc/obj",
+                "${workspaceFolder}/npc/utils/*/include"
             ],
             "compilerPath": "/usr/bin/gcc",
             "defines": [

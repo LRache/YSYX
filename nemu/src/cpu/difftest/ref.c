@@ -51,12 +51,12 @@ __EXPORT void nemu_difftest_skip(bool *skip, bool direction) {
 __EXPORT void nemu_difftest_regcpy(void *reg, bool direction) {
   if (direction == DIFFTEST_TO_DUT) {
     uint32_t *dest = reg;
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 32; i++) {
       dest[i] = cpu.gpr[i];
     }
   } else {
     uint32_t *src = reg;
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 32; i++) {
       cpu.gpr[i] = src[i];
     }
   }
@@ -84,7 +84,7 @@ __EXPORT void nemu_difftest_csrcpy(void *reg, bool direction) {
 
 __EXPORT void nemu_difftest_pc(uint32_t *pc, bool direction) {
   if (direction == DIFFTEST_TO_DUT) {
-    *pc = cpu.refPC;
+    *pc = cpu.pc;
   } else {
     cpu.pc = *pc;
   }

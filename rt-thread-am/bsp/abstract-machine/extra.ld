@@ -1,6 +1,5 @@
 SECTIONS {
   .data.extra : {
-    _data_extra_start = .;
     /* section information for finsh shell */
     __fsymtab_start = .;
     KEEP(*(FSymTab))
@@ -29,8 +28,6 @@ SECTIONS {
     __am_apps_data_end = .;
     . = ALIGN(8);
   } > SDRAM AT> FLASH
-  _data_extra_load_start = LOADADDR(.data.extra);
-  _data_extra_size = SIZEOF(.data.extra);
 }
 INSERT BEFORE .data;
 

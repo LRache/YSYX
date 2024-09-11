@@ -77,7 +77,7 @@ verilog: $(SSRCS)
 	mill -i $(PRJ).runMain $(mainModule) --target-dir $(BUILD_DIR) --target verilog
 
 help:
-	mill -i $(PRJ).runMain $(mainModule) --help
+	mill -i $(PRJ).runMain mainModule --help
 
 reformat:
 	mill -i __.reformat

@@ -4,5 +4,3 @@ fceux-am
 verilog
 .metals
 .bloop
-out
-build.sc
