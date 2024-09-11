@@ -148,7 +148,7 @@ void hdb_update_pc(uint32_t pc) {
         panic("Invalid PC = " FMT_WORD, pc);
     }
     itrace::trace(pc);
-    Log("Exec to pc=" FMT_WORD " at clock=%lu", pc, cpu.clockCount);
+    // Log("Exec to pc=" FMT_WORD " at clock=%lu", pc, cpu.clockCount);
 }
 
 void hdb_update_inst(uint32_t inst) {
