@@ -404,7 +404,7 @@ static uint32_t test_img_control_hazard3[] = {
 };
 
 static uint32_t test_img_control_hazard4[] = {
-    0x0040006f, // jal x0, 4
-    0x0040006f, // jal x0, 4
+    0x004000ef, // jal x1, 4
+    0x004000ef, // jal x1, 4
     GOOD_TRAP
 };
