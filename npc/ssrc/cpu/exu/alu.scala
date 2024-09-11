@@ -42,7 +42,7 @@ class Alu extends Module {
         AluFunc3.  OR -> (io.a | io.b),
         AluFunc3. XOR -> (io.a ^ io.b),
         AluFunc3. SLL -> (io.a << shift),
-        AluFunc3.  SR -> Mux(tag, a >> shift, (signed_a >> shift).asUInt),
+        AluFunc3.  SR -> Mux(tag, (signed_a >> shift).asUInt, a >> shift),
         AluFunc3. SLT -> (signed_a < signed_b).asUInt,
         AluFunc3.SLTU -> (io.a < io.b).asUInt,
     )
