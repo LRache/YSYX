@@ -422,8 +422,8 @@ object Decoder {
             OR      -> Encode.encode_r(EXUTag.F),
             XOR     -> Encode.encode_r(EXUTag.F),
             SLL     -> Encode.encode_r(EXUTag.F),
-            SRL     -> Encode.encode_r(EXUTag.F),
-            SRA     -> Encode.encode_r(EXUTag.T),
+            SRL     -> Encode.encode_r(EXUTag.T),
+            SRA     -> Encode.encode_r(EXUTag.F),
             SLT     -> Encode.encode_r(EXUTag.F),
             SLTU    -> Encode.encode_r(EXUTag.T),
 
@@ -432,8 +432,8 @@ object Decoder {
             ORI     -> Encode.encode_ia(EXUTag.F),
             XORI    -> Encode.encode_ia(EXUTag.F),
             SLLI    -> Encode.encode_ia(EXUTag.F),
-            SRLI    -> Encode.encode_ia(EXUTag.F),
-            SRAI    -> Encode.encode_ia(EXUTag.T),
+            SRLI    -> Encode.encode_ia(EXUTag.T),
+            SRAI    -> Encode.encode_ia(EXUTag.F),
             SLTI    -> Encode.encode_ia(EXUTag.F),
             SLTIU   -> Encode.encode_iu(),
 
