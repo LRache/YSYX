@@ -21,7 +21,7 @@ VTop top;
 static uint64_t timer = 0;
 std::string hdb::outputDir = "./";
 
-#define IMG_NAME test_img_control_hazard4
+#define IMG_NAME test_img_control_hazard3
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
 
