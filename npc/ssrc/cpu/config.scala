@@ -1,7 +1,7 @@
 package cpu
 
 object Config {
-    val HasDBG = false
+    val HasDBG = true
     val GPRAddrLength = 4
     val CSRAddrLength = 3
     val VendorID = 0x79737938
