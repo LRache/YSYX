@@ -67,11 +67,11 @@ class Alu extends Module {
     )
     io.cmp := Mux(func3(0), !t, t)
 
-    io.csr := MuxLookup(func3(1,0), 0.U(32.W))(Seq (
-            1.U -> ub,
-            2.U -> or,
-            3.U -> (ua & ub)
-    ))
+    // io.csr := MuxLookup(func3(1,0), 0.U(32.W))(Seq (
+    //         1.U -> ub,
+    //         2.U -> or,
+    //         3.U -> (ua & ub)
+    // ))
 }
 
 object Alu extends App {
