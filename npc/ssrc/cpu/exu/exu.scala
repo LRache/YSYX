@@ -47,6 +47,9 @@ class EXU extends Module {
     io.out.bits.exu_result := alu_result
     val jmp = (io.in.bits.is_branch && alu.io.cmp) || io.in.bits.is_jmp
     io.jmp := jmp
+    when (io.in.valid) {
+        printf("0x%x %d\n", io.in.bits.dbg.pc, jmp)
+    }
 
     // CSR
     io.csr_waddr := io.in.bits.csr_waddr
