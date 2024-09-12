@@ -421,6 +421,6 @@ static uint32_t test_img_control_hazard4[] = {
 
 static uint32_t test_img_temp[] = {
     0x00100093,
-    0x00101463,
+    0x00f0c113,
     GOOD_TRAP
 };
