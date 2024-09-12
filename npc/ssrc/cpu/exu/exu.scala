@@ -45,7 +45,7 @@ class EXU extends Module {
     cmp.io.func3 := func3
 
     io.out.bits.exu_result := alu_result
-    val jmp = (io.in.bits.is_branch && cmp.io.res) || io.in.bits.is_jmp
+    val jmp = (io.in.bits.is_branch && alu.io.cmp) || io.in.bits.is_jmp
     io.jmp := jmp
 
     // CSR

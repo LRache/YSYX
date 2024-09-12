@@ -27,30 +27,43 @@ class Alu extends Module {
         val func3 = Input(UInt(3.W))
         val tag = Input(Bool())
         val result = Output(UInt(32.W))
-        // val cmp = Output(Bool())
+        val cmp = Output(Bool())
     })
-    val a = io.a
-    val b = io.b
-    val signed_a = a.asSInt
-    val signed_b = b.asSInt
-    val neg_b = -io.b
-    val shift = b(4,0)
+    val func3 = io.func3
+    val sa = io.a.asSInt
+    val sb = io.b.asSInt
+    val ua = io.a.asUInt
+    val ub = io.b.asUInt
+    val shift = io.b(4,0)
     val tag = io.tag
 
-    val slt = signed_a < signed_b
-    val sltu = io.a < io.b
+    val lt = sa < sb
+    val ltu = ua < ub
+    val xor = ua ^ ub
+    val eq = !xor.orR
 
     val resultTable = Seq(
-        AluFunc3. ADD -> Mux(io.tag, io.a + io.b, io.a - io.b),
-        AluFunc3. AND -> (io.a & io.b),
-        AluFunc3.  OR -> (io.a | io.b),
-        AluFunc3. XOR -> (io.a ^ io.b),
-        AluFunc3. SLL -> (io.a << shift),
-        AluFunc3.  SR -> Mux(tag, a >> shift, (signed_a >> shift).asUInt),
-        AluFunc3. SLT -> slt.asUInt,
-        AluFunc3.SLTU -> sltu.asUInt,
+        AluFunc3. ADD -> Mux(io.tag, sa + sb, sa - sb).asUInt,
+        AluFunc3. AND -> (ua & ub),
+        AluFunc3.  OR -> (ua | ub),
+        AluFunc3. XOR -> xor,
+        AluFunc3. SLL -> (ua << shift),
+        AluFunc3.  SR -> Mux(tag, ua >> shift, (sa >> shift).asUInt),
+        AluFunc3. SLT -> lt.asUInt,
+        AluFunc3.SLTU -> ltu.asUInt,
     )
-    io.result := MuxLookup(io.func3, 0.U(32.W))(resultTable)
+    io.result := MuxLookup(func3, 0.U(32.W))(resultTable)
+
+    val t = Mux(
+        func3(2),
+        Mux(
+            func3(1),
+            ltu,
+            lt
+        ),
+        eq
+    )
+    io.cmp := Mux(func3(0), !t, t)
 }
 
 object Alu extends App {
