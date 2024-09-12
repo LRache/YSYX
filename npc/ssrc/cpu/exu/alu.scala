@@ -24,25 +24,31 @@ class Alu extends Module {
     val io = IO(new Bundle {
         val a     = Input(UInt(32.W))
         val b     = Input(UInt(32.W))
+        val c     = Input(UInt(32.W))
+        val d     = Input(UInt(32.W))
         val func3 = Input(UInt(3.W))
         val tag   = Input(Bool())
         
         val res = Output(UInt(32.W))
-        // val cmp = Output(Bool())
+        val cmp = Output(Bool())
         val csr = Output(UInt(32.W))
     })
     val func3 = io.func3
     val sa = io.a.asSInt
-    val sb = io.b.asSInt
     val ua = io.a.asUInt
+    val sb = io.b.asSInt
     val ub = io.b.asUInt
+    val sc = io.c.asSInt
+    val uc = io.c.asUInt
+    val sd = io.d.asSInt
+    val ud = io.d.asUInt
     val shift = io.b(4,0)
     val tag = io.tag
 
-    val lt  = sa < sb
-    val ltu = ua < ub
+    val lt  = sc < sd
+    val ltu = uc < ud
     val or  = ua | ub
-    val xor = ua ^ ub
+    val xor = uc ^ ud
     val eq  = !xor.orR
 
     val resultTable = Seq(
@@ -57,16 +63,16 @@ class Alu extends Module {
     )
     io.res := MuxLookup(func3, 0.U(32.W))(resultTable)
 
-    // val t = Mux(
-    //     func3(2),
-    //     Mux(
-    //         func3(1),
-    //         ltu,
-    //         lt
-    //     ),
-    //     eq
-    // )
-    // io.cmp := Mux(func3(0), !t, t)
+    val t = Mux(
+        func3(2),
+        Mux(
+            func3(1),
+            ltu,
+            lt
+        ),
+        eq
+    )
+    io.cmp := Mux(func3(0), !t, t)
 
     io.csr := MuxLookup(func3(1,0), 0.U(32.W))(Seq (
         0.U -> ua,
