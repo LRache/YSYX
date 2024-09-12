@@ -32,6 +32,7 @@ class Alu extends Module {
         val res = Output(UInt(32.W))
         val cmp = Output(Bool())
         val csr = Output(UInt(32.W))
+        val t = Output(Bool())
     })
     val func3 = io.func3
     val sa = io.a.asSInt
@@ -73,6 +74,7 @@ class Alu extends Module {
         eq
     )
     io.cmp := Mux(func3(0), !t, t)
+    io.t := t
 
     io.csr := MuxLookup(func3(1,0), 0.U(32.W))(Seq (
         0.U -> ua,
