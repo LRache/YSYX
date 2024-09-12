@@ -3,7 +3,7 @@ package cpu
 import scala.collection.mutable.Map
 
 object Config {
-    val HasDBG = true
+    // val HasDBG = true
 
     // ysyx
     val VendorID = 0x79737938
