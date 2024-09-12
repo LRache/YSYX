@@ -26,6 +26,8 @@ class HCPU(instStart : BigInt) extends Module {
     
     val gpr = Module(new GPR(Config.GPRAddrLength))
     val csr = Module(new CSR)
+    csr.io.cause_en := false.B
+    csr.io.cause := 0.U
 
     val icache = Module(new ICache(2, 0))
     
