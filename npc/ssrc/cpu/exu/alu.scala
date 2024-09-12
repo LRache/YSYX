@@ -28,7 +28,7 @@ class Alu extends Module {
         val tag = Input(Bool())
         val result = Output(UInt(32.W))
         val cmp = Output(Bool())
-        val csr = Output(UInt(32.W))
+        // val csr = Output(UInt(32.W))
     })
     val func3 = io.func3
     val sa = io.a.asSInt
