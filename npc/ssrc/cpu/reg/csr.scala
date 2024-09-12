@@ -43,12 +43,17 @@ class CSR extends Module {
         val rdata   = Output(UInt(32.W))
     })
 
+    def gen_csr(addr : UInt, name : String) : UInt = {
+        RegEnable(io.wdata, Config.CSRInitValue(name).U(32.W), io.wen && io.waddr === addr)
+    }
+
     val mcause  = RegEnable(Mux(io.cause_en, io.cause, io.wdata) , 0.U(32.W), (io.waddr === CSRAddr.MCAUSE && io.wen) || io.cause_en)
-    val mepc    = RegEnable(io.wdata, 0.U(32.W),      io.wen && io.waddr === CSRAddr.MEPC    )
-    val mscratch= RegEnable(io.wdata, 0.U(32.W),      io.wen && io.waddr === CSRAddr.MSCRATCH)
-    val mstatus = RegEnable(io.wdata, 0x1800.U(32.W), io.wen && io.waddr === CSRAddr.MSTATUS )
-    val mtvec   = RegEnable(io.wdata, 0.U(32.W),      io.wen && io.waddr === CSRAddr.MTVEC   )
-    val satp    = RegEnable(io.wdata, 0.U(32.W),      io.wen && io.waddr === CSRAddr.SATP    )
+    
+    val mepc    = gen_csr(CSRAddr.MEPC,     "epc"       )
+    val mscratch= gen_csr(CSRAddr.MSCRATCH, "mscratch"  )
+    val mstatus = gen_csr(CSRAddr.MSTATUS,  "mstatus"   )
+    val mtvec   = gen_csr(CSRAddr.MTVEC,    "mtvec"     )
+    val satp    = gen_csr(CSRAddr.SATP,     "satp"      )
 
     io.rdata := MuxLookup(io.raddr, 0.U(32.W))(Seq (
         CSRAddr.MVENDORID -> Config.VendorID.U(32.W),
