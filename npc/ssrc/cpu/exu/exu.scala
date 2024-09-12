@@ -58,7 +58,7 @@ class EXU extends Module {
 
     // CSR
     io.csr_waddr := io.in.bits.csr_waddr
-    io.csr_wen   := io.in.bits.csr_wen
+    io.csr_wen   := io.in.bits.csr_wen && io.in.valid
     io.csr_wdata := alu.io.csr
     io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_result)
     
