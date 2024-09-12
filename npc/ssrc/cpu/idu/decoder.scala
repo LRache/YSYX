@@ -9,7 +9,6 @@ import chisel3.util.experimental.decode._
 import cpu.exu.CmpSel
 import cpu.lsu.MemType
 import cpu.reg.GPRWSel
-import cpu.reg.CSRWSel
 
 object InstType extends Enumeration {
     type InstType = Value
