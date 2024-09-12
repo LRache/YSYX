@@ -49,7 +49,7 @@ class CSR extends Module {
 
     val mcause  = RegEnable(Mux(io.cause_en, io.cause, io.wdata) , 0.U(32.W), (io.waddr === CSRAddr.MCAUSE && io.wen) || io.cause_en)
     
-    val mepc    = gen_csr(CSRAddr.MEPC,     "epc"       )
+    val mepc    = gen_csr(CSRAddr.MEPC,     "mepc"      )
     val mscratch= gen_csr(CSRAddr.MSCRATCH, "mscratch"  )
     val mstatus = gen_csr(CSRAddr.MSTATUS,  "mstatus"   )
     val mtvec   = gen_csr(CSRAddr.MTVEC,    "mtvec"     )
