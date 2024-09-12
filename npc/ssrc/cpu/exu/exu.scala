@@ -55,7 +55,7 @@ class EXU extends Module {
     io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_result)
 
     when (io.in.valid) {
-        printf("0x%x %d %d %d %d %d %d\n", io.in.bits.dbg.pc, rs2)
+        printf("0x%x %d %d\n", io.in.bits.dbg.pc, rs2)
     }
 
     // CSR
