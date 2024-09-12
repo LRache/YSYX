@@ -116,7 +116,7 @@ int hdb::run(uint64_t n) {
 
 void hdb_set_csr(uint32_t addr, word_t data) {
     if (addr == 0) return ;
-    char *name = "unknown";
+    const char *name = "unknown";
     switch (addr)
     {
         case 2: cpu.satp     = data; name = "satp"; break;
