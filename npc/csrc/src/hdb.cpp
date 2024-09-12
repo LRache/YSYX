@@ -61,7 +61,7 @@ void hdb::init(
     perf::init();
     itrace::start(INST_START);
 
-    // cpu.mstatus = 0x1800;
+    cpu.mstatus = 0x1800;
     Log("Init finished.");
 }
 

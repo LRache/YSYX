@@ -19,7 +19,7 @@ object Config {
         "mvendorid" -> VendorID,
         "marchid"   -> ArchID,
         "satp"      -> 0,
-        "mstatus"   -> 0,
+        "mstatus"   -> 0x1800,
         "mtvec"     -> 0,
         "mscratch"  -> 0,
         "mepc"      -> 0,
