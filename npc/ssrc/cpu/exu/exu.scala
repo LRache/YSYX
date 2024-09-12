@@ -51,13 +51,13 @@ class EXU extends Module {
     // CSR
     io.csr_waddr := io.in.bits.csr_waddr
     io.csr_wen   := io.in.bits.csr_wen
-    // io.csr_wdata := MuxLookup(func3(1,0), 0.U(32.W))(Seq (
-    //     0.U ->  rs1       ,
-    //     1.U ->         rs2,
-    //     2.U -> (rs1 |  rs2),
-    //     3.U -> (rs1 & ~rs2)
-    // ))
-    io.csr_wdata := alu.io.csr
+    io.csr_wdata := MuxLookup(func3(1,0), 0.U(32.W))(Seq (
+        0.U ->  rs1       ,
+        1.U ->         rs2,
+        2.U -> (rs1 |  rs2),
+        3.U -> (rs1 & ~rs2)
+    ))
+    // io.csr_wdata := alu.io.csr
     io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_result)
     
     io.out.bits.gpr_wdata := Mux(io.in.bits.gpr_ws(0), rs1, rs3)
