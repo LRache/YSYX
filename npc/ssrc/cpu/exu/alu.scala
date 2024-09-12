@@ -28,6 +28,7 @@ class Alu extends Module {
         val tag = Input(Bool())
         val result = Output(UInt(32.W))
         val cmp = Output(Bool())
+        val csr = Output(UInt(32.W))
     })
     val func3 = io.func3
     val sa = io.a.asSInt
@@ -37,15 +38,16 @@ class Alu extends Module {
     val shift = io.b(4,0)
     val tag = io.tag
 
-    val lt = sa < sb
+    val lt  = sa < sb
     val ltu = ua < ub
+    val or  = ua | ub
     val xor = ua ^ ub
-    val eq = !xor.orR
+    val eq  = !xor.orR
 
     val resultTable = Seq(
         AluFunc3. ADD -> (sa + Mux(io.tag, -sb, sb)).asUInt,
         AluFunc3. AND -> (ua & ub),
-        AluFunc3.  OR -> (ua | ub),
+        AluFunc3.  OR -> or,
         AluFunc3. XOR -> xor,
         AluFunc3. SLL -> (ua << shift),
         AluFunc3.  SR -> Mux(tag, ua >> shift, (sa >> shift).asUInt),
@@ -64,6 +66,12 @@ class Alu extends Module {
         eq
     )
     io.cmp := Mux(func3(0), !t, t)
+
+    io.csr := MuxLookup(func3(1,0), 0.U(32.W))(Seq (
+            1.U -> ub,
+            2.U -> or,
+            3.U -> (ua & ub)
+    ))
 }
 
 object Alu extends App {
