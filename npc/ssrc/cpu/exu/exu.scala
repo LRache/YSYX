@@ -52,7 +52,7 @@ class EXU extends Module {
     io.jmp := jmp
 
     when (io.in.valid) {
-        printf("0x%x %d %d %d %d\n", io.in.bits.dbg.pc, alu.io.c, alu.io.d, alu.io.c ^ alu.io.d, alu.io.cmp)
+        printf("0x%x %d %d %d %d %d %d\n", io.in.bits.dbg.pc, alu.io.c, alu.io.d, alu.io.c ^ alu.io.d, alu.io.cmp, alu.io.t, Mux(func3(0), !alu.io.t, alu.io.t))
     }
 
     // CSR
