@@ -13,7 +13,9 @@ import cpu.reg.CSRWSel
 
 object InstType extends Enumeration {
     type InstType = Value
-    val R, IA, IJ, IU, L, S, B, J, UL, UA, CR, CI, EB, EC, MR, FI, IVD = Value
+    val R, RC, IC, IA, IJ, IU, L, S, B, J, UL, UA, CR, CI, EB, EC, MR, FI, IVD = Value
+    // RC -> for xor, slt, sltu
+    // IC -> for xori, slti
     // IA -> normal I Arithmetic, like addi
     // IJ -> only jalr jump and link reg
     // IU -> only for sltiu

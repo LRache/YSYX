@@ -92,7 +92,7 @@ class IDU extends Module {
     io.out.bits.rs1 := rs1
     io.out.bits.rs2 := rs2
     io.out.bits.rs3 := Mux(op.cSel, io.in.bits.snpc, io.gpr_rdata1)
-    io.out.bits.rs4 := io.gpr_rdata2
+    io.out.bits.rs4 := Mux(op.dSel, imm, io.gpr_rdata2)
 
     io.out.bits.exu_tag := op.exuTag
     io.out.bits.alu_bsel := op.aluBSel
