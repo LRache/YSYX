@@ -53,12 +53,12 @@ class EXU extends Module {
     io.csr_wen   := io.in.bits.csr_wen
     io.csr_wdata := Mux(
         io.in.bits.csr_ws,
-        rs1, alu.io.csr
-        // MuxLookup(func3(1,0), 0.U(32.W))(Seq (
-        //     1.U ->         rs2,
-        //     2.U -> (rs1 |  rs2),
-        //     3.U -> (rs1 & ~rs2)
-        // ))
+        rs1,
+        MuxLookup(func3(1,0), 0.U(32.W))(Seq (
+            1.U ->         rs2,
+            2.U -> (rs1 |  rs2),
+            3.U -> (rs1 & ~rs2)
+        ))
     )
     io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_result)
     
