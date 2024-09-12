@@ -36,11 +36,11 @@ void difftest::init() {
     difftestCount = 0;
 }
 
-static void inline reg_cmp(int i, uint32_t dut) {
+static void inline gpr_cmp(int i, uint32_t dut) {
     if (refRegs[i] != dut) {
         panic(
-            "Difftest failed.\nDifferent reg:\nx%d, dut=%d(0x%08x), ref=%d(0x%08x)\ndut.pc=0x%08x inst=0x%08x",
-            i, dut, dut, refRegs[i], refRegs[i], lastPC, cpu.inst
+            "Difftest failed.\nDifferent GPR:\nx%d, dut=%d(0x%08x), ref=%d(0x%08x)\ndut.pc=0x%08x inst=0x%08x",
+            i, dut, dut, refRegs[i], refRegs[i], cpu.pc, cpu.inst
         );
     }
 }
@@ -48,14 +48,14 @@ static void inline reg_cmp(int i, uint32_t dut) {
 void difftest::regs() {
     nemu_difftest_regcpy(refRegs, DIFFTEST_TO_DUT);
     for (int i = 0; i < DIFFTEST_COMMON_REG_COUNT; i++) {
-        reg_cmp(i, cpu.gpr[i]);
+        gpr_cmp(i, cpu.gpr[i]);
     }
 }
 
 #define csr_cmp(i, name) \
     Assert(refCSR[i] == cpu.name , "Difftest FAILED\nDifferent CSR: %s ref=" FMT_WORD \
     ", dut=" FMT_WORD " at pc=" FMT_WORD "(inst=" FMT_WORD ")", \
-    #name, refCSR[i], cpu.name, lastPC, cpu.inst);
+    #name, refCSR[i], cpu.name, cpu.pc, cpu.inst);
 
 void difftest::csr() {
     nemu_difftest_csrcpy(refCSR, DIFFTEST_TO_DUT);
@@ -103,11 +103,12 @@ void difftest::step() {
     nemu_difftest_exec(1);
     bool nemu_skip;
     nemu_difftest_skip(&nemu_skip, DIFFTEST_TO_DUT);
+    // Log("%d", nemu_skip);
     if (skip || nemu_skip) {
         skip = false;
         nemu_skip = false;
         nemu_difftest_regcpy(cpu.gpr, DIFFTEST_TO_REF);
-        nemu_difftest_pc(&cpu.pc, DIFFTEST_TO_REF);
+        // nemu_difftest_pc(&cpu.pc, DIFFTEST_TO_REF);
         nemu_difftest_skip(&nemu_skip, DIFFTEST_TO_REF);
     } else {
         regs();

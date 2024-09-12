@@ -1,0 +1,64 @@
+verilator -MMD --build -cc -O3 --trace-fst  --timescale "1ns/1ns" --no-timing --autoflush -I/home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/uart16550/rtl -I/home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/spi/rtl --top-module ysyxSoCFull /home/rache/Documents/code/ysyx-workbench/npc/csrc/main.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/test/test_memory.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/test/test_alu.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/hdb.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/difftest.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/sdram.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/memory.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/utils.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/vga_buffer.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/debug.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/mrom.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/psram.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/perf.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/flash.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/nvboard.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/tracer.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/main.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/test/test_memory.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/test/test_alu.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/hdb.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/difftest.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/sdram.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/memory.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/utils.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/vga_buffer.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/debug.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/mrom.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/psram.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/perf.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/flash.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/nvboard.cpp /home/rache/Documents/code/ysyx-workbench/npc/csrc/src/tracer.cpp /home/rache/Documents/code/ysyx-workbench/npc/utils/cachesim/src/cache.cpp /home/rache/Documents/code/ysyx-workbench/npc/utils/cachesim/src/itrace.cpp /home/rache/Documents/code/ysyx-workbench/npc/vsrc/perf.v /home/rache/Documents/code/ysyx-workbench/npc/vsrc/debugger/dbg.v /home/rache/Documents/code/ysyx-workbench/npc/vsrc/debugger/gpr.v /home/rache/Documents/code/ysyx-workbench/npc/vsrc/debugger/csr.v /home/rache/Documents/code/ysyx-workbench/npc/vsrc/sdram.v /home/rache/Documents/code/ysyx-workbench/npc/vsrc/vgaBuffer.v /home/rache/Documents/code/ysyx-workbench/npc/vsrc/memory.v /home/rache/Documents/code/ysyx-workbench/npc/build/HCPU.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/build/ysyxSoCFull.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/bitrev/bitrev.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/spi/rtl/spi_top_apb.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/spi/rtl/spi_top.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/spi/rtl/spi_shift.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/spi/rtl/spi_clgen.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/spi/rtl/spi_defines.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/gpio/gpio_top_apb.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/uart16550/rtl/uart_tfifo.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/uart16550/rtl/uart_regs.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/uart16550/rtl/uart_rfifo.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/uart16550/rtl/uart_defines.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/uart16550/rtl/uart_transmitter.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/uart16550/rtl/uart_receiver.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/uart16550/rtl/uart_top_apb.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/uart16550/rtl/raminfr.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/uart16550/rtl/uart_sync_flops.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/flash/flash.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/vga/vga_top_apb.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/sdram/sdram.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/sdram/core_sdram_axi4/sdram_axi_core.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/sdram/core_sdram_axi4/sdram_axi.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/sdram/core_sdram_axi4/sdram_axi_pmem.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/sdram/sdram_top_apb.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/sdram/sdram_top_axi.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/psram/efabless/EF_PSRAM_CTRL.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/psram/efabless/EF_PSRAM_CTRL_wb.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/psram/psram_top_apb.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/psram/psram.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/amba/apb_delayer.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/amba/axi4_delayer.v /home/rache/Documents/code/ysyx-workbench/ysyxSoC/perip/ps2/ps2_top_apb.v /home/rache/Documents/code/ysyx-workbench/nvboard/build/nvboard.a -CFLAGS -MMD -CFLAGS -O3 -CFLAGS -I/usr/include/SDL2 -CFLAGS -D_REENTRANT -CFLAGS -I/home/rache/Documents/code/ysyx-workbench/npc/csrc/include -CFLAGS -I/home/rache/Documents/code/ysyx-workbench/npc/obj -CFLAGS -I/home/rache/Documents/code/ysyx-workbench/npc/utils/cachesim/include -CFLAGS -I/home/rache/Documents/code/ysyx-workbench/nvboard/usr/include -CFLAGS -fexceptions -CFLAGS -DVTop=VysyxSoCFull -CFLAGS -DVTopHeader=\"VysyxSoCFull/VysyxSoCFull.h\" -CFLAGS -I/usr/lib/llvm-14/include -CFLAGS -std=c++14 -CFLAGS -fno-exceptions -CFLAGS -lLLVM-14 -CFLAGS -fPIE -LDFLAGS -lSDL2 -LDFLAGS -lSDL2_image -LDFLAGS -lSDL2_ttf -LDFLAGS -dynamic-linker -LDFLAGS /home/rache/Documents/code/ysyx-workbench/nemu/build/riscv32-nemu-interpreter-so --Mdir /home/rache/Documents/code/ysyx-workbench/npc/obj/VysyxSoCFull --exe -o /home/rache/Documents/code/ysyx-workbench/npc/build/VysyxSoCFull
+make[1]: Entering directory '/home/rache/Documents/code/ysyx-workbench/npc/obj/VysyxSoCFull'
+make[1]: Nothing to be done for 'default'.
+make[1]: Leaving directory '/home/rache/Documents/code/ysyx-workbench/npc/obj/VysyxSoCFull'
+make[1]: Entering directory '/home/rache/Documents/code/ysyx-workbench'
+make[1]: Leaving directory '/home/rache/Documents/code/ysyx-workbench'
+cd  && /home/rache/Documents/code/ysyx-workbench/npc/build/VysyxSoCFull -o /home/rache/Documents/code/ysyx-workbench/npc/output
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/main.cpp:11 main] Hello World![0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/hdb.cpp:60 init] Reset at clock=16[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/hdb.cpp:66 init] Init finished.[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/flash.cpp:23 flash_read] Read flash [0x30000000]=0xa0000537[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/flash.cpp:23 flash_read] Read flash [0x30000004]=0x00b52023[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/flash.cpp:23 flash_read] Read flash [0x30000008]=0x00050603[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/flash.cpp:23 flash_read] Read flash [0x3000000c]=0x00100093[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/hdb.cpp:134 hdb_set_reg] Set register x10 = 0xa0000000(-1610612736) at pc=0x30000010(inst=0x00000000)[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/hdb.cpp:163 hdb_update_valid] VALID[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/flash.cpp:23 flash_read] Read flash [0x30000010]=0x00200093[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/flash.cpp:23 flash_read] Read flash [0x30000014]=0x00000513[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/flash.cpp:23 flash_read] Read flash [0x30000018]=0x00100073[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/flash.cpp:23 flash_read] Read flash [0x3000001c]=0x00000000[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/sdram.cpp:16 sdram_write] SDRAM Write [0][0][0]=0x00000000 mask=0[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/sdram.cpp:16 sdram_write] SDRAM Write [0][0][1]=0x00000000 mask=0[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/hdb.cpp:163 hdb_update_valid] VALID[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/sdram.cpp:16 sdram_write] SDRAM Write [0][0][0]=0x00000000 mask=0[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/sdram.cpp:16 sdram_write] SDRAM Write [0][0][1]=0x00000000 mask=0[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/sdram.cpp:11 sdram_read] SDRAM Read [0][0][0]=0x00000000[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/sdram.cpp:11 sdram_read] SDRAM Read [0][0][1]=0x00000000[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/hdb.cpp:134 hdb_set_reg] Set register x12 = 0x00000000(0) at pc=0x30000018(inst=0x00100073)[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/hdb.cpp:163 hdb_update_valid] VALID[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/hdb.cpp:134 hdb_set_reg] Set register x1 = 0x00000001(1) at pc=0x3000001c(inst=0x00000000)[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/hdb.cpp:134 hdb_set_reg] Set register x1 = 0x00000002(2) at pc=0x30000020(inst=0x00000000)[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/sdram.cpp:11 sdram_read] SDRAM Read [0][0][0]=0x00000000[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/hdb.cpp:134 hdb_set_reg] Set register x10 = 0x00000000(0) at pc=0x30000020(inst=0x00000000)[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/sdram.cpp:11 sdram_read] SDRAM Read [0][0][1]=0x00000000[0m
+ebreak
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/hdb.cpp:107 run] [1;32mHIT GOOD TRAP[1;34m at pc=0x30000020[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/difftest.cpp:126 end] [1;32mDifftest PASS. [1;34mcount=7[0m
+Performance Statistic of IFU
+Source |        Clock |      Count |  Average | 
+ flash |         3267 |          2 |  1633.50 | 32.18%
+ sdram |            0 |          0 |     0.00 |  0.00%
+ other |            0 |          0 |     0.00 |  0.00%
+
+Performance Statistic of ICache
+      |      Count |         | 
+  hit |          2 |  50.00% | 
+ miss |          2 |  50.00% | 
+Total |          4 |         |         3268 | 
+AMAT=3268.00
+
+Performance Statistic of LSU
+Source |  Type |        Clock |      Count |  Average
+ flash |  read |            0 |          0 |     0.00 |  0.00%
+  sram |  read |            0 |          0 |     0.00 |  0.00%
+  sram | write |            0 |          0 |     0.00 |  0.00%
+ sdram |  read |            4 |          3 |     1.33 |  0.04%
+ sdram | write |         2825 |       2824 |     1.00 | 27.83%
+ other |  read |            0 |          0 |     0.00 |  0.00%
+ other | write |            0 |          0 |     0.00 |  0.00%
+ unexp |  read |            0 |          0 |     0.00 |  0.00%
+ unexp | write |            0 |          0 |     0.00 |  0.00%
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/hdb.cpp:84 hdb_statistic] Total count of instructions = 8 with 10151 clocks, IPC=0.000788[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/hdb.cpp:85 hdb_statistic] Total time spent = 146280 us, frequency=69.394kHz[0m
+[1;34m[/home/rache/Documents/code/ysyx-workbench/npc/csrc/src/hdb.cpp:86 hdb_statistic] Simulation frequency = 69394 clocks/s[0m

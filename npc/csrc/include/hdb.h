@@ -6,7 +6,6 @@
 
 #include "config.h"
 #include "common.h"
-// #include "VTop/VTop.h"
 #include "VysyxSoCFull/VysyxSoCFull.h"
 
 typedef struct

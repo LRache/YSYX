@@ -3,7 +3,9 @@ package cpu.reg
 import chisel3._
 import chisel3.util.MuxLookup
 import chisel3.util.MuxCase
-import cpu.reg.CSRAddr.{MCAUSE => MCAUSE}
+
+import cpu.Config
+import chisel3.util.RegEnable
 
 object CSRWSel extends Enumeration {
     type CSRWSel = Value
@@ -11,14 +13,14 @@ object CSRWSel extends Enumeration {
 }
 
 object CSRAddr {
-    val MVENDORID= 0x100.U(12.W)
-    val MARCHID  = 0x101.U(12.W)
-    val SATP     = 0x180.U(12.W)
-    val MSTATUS  = 0x300.U(12.W)
-    val MTVEC    = 0x305.U(12.W)
-    val MSCRATCH = 0x340.U(12.W)
-    val MEPC     = 0x341.U(12.W)
-    val MCAUSE   = 0x342.U(12.W)
+    val MVENDORID   = 0x0.U(4.W)
+    val MARCHID     = 0x1.U(4.W)
+    val SATP        = 0x2.U(4.W)
+    val MSTATUS     = 0x3.U(4.W)
+    val MTVEC       = 0x4.U(4.W)
+    val MSCRATCH    = 0x5.U(4.W)
+    val MEPC        = 0x6.U(4.W)
+    val MCAUSE      = 0x7.U(4.W)
 }
 
 class CSRDebugger extends BlackBox {
@@ -32,29 +34,25 @@ class CSRDebugger extends BlackBox {
 
 class CSR extends Module {
     val io = IO(new Bundle {
-        val waddr1  = Input (UInt(12.W))
-        val is_ecall= Input (Bool())
-        // val waddr2  = Input (UInt(12.W))
-        val wdata1  = Input (UInt(32.W))
-        val wdata2  = Input (UInt(32.W))
-        val wen1    = Input (Bool())
-        // val wen2    = Input (Bool())
-        val raddr   = Input (UInt(12.W))
+        val waddr   = Input (UInt(Config.CSRAddrLength.W))
+        val wen     = Input (Bool())
+        val wdata   = Input (UInt(32.W))
+        val cause_en= Input (Bool())
+        val cause   = Input (UInt(32.W))
+        val raddr   = Input (UInt(4.W))
         val rdata   = Output(UInt(32.W))
     })
 
-    val mvendorid = RegInit(0x79737938.U(32.W))
-    val marchid = RegInit(0x24080016.U(32.W))
-    val mcause  = RegInit(0.U(32.W))
-    val mepc    = RegInit(0.U(32.W))
-    val mscratch= RegInit(0.U(32.W))
-    val mstatus = RegInit(0x1800.U(32.W))
-    val mtvec   = RegInit(0.U(32.W))
-    val satp    = RegInit(0.U(32.W))
+    val mcause  = RegEnable(Mux(io.cause_en, io.cause, io.wdata) , 0.U(32.W), (io.waddr === CSRAddr.MCAUSE && io.wen) || io.cause_en)
+    val mepc    = RegEnable(io.wdata, 0.U(32.W),      io.wen && io.waddr === CSRAddr.MEPC    )
+    val mscratch= RegEnable(io.wdata, 0.U(32.W),      io.wen && io.waddr === CSRAddr.MSCRATCH)
+    val mstatus = RegEnable(io.wdata, 0x1800.U(32.W), io.wen && io.waddr === CSRAddr.MSTATUS )
+    val mtvec   = RegEnable(io.wdata, 0.U(32.W),      io.wen && io.waddr === CSRAddr.MTVEC   )
+    val satp    = RegEnable(io.wdata, 0.U(32.W),      io.wen && io.waddr === CSRAddr.SATP    )
 
     io.rdata := MuxLookup(io.raddr, 0.U(32.W))(Seq (
-        CSRAddr.MVENDORID -> mvendorid,
-        CSRAddr.MARCHID -> marchid,
+        CSRAddr.MVENDORID -> Config.VendorID.U(32.W),
+        CSRAddr.MARCHID -> Config.ArchID.U(32.W),
         CSRAddr.SATP    -> satp,
         CSRAddr.MSTATUS -> mstatus,
         CSRAddr.MTVEC   -> mtvec,
@@ -63,26 +61,15 @@ class CSR extends Module {
         CSRAddr.MCAUSE  -> mcause
     ))
 
-    // mstatus  := Mux(io.wen1 && io.waddr1 === CSRAddr.MSTATUS , io.wdata1, Mux(io.wen2 && io.waddr2 === CSRAddr.MSTATUS , io.wdata2, mstatus ))
-    // mtvec    := Mux(io.wen1 && io.waddr1 === CSRAddr.MTVEC   , io.wdata1, Mux(io.wen2 && io.waddr2 === CSRAddr.MTVEC   , io.wdata2, mtvec   ))
-    // mscratch := Mux(io.wen1 && io.waddr1 === CSRAddr.MSCRATCH, io.wdata1, Mux(io.wen2 && io.waddr2 === CSRAddr.MSCRATCH, io.wdata2, mscratch))
-    // mepc     := Mux(io.wen1 && io.waddr1 === CSRAddr.MEPC    , io.wdata1, Mux(io.wen2 && io.waddr2 === CSRAddr.MEPC    , io.wdata2, mepc    ))
-    // mcause   := Mux(io.wen1 && io.waddr1 === CSRAddr.MCAUSE  , io.wdata1, Mux(io.wen2 && io.waddr2 === CSRAddr.MCAUSE  , io.wdata2, mcause  ))
-    mstatus  := Mux(io.wen1 && io.waddr1 === CSRAddr.MSTATUS , io.wdata1, mstatus )
-    mtvec    := Mux(io.wen1 && io.waddr1 === CSRAddr.MTVEC   , io.wdata1, mtvec   )
-    mscratch := Mux(io.wen1 && io.waddr1 === CSRAddr.MSCRATCH, io.wdata1, mscratch)
-    mepc     := Mux(io.wen1 && io.waddr1 === CSRAddr.MEPC    , io.wdata1, mepc    )
-    mcause   := Mux(io.wen1 && io.waddr1 === CSRAddr.MCAUSE  , io.wdata1, Mux(io.is_ecall, io.wdata2, mcause))
-
     val debugger = Module(new CSRDebugger())
     debugger.io.clk := clock
-    debugger.io.wen := io.wen1
-    debugger.io.waddr := io.waddr1
-    debugger.io.wdata := io.wdata1
+    debugger.io.wen := io.wen
+    debugger.io.waddr := io.waddr
+    debugger.io.wdata := io.wdata
 
     val debugger2 = Module(new CSRDebugger())
     debugger2.io.clk := clock
-    debugger2.io.wen := io.is_ecall
-    debugger2.io.waddr := MCAUSE
-    debugger2.io.wdata := io.wdata2
+    debugger2.io.wen := io.cause_en
+    debugger2.io.waddr := CSRAddr.MCAUSE
+    debugger2.io.wdata := io.cause
 }

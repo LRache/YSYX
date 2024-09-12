@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
+#include <queue>
 
 #include "memory.h"
 #include "debug.h"
@@ -20,8 +21,7 @@ VTop top;
 static uint64_t timer = 0;
 std::string hdb::outputDir = "./";
 
-#define IMG_NAME test_img_athrimatic
-
+#define IMG_NAME test_img_control_hazard4
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
 
@@ -29,6 +29,7 @@ static void exec_once() {
     top.clock = 0; top.eval();
     top.clock = 1; top.eval();
     cpu.clockCount ++;
+    // Log("Exec once");
     nvboard::update();
 }
 
@@ -69,10 +70,11 @@ void hdb::step() {
         Log("Is not running!");
         return;
     }
+    exec_once();
     while (!cpu.valid && cpu.running) {
         exec_once();
     }
-    exec_once(); // update PC for difftest.
+    // Log("T");
     if (cpu.running) difftest::step();
     cpu.instCount++;
 }
@@ -113,21 +115,23 @@ int hdb::run(uint64_t n) {
 }
 
 void hdb_set_csr(uint32_t addr, word_t data) {
+    if (addr == 0) return ;
     switch (addr)
     {
-        case 0x180: cpu.satp    = data; break;
-        case 0x300: cpu.mstatus = data; break;
-        case 0x305: cpu.mtvec   = data; break;
-        case 0x340: cpu.mscratch= data; break;
-        case 0x341: cpu.mepc    = data; break;
-        case 0x342: cpu.mcause  = data; break;
-        default: panic("Invalid CSR: 0x%x(%d) at pc=0x%08x(inst=0x%08x)", addr, addr, cpu.pc, cpu.inst);
+        case 3: cpu.satp    = data; break;
+        case 4: cpu.mstatus = data; break;
+        case 5: cpu.mtvec   = data; break;
+        case 6: cpu.mscratch= data; break;
+        case 7: cpu.mepc    = data; break;
+        case 8: cpu.mcause  = data; break;
+        default: panic("Invalid CSR: %d at pc=0x%08x(inst=0x%08x)", addr, cpu.pc, cpu.inst);
     }
+    Log("Set csr [%d]=%x", addr, data);
 }
 
 void hdb_set_reg(uint32_t addr, word_t data) {
     // Log("Set register x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
-    cpu.gpr[addr] = data;
+    if (addr != 0) cpu.gpr[addr] = data;
 }
 
 void hdb_invalid_inst() {
@@ -144,7 +148,7 @@ void hdb_update_pc(uint32_t pc) {
         panic("Invalid PC = " FMT_WORD, pc);
     }
     itrace::trace(pc);
-    // Log("Exec to pc=" FMT_WORD, pc);
+    // Log("Exec to pc=" FMT_WORD " at clock=%lu", pc, cpu.clockCount);
 }
 
 void hdb_update_inst(uint32_t inst) {
@@ -166,8 +170,7 @@ extern "C" {
         hdb_set_csr(addr, data);
     }
 
-    void update_reset(uint8_t reset) {
-    }
+    void update_reset(uint8_t reset) {}
 
     void update_pc(uint32_t pc) {
         hdb_update_pc(pc);

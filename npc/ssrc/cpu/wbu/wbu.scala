@@ -5,47 +5,41 @@ import chisel3.util._
 
 import cpu.reg.GPRWSel
 import cpu.LSUMessage
-import cpu.WBUMessage
+import cpu.reg.CSRAddr
 
 class WBU extends Module {
     val io = IO(new Bundle {
         val in  = Flipped(Decoupled(new LSUMessage))
-        val out = Decoupled(new WBUMessage)
 
-        val reg_waddr = Output(UInt(5.W))
-        val reg_wdata = Output(UInt(32.W))
-        val reg_wen   = Output(Bool())
+        val gpr_waddr = Output(UInt(5.W))
+        val gpr_wdata = Output(UInt(32.W))
+        val gpr_wen   = Output(Bool())
 
         val csr_waddr1 = Output(UInt(12.W))
         val is_ecall = Output(Bool())
-        // val csr_waddr2 = Output(UInt(12.W))
         val csr_wdata1 = Output(UInt(32.W))
-        // val csr_wdata2 = Output(UInt(32.W))
-        val csr_wen1   = Output(Bool())
-        // val csr_wen2   = Output(Bool())
 
-        val is_brk = Output(Bool())
-        val is_inv = Output(Bool())
+        val dbg = new Bundle {
+            val brk = Output(Bool())
+            val ivd = Output(Bool())
+            val done  = Output(Bool())
+            val pc = Output(UInt(32.W))
+            val inst = Output(UInt(32.W))
+        }
     })
-    io.reg_waddr := io.in.bits.rd
-    io.reg_wdata := io.in.bits.gpr_wdata
-    io.reg_wen := io.in.bits.reg_wen && io.in.valid
+    io.gpr_waddr := io.in.bits.gpr_waddr
+    io.gpr_wdata := io.in.bits.gpr_wdata
+    io.gpr_wen := io.in.bits.gpr_wen && io.in.valid
 
-    io.csr_waddr1 := io.in.bits.csr_waddr1
-    // io.csr_waddr2 := io.in.bits.csr_waddr2
-    // io.csr_wdata1 := Mux(io.in.bits.csr_wd_sel, io.in.bits.pc, io.in.bits.exu_result)
-    // io.csr_wdata1 := Mux(io.in.bits.csr_wd_sel, io.in.bits.pc, io.in.bits.csr_wdata1)
-    io.csr_wdata1 := io.in.bits.csr_wdata1
-    // io.csr_wdata2 := io.in.bits.csr_wdata2
-    io.csr_wen1   := io.in.bits.csr_wen1 && io.in.valid
-    io.is_ecall := io.in.bits.is_ecall && io.in.valid
-    // io.csr_wen2   := io.in.bits.csr_wen2 & io.in.valid
-    io.is_brk := io.in.bits.is_brk && io.in.valid
-    io.is_inv := io.in.bits.is_ivd && io.in.valid
-
-    io.out.bits.dnpc := io.in.bits.dnpc
-    io.out.bits.pc_sel := io.in.bits.pc_sel
-
-    io. in.ready := true.B
-    io.out.valid := io.in.valid
+    // io.csr_waddr1 := Mux(io.in.valid, io.in.bits.csr_waddr, CSRAddr.NONE)
+    // io.csr_wdata1 := io.in.bits.csr_wdata
+    // io.is_ecall := io.in.bits.is_ecall && io.in.valid
+    io.in.ready := true.B
+    
+    // DEBUG
+    io.dbg.brk  := RegEnable(io.in.bits.is_brk, io.in.valid)
+    io.dbg.ivd  := RegEnable(io.in.bits.is_ivd, io.in.valid)
+    io.dbg.pc   := RegEnable(io.in.bits.dbg.pc, io.in.valid)
+    io.dbg.inst := RegEnable(io.in.bits.dbg.inst, io.in.valid)
+    io.dbg.done := RegNext(io.in.valid)
 }
