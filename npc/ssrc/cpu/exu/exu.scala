@@ -49,6 +49,8 @@ class EXU extends Module {
     io.jmp := jmp
 
     // CSR
+    io.csr_waddr := io.in.bits.csr_waddr
+    io.csr_wen   := io.in.bits.csr_wen
     io.csr_wdata := Mux(
         io.in.bits.csr_ws,
         rs1,
