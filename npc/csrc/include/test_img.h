@@ -294,20 +294,20 @@ static uint32_t test_img_pipeline_no_hazard_ivd[] = {
 
 static uint32_t test_img_no_hazard_addi[] = {
     0x00100093, // 00 addi  x1, x0,  1
-    // 0x00200113, // 04 addi  x2, x0,  2
-    // 0x00300193, // 08 addi  x3, x0,  3
-    // 0x00400213, // 0c addi  x4, x0,  4
-    // 0x00500293, // 10 addi  x5, x0,  5
-    // 0x00600313, // 14 addi  x6, x0,  6
-    // 0x00700393, // 18 addi  x7, x0,  7
-    // 0x00800413, // 1c addi  x8, x0,  8
-    // 0x00900493, // 20 addi  x9, x0,  9
-    // 0x00a00513, // 24 addi x10, x0, 10
-    // 0x00b00593, // 28 addi x11, x0, 11
-    // 0x00c00613, // 2c addi x12, x0, 12
-    // 0x00d00693, // 30 addi x13, x0, 13
-    // 0x00e00713, // 34 addi x14, x0, 14
-    // 0x00f00793, // 38 addi x15, x0, 15
+    0x00200113, // 04 addi  x2, x0,  2
+    0x00300193, // 08 addi  x3, x0,  3
+    0x00400213, // 0c addi  x4, x0,  4
+    0x00500293, // 10 addi  x5, x0,  5
+    0x00600313, // 14 addi  x6, x0,  6
+    0x00700393, // 18 addi  x7, x0,  7
+    0x00800413, // 1c addi  x8, x0,  8
+    0x00900493, // 20 addi  x9, x0,  9
+    0x00a00513, // 24 addi x10, x0, 10
+    0x00b00593, // 28 addi x11, x0, 11
+    0x00c00613, // 2c addi x12, x0, 12
+    0x00d00693, // 30 addi x13, x0, 13
+    0x00e00713, // 34 addi x14, x0, 14
+    0x00f00793, // 38 addi x15, x0, 15
     GOOD_TRAP
 };
 
