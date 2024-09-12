@@ -15,15 +15,6 @@ object GPRWSel {
     // 2nd Select in LSU: exu result and mem
 }
 
-class GPRDebugger(addrLength : Int) extends BlackBox {
-    val io = IO(new Bundle {
-        val clk     = Input(Clock())
-        val waddr   = Input(UInt(32.W))
-        val wdata   = Input(UInt(32.W))
-        val wen     = Input(Bool())
-    })
-}
-
 class GPR(addrLength : Int) extends Module {
     val io = IO(new Bundle {
         val waddr   = Input (UInt(addrLength.W))
