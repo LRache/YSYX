@@ -28,7 +28,7 @@ class Alu extends Module {
         val tag = Input(Bool())
         val result = Output(UInt(32.W))
         val cmp = Output(Bool())
-        // val csr = Output(UInt(32.W))
+        val csr = Output(UInt(32.W))
     })
     val func3 = io.func3
     val sa = io.a.asSInt
@@ -67,11 +67,12 @@ class Alu extends Module {
     )
     io.cmp := Mux(func3(0), !t, t)
 
-    // io.csr := MuxLookup(func3(1,0), 0.U(32.W))(Seq (
-    //         1.U -> ub,
-    //         2.U -> or,
-    //         3.U -> (ua & ub)
-    // ))
+    io.csr := MuxLookup(func3(1,0), 0.U(32.W))(Seq (
+        0.U -> ua,
+        1.U -> ub,
+        2.U -> or,
+        3.U -> (ua & ub)
+    ))
 }
 
 object Alu extends App {
