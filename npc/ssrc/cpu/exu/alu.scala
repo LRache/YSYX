@@ -52,7 +52,7 @@ class Alu extends Module {
         AluFunc3. XOR -> xor,
         AluFunc3. SLL -> (ua << shift),
         AluFunc3.  SR -> Mux(tag, ua >> shift, (sa >> shift).asUInt),
-        AluFunc3. SLT -> lt.asUInt,
+        AluFunc3. SLT -> lt .asUInt,
         AluFunc3.SLTU -> ltu.asUInt,
     )
     io.res := MuxLookup(func3, 0.U(32.W))(resultTable)
@@ -72,7 +72,7 @@ class Alu extends Module {
         0.U -> ua,
         1.U -> ub,
         2.U -> or,
-        3.U -> (ua & ub)
+        3.U -> (ua & ~ub)
     ))
 }
 
