@@ -42,25 +42,26 @@ class EXU extends Module {
     alu.io.tag   := io.in.bits.exu_tag
     val alu_result = Mux(io.in.bits.alu_bsel, rs2, alu.io.res)
 
-    val cmp = Module(new Cmp())
-    cmp.io.a := rs3
-    cmp.io.b := rs4
-    cmp.io.func3 := func3
+    // val cmp = Module(new Cmp())
+    // cmp.io.a := rs3
+    // cmp.io.b := rs4
+    // cmp.io.func3 := func3
 
     io.out.bits.exu_result := alu_result
+    
     val jmp = (io.in.bits.is_branch && alu.io.cmp) || io.in.bits.is_jmp
     // val jmp = (io.in.bits.is_branch && cmp.io.res) || io.in.bits.is_jmp
     io.jmp := jmp
+    io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_result)
 
-    // when (io.in.valid) {
-    //     printf("0x%x %d %d %d %d %d %d\n", io.in.bits.dbg.pc, alu.io.c, alu.io.d, alu.io.c ^ alu.io.d, alu.io.cmp, alu.io.t, Mux(func3(0), !alu.io.t, alu.io.t))
-    // }
+    when (io.in.valid) {
+        printf("0x%x %d %d %d %d %d %d\n", io.in.bits.dbg.pc, rs2)
+    }
 
     // CSR
     io.csr_waddr := io.in.bits.csr_waddr
     io.csr_wen   := io.in.bits.csr_wen && io.in.valid
     io.csr_wdata := alu.io.csr
-    io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_result)
     
     io.out.bits.gpr_wdata := Mux(io.in.bits.gpr_ws(0), rs1, rs3)
 
