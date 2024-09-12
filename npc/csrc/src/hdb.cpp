@@ -127,7 +127,7 @@ void hdb_set_csr(uint32_t addr, word_t data) {
         case 8: cpu.mcause   = data; name = "mcause"; break;
         default: panic("Invalid CSR: %d at pc=0x%08x(inst=0x%08x)", addr, cpu.pc, cpu.inst);
     }
-    Log("Set csr [%s]=%x", name, data);
+    Log("Set csr %d[%s]=%x", addr, name, data);
 }
 
 void hdb_set_reg(uint32_t addr, word_t data) {
