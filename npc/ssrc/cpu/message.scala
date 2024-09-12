@@ -39,7 +39,7 @@ class IDUMessage extends Bundle {
 
     val csr_waddr  = Output(UInt(Config.CSRAddrLength.W))
     val csr_wen    = Output(Bool())
-    val csr_ws     = Output(Bool())
+    // val csr_ws     = Output(Bool())
     val cause_en   = Output(Bool())
 
     val is_brk     = Output(Bool())
