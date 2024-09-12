@@ -112,6 +112,8 @@ class IDU extends Module {
     
     // CSR
     io.out.bits.cause_en := false.B
+    io.out.bits.csr_ws := op.csrWSel
+    io.out.bits.csr_wen := op.csrWen
     io.out.bits.csr_waddr := MuxLookup(op.csrWAddrSel, 0.U(Config.CSRAddrLength.W))(Seq(
         CSRAddrSel.VEC.id.U -> CSRAddr.MTVEC,
         CSRAddrSel.EPC.id.U -> CSRAddr.MEPC,
