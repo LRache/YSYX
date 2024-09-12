@@ -100,23 +100,23 @@ class HCPU(instStart : BigInt) extends Module {
     io.slave := DontCare
 
     // Debugger
-    val debugger = Module(new Dbg())
-    debugger.io.clk   := clock
-    debugger.io.reset := reset
-    debugger.io.brk   := wbu.io.dbg.brk
-    debugger.io.ivd   := wbu.io.dbg.ivd
-    debugger.io.pc    := wbu.io.dbg.pc
-    debugger.io.inst  := wbu.io.dbg.inst
-    debugger.io.done  := wbu.io.dbg.done
-    debugger.io.gpr_waddr := gpr.io.waddr
-    debugger.io.gpr_wdata := gpr.io.wdata
-    debugger.io.gpr_wen   := gpr.io.wen
+    // val debugger = Module(new Dbg())
+    // debugger.io.clk   := clock
+    // debugger.io.reset := reset
+    // debugger.io.brk   := wbu.io.dbg.brk
+    // debugger.io.ivd   := wbu.io.dbg.ivd
+    // debugger.io.pc    := wbu.io.dbg.pc
+    // debugger.io.inst  := wbu.io.dbg.inst
+    // debugger.io.done  := wbu.io.dbg.done
+    // debugger.io.gpr_waddr := gpr.io.waddr
+    // debugger.io.gpr_wdata := gpr.io.wdata
+    // debugger.io.gpr_wen   := gpr.io.wen
 
-    val counter = Module(new PerfCounter())
-    counter.io.ifu_valid := ifu.io.out.valid
-    counter.io.icache <> icache.io.perf
-    counter.io.lsu <> lsu.io.perf
-    counter.io.reset := reset
+    // val counter = Module(new PerfCounter())
+    // counter.io.ifu_valid := ifu.io.out.valid
+    // counter.io.icache <> icache.io.perf
+    // counter.io.lsu <> lsu.io.perf
+    // counter.io.reset := reset
 }
 
 import circt.stage.ChiselStage
