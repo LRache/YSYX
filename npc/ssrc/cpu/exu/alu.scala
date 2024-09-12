@@ -22,11 +22,12 @@ object AluFunc3 {
 
 class Alu extends Module {
     val io = IO(new Bundle {
-        val a = Input(UInt(32.W))
-        val b = Input(UInt(32.W))
+        val a     = Input(UInt(32.W))
+        val b     = Input(UInt(32.W))
         val func3 = Input(UInt(3.W))
-        val tag = Input(Bool())
-        val result = Output(UInt(32.W))
+        val tag   = Input(Bool())
+        
+        val res = Output(UInt(32.W))
         val cmp = Output(Bool())
         val csr = Output(UInt(32.W))
     })
@@ -54,7 +55,7 @@ class Alu extends Module {
         AluFunc3. SLT -> lt.asUInt,
         AluFunc3.SLTU -> ltu.asUInt,
     )
-    io.result := MuxLookup(func3, 0.U(32.W))(resultTable)
+    io.res := MuxLookup(func3, 0.U(32.W))(resultTable)
 
     val t = Mux(
         func3(2),

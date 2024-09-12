@@ -111,10 +111,10 @@ void difftest::step() {
         // nemu_difftest_pc(&cpu.pc, DIFFTEST_TO_REF);
         nemu_difftest_skip(&nemu_skip, DIFFTEST_TO_REF);
     } else {
+        pc();
         regs();
         csr();
         mem();
-        pc();
     }
     difftestCount++;
 }

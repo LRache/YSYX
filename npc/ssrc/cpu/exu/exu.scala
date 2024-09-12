@@ -37,7 +37,7 @@ class EXU extends Module {
     alu.io.b := rs2
     alu.io.func3 := Mux(io.in.bits.alu_add, AluFunc3.ADD, func3)
     alu.io.tag := io.in.bits.exu_tag
-    val alu_result = Mux(io.in.bits.alu_bsel, rs2, alu.io.result)
+    val alu_result = Mux(io.in.bits.alu_bsel, rs2, alu.io.res)
 
     val cmp = Module(new Cmp())
     cmp.io.a := rs3
