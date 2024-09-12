@@ -53,7 +53,7 @@ void difftest::regs() {
 }
 
 #define csr_cmp(i, name) \
-    Assert(refCSR[i] == cpu.name , "Difftest FAILED\nDifferent CSR: %s ref=" FMT_WORD \
+    Assert(refCSR[i] == cpu.name , "Difftest FAILED\nDifferent CSR:\n%s ref=" FMT_WORD \
     ", dut=" FMT_WORD " at pc=" FMT_WORD "(inst=" FMT_WORD ")", \
     #name, refCSR[i], cpu.name, cpu.pc, cpu.inst);
 
