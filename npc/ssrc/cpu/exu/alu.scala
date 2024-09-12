@@ -27,6 +27,7 @@ class Alu extends Module {
         val func3 = Input(UInt(3.W))
         val tag = Input(Bool())
         val result = Output(UInt(32.W))
+        val cmp = Output(Bool())
     })
     val a = io.a
     val b = io.b
@@ -36,15 +37,18 @@ class Alu extends Module {
     val shift = b(4,0)
     val tag = io.tag
 
+    val slt = signed_a < signed_b
+    val sltu = io.a < io.b
+
     val resultTable = Seq(
-        AluFunc3. ADD -> (a + Mux(tag, neg_b, b)),
+        AluFunc3. ADD -> Mux(io.tag, io.a + io.b, io.a - io.b),
         AluFunc3. AND -> (io.a & io.b),
         AluFunc3.  OR -> (io.a | io.b),
         AluFunc3. XOR -> (io.a ^ io.b),
         AluFunc3. SLL -> (io.a << shift),
         AluFunc3.  SR -> Mux(tag, a >> shift, (signed_a >> shift).asUInt),
-        AluFunc3. SLT -> (signed_a < signed_b).asUInt,
-        AluFunc3.SLTU -> (io.a < io.b).asUInt,
+        AluFunc3. SLT -> slt.asUInt,
+        AluFunc3.SLTU -> sltu.asUInt,
     )
     io.result := MuxLookup(io.func3, 0.U(32.W))(resultTable)
 }
