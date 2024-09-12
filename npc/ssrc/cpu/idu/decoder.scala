@@ -105,7 +105,7 @@ object Encode {
     add_tag("GPRWSel",  2)
     add_tag("CSRWAddrSel", 2)
     add_tag("CSRWen",   1)
-    add_tag("CSRWSel",  1)
+    // add_tag("CSRWSel",  1)
     add_tag("IsBrk",    1)
     add_tag("IsIvd",    1)
 
@@ -295,8 +295,8 @@ object Encode {
         val csrWen = csrWAddrSel != CSRAddrSel.N
         m += ("CSRWen" -> toInt(csrWen))
 
-        val csrWSel = instType == InstType.EC
-        m += ("CSRWSel" -> toInt(csrWSel))
+        // val csrWSel = instType == InstType.EC
+        // m += ("CSRWSel" -> toInt(csrWSel))
 
         val isBrk = instType == InstType.EB
         m += ("IsBrk" -> toInt(isBrk))
@@ -350,7 +350,7 @@ class OP(bits : UInt) {
     val gprWen = Encode.get_tag("GPRWen", bits).asBool
     val gprWSel = Encode.get_tag("GPRWSel", bits)
     val csrWen = Encode.get_tag("CSRWen", bits).asBool
-    val csrWSel = Encode.get_tag("CSRWSel", bits).asBool
+    // val csrWSel = Encode.get_tag("CSRWSel", bits).asBool
     val isBrk = Encode.get_tag("IsBrk", bits).asBool
     val isIvd = Encode.get_tag("IsIvd", bits).asBool
 }

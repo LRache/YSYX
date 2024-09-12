@@ -115,15 +115,9 @@ class LSU extends Module {
 
     val done = (state === s_wait_mem_valid && memValid)
     val nothingToDo = state === s_idle && !(memRen || memWen)
-    // io. in.ready := ((!(io.in.bits.mem_ren || io.in.bits.mem_wen)) || (state === s_wait_mem_valid && memValid))
     io.in.ready  := (nothingToDo || done) && io.out.ready
-    // io.out.valid := ((!(io.in.bits.mem_ren || io.in.bits.mem_wen)) || (state === s_wait_mem_valid && memValid)) && io.in.valid
     io.out.valid := (nothingToDo || done) && io.in.valid
-
-    // when(done) {
-    //     printf("mem read: %d\n", io.mem.rdata)
-    // }
-
+    
     // Unused
     io.mem.awid    := 0.U
     io.mem.awlen   := 0.U
@@ -133,29 +127,12 @@ class LSU extends Module {
     io.mem.arlen   := 0.U
     io.mem.arburst := 0.U
 
-    // Passthrough
-    // io.out.bits.pc_sel     := io.in.bits.pc_sel
-    // io.out.bits.dnpc := io.in.bits.dnpc
-        
+    // Passthrough        
     io.out.bits.gpr_waddr  := io.in.bits.gpr_waddr
     io.out.bits.gpr_wen    := io.in.bits.gpr_wen
 
-    // io.out.bits.csr_waddr  := io.in.bits.csr_waddr
-    // io.out.bits.is_ecall   := io.in.bits.is_ecall
-    // io.out.bits.csr_wdata  := io.in.bits.csr_wdata
-
     io.out.bits.is_brk := io.in.bits.is_brk
     io.out.bits.is_ivd := io.in.bits.is_ivd
-
-    // when(io.in.valid) {
-    //     printf("in valid: LSU %d %d\n", io.in.bits.gpr_waddr, io.in.bits.mem_wen)
-    // }
-    // when(io.out.valid) {
-    //     printf("out valid: LSU %d\n", io.out.bits.rd)
-    // }
-    // when(io.in.valid && io.out.ready) {
-    //     printf("set: LSU %d\n", io.out.bits.rd)
-    // }
 
     // PERF
     io.perf.isWaiting := state === s_wait_mem_valid
