@@ -27,6 +27,7 @@ class Alu extends Module {
         val c     = Input(UInt(32.W))
         val d     = Input(UInt(32.W))
         val func3 = Input(UInt(3.W))
+        val addT  = Input(Bool())
         val tag   = Input(Bool())
         
         val res = Output(UInt(32.W))
@@ -46,6 +47,7 @@ class Alu extends Module {
     val shift = io.b(4,0)
     val tag = io.tag
 
+    val add = (sa + Mux(io.tag, -sb, sb)).asUInt
     val lt  = sc < sd
     val ltu = uc < ud
     val or  = ua | ub
@@ -53,7 +55,7 @@ class Alu extends Module {
     val eq  = !xor.orR
 
     val resultTable = Seq(
-        AluFunc3. ADD -> (sa + Mux(io.tag, -sb, sb)).asUInt,
+        AluFunc3. ADD -> add,
         AluFunc3. AND -> (ua & ub),
         AluFunc3.  OR -> or,
         AluFunc3. XOR -> xor,
@@ -62,7 +64,7 @@ class Alu extends Module {
         AluFunc3. SLT -> lt .asUInt,
         AluFunc3.SLTU -> ltu.asUInt,
     )
-    io.res := MuxLookup(func3, 0.U(32.W))(resultTable)
+    io.res := Mux(io.addT, add, MuxLookup(func3, 0.U(32.W))(resultTable))
 
     val t = Mux(
         func3(2),
