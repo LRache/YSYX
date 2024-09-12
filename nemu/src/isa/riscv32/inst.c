@@ -121,9 +121,9 @@ static int decode_exec(Decode *s) {
 
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10)));
   #ifdef TARGET_SHARE
-  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, NEMUINTR(s->pc, R(15)));
+  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, NEMUINTR(s->pc, 0));
   #else
-  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, NEMUINTR(s->pc, R(17)));
+  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, NEMUINTR(s->pc, 0));
   #endif
   INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw  , C, R(rd) = CSR(csr); if (!rs1_is_x0) CSR(csr) = src1;);
   INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs  , C, R(rd) = CSR(csr); CSR(csr) = src1 | CSR(csr););
