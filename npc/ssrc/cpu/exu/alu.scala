@@ -43,7 +43,7 @@ class Alu extends Module {
     val eq = !xor.orR
 
     val resultTable = Seq(
-        AluFunc3. ADD -> Mux(io.tag, sa + sb, sa - sb).asUInt,
+        AluFunc3. ADD -> (sa + Mux(io.tag, -sb, sb)).asUInt,
         AluFunc3. AND -> (ua & ub),
         AluFunc3.  OR -> (ua | ub),
         AluFunc3. XOR -> xor,
