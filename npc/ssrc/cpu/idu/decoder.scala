@@ -189,7 +189,7 @@ object Encode {
         ).contains(instType)
         m += ("CSel" -> toInt(cSel))
 
-        val dSel = instType == InstType.B
+        val dSel = instType == InstType.IA
         m += ("DSel" -> toInt(dSel))
             
         val gprRen1 = aSel == ASel.GPR1 || bSel == BSel.GPR1 || instType == InstType.B
