@@ -27,7 +27,7 @@ class Alu extends Module {
         val func3 = Input(UInt(3.W))
         val tag = Input(Bool())
         val result = Output(UInt(32.W))
-        val cmp = Output(Bool())
+        // val cmp = Output(Bool())
     })
     val a = io.a
     val b = io.b
