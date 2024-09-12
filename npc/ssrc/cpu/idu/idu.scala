@@ -112,7 +112,7 @@ class IDU extends Module {
     
     // CSR
     io.out.bits.cause_en := false.B
-    io.out.bits.csr_ws := op.csrWSel
+    // io.out.bits.csr_ws := op.csrWSel
     io.out.bits.csr_wen := op.csrWen
     io.out.bits.csr_waddr := MuxLookup(op.csrWAddrSel, 0.U(Config.CSRAddrLength.W))(Seq(
         CSRAddrSel.VEC.id.U -> CSRAddr.MTVEC,
@@ -127,10 +127,6 @@ class IDU extends Module {
     // TAG
     io.out.bits.is_ivd := op.isIvd && !reset.asBool
     io.out.bits.is_brk := op.isBrk
-
-    // Passthrough
-    // io.out.bits.pc := io.in.bits.pc
-    // io.out.bits.snpc := io.in.bits.snpc
 
     io. in.ready := io.out.ready && !io.raw
     io.out.valid := io.in.valid && !io.predict_failed && !io.raw
