@@ -114,7 +114,7 @@ void difftest::step() {
     } else {
         pc();
         regs();
-        csr();
+        // csr();
         mem();
     }
     difftestCount++;
