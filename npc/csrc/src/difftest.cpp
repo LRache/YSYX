@@ -9,7 +9,6 @@
 #ifdef DIFFTEST
 
 uint32_t refRegs[DIFFTEST_COMMON_REG_COUNT];
-uint32_t refCSR[DIFFTEST_CSR_COUNT];
 
 uint32_t difftestCount;
 uint32_t memAddr = 0;
@@ -58,6 +57,7 @@ void difftest::regs() {
     #name, refCSR[i], cpu.name, cpu.pc, cpu.inst);
 
 void difftest::csr() {
+    word_t refCSR[DIFFTEST_CSR_COUNT];
     nemu_difftest_csrcpy(refCSR, DIFFTEST_TO_DUT);
     csr_cmp(0, mcause);
     csr_cmp(1, mepc);
