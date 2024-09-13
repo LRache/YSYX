@@ -4,8 +4,10 @@ import chisel3._
 import chisel3.util.MuxLookup
 import chisel3.util.MuxCase
 
+import cpu.Config.CSRAddrLength
 import cpu.Config
 import chisel3.util.RegEnable
+import cpu.RegWIO
 
 object CSRWSel extends Enumeration {
     type CSRWSel = Value
@@ -34,9 +36,7 @@ class CSRDebugger extends BlackBox {
 
 class CSR extends Module {
     val io = IO(new Bundle {
-        val waddr   = Input (UInt(Config.CSRAddrLength.W))
-        val wen     = Input (Bool())
-        val wdata   = Input (UInt(32.W))
+        val w       = Flipped(new RegWIO(CSRAddrLength))
         val cause_en= Input (Bool())
         val cause   = Input (UInt(32.W))
         val raddr   = Input (UInt(4.W))
@@ -44,10 +44,10 @@ class CSR extends Module {
     })
 
     def gen_csr(addr : UInt, name : String) : UInt = {
-        RegEnable(io.wdata, Config.CSRInitValue(name).U(32.W), io.wen && io.waddr === addr)
+        RegEnable(io.w.wdata, Config.CSRInitValue(name).U(32.W), io.w.wen && io.w.waddr === addr)
     }
 
-    val mcause  = RegEnable(Mux(io.cause_en, io.cause, io.wdata) , 0.U(32.W), (io.waddr === CSRAddr.MCAUSE && io.wen) || io.cause_en)
+    val mcause  = RegEnable(Mux(io.cause_en, io.cause, io.w.wdata) , 0.U(32.W), (io.w.waddr === CSRAddr.MCAUSE && io.w.wen) || io.cause_en)
     
     val mepc    = gen_csr(CSRAddr.MEPC,     "mepc"      )
     val mscratch= gen_csr(CSRAddr.MSCRATCH, "mscratch"  )
@@ -65,18 +65,4 @@ class CSR extends Module {
         CSRAddr.MEPC    -> mepc,
         CSRAddr.MCAUSE  -> mcause
     ))
-
-    // if (Config.HasDBG) {
-    //     val debugger = Module(new CSRDebugger())
-    //     debugger.io.clk := clock
-    //     debugger.io.wen := io.wen
-    //     debugger.io.waddr := io.waddr
-    //     debugger.io.wdata := io.wdata
-
-    //     val debugger2 = Module(new CSRDebugger())
-    //     debugger2.io.clk := clock
-    //     debugger2.io.wen := io.cause_en
-    //     debugger2.io.waddr := CSRAddr.MCAUSE
-    //     debugger2.io.wdata := io.cause
-    // }
 }

@@ -7,6 +7,7 @@ import cpu.reg.CSRWSel
 import cpu.IDUMessage
 import cpu.EXUMessage
 import cpu.Config
+import cpu.RegWIO
 
 class EXU extends Module {
     val io = IO(new Bundle {
@@ -14,9 +15,7 @@ class EXU extends Module {
         val out = Decoupled(new EXUMessage)
 
         // CSR
-        val csr_waddr = Output(UInt(Config.CSRAddrLength.W))
-        val csr_wen   = Output(Bool())
-        val csr_wdata = Output(UInt(32.W))
+        val csr = new RegWIO(Config.CSRAddrLength)
         
         // Data Hazard
         val gpr_waddr = Output(UInt(Config.GPRAddrLength.W))
@@ -42,26 +41,16 @@ class EXU extends Module {
     alu.io.tag   := io.in.bits.exu_tag
     val alu_result = Mux(io.in.bits.alu_bsel, rs2, alu.io.res)
 
-    // val cmp = Module(new Cmp())
-    // cmp.io.a := rs3
-    // cmp.io.b := rs4
-    // cmp.io.func3 := func3
-
     io.out.bits.exu_result := alu_result
     
     val jmp = (io.in.bits.is_branch && alu.io.cmp) || io.in.bits.is_jmp
-    // val jmp = (io.in.bits.is_branch && cmp.io.res) || io.in.bits.is_jmp
     io.jmp := jmp
     io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_result)
 
-    // when (io.in.valid) {
-    //     printf("0x%x 0x%x\n", io.in.bits.dbg.pc, rs2)
-    // }
-
     // CSR
-    io.csr_waddr := io.in.bits.csr_waddr
-    io.csr_wen   := io.in.bits.csr_wen && io.in.valid
-    io.csr_wdata := alu.io.csr
+    io.csr.waddr := io.in.bits.csr_waddr
+    io.csr.wdata := alu.io.csr
+    io.csr.wen   := io.in.bits.csr_wen && io.in.valid
     
     io.out.bits.gpr_wdata := Mux(io.in.bits.gpr_ws(0), rs1, rs3)
 
@@ -82,5 +71,7 @@ class EXU extends Module {
     io.out.valid := io.in.valid
 
     // DEBUG
-    io.out.bits.dbg <> io.in.bits.dbg
+    io.out.bits.dbg.pc := io.in.bits.dbg.pc
+    io.out.bits.dbg.inst := io.in.bits.dbg.inst
+    io.out.bits.dbg.csr <> io.csr
 }

@@ -3,6 +3,17 @@ package cpu
 import chisel3._
 import cpu.Config
 
+class RegWIO (addrLength: Int) extends Bundle {
+    val waddr = Output(UInt(addrLength.W))
+    val wen   = Output(Bool())
+    val wdata = Output(UInt(32.W))
+}
+
+class RegRIO (addrLength: Int) extends Bundle {
+    val raddr = Output(UInt(addrLength.W))
+    val rdata = Input (UInt(32.W))
+}
+
 class IFUMessage extends Bundle {
     val inst = Output(UInt(32.W))
     val pc   = Output(UInt(32.W))
@@ -72,6 +83,7 @@ class EXUMessage extends Bundle {
     val dbg = new Bundle {
         val pc   = Output(UInt(32.W))
         val inst = Output(UInt(32.W))
+        val csr  = Output(new RegWIO(32))
     }
 }
 
@@ -88,5 +100,6 @@ class LSUMessage extends Bundle {
     val dbg = new Bundle {
         val pc   = Output(UInt(32.W))
         val inst = Output(UInt(32.W))
+        val csr  = Output(new RegWIO(32))
     }
 }

@@ -52,9 +52,7 @@ class HCPU(instStart : BigInt) extends Module {
     lsu.io.out <> wbu.io.in
 
     // EXU
-    csr.io.waddr := exu.io.csr_waddr
-    csr.io.wen   := exu.io.csr_wen
-    csr.io.wdata := exu.io.csr_wdata
+    csr.io.w <> exu.io.csr
 
     // IFU
     icache.io.mem <> arbiter.io.icache
@@ -88,8 +86,8 @@ class HCPU(instStart : BigInt) extends Module {
     idu.io.gpr_rdata1 := Mux(lsuRaw1, lsu.io.out.bits.gpr_wdata, gpr.io.rdata1)
     idu.io.gpr_rdata2 := Mux(lsuRaw2, lsu.io.out.bits.gpr_wdata, gpr.io.rdata2)
 
-    val exuRawCSR = is_raw(idu.io.csr_raddr, idu.io.csr_ren, exu.io.csr_waddr, exu.io.csr_wen, exu.io.out.valid)
-    idu.io.csr_rdata := Mux(exuRawCSR, exu.io.csr_wdata, csr.io.rdata)
+    val exuRawCSR = is_raw(idu.io.csr_raddr, idu.io.csr_ren, exu.io.csr.waddr, exu.io.csr.wen, exu.io.out.valid)
+    idu.io.csr_rdata := Mux(exuRawCSR, exu.io.csr.wdata, csr.io.rdata)
 
     // Branch predict
     val predict_failed = exu.io.jmp && exu.io.out.valid
