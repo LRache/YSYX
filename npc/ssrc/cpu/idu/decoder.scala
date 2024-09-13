@@ -44,14 +44,21 @@ object EXUTag extends Enumeration {
 }
 import EXUTag.EXUTag
 
-object ASel extends Enumeration {
-    val ASel = Value
-    val PC, GPR1, CSR, DontCare = Value
+object ASel {
+    val PC   = 0
+    val GPR1 = 1
+    val CSR  = 2
+    
+    val DontCare = 0
 }
 
-object BSel extends Enumeration {
-    val BSel = Value
-    val Imm, GPR1, GPR2, CSR = Value
+object BSel {
+    val Imm  = 0
+    val GPR1 = 1
+    val GPR2 = 2
+    val CSR  = 3
+    
+    val DontCare = 0
 }
 
 object CSRAddrSel extends Enumeration {
@@ -162,7 +169,7 @@ object Encode {
             case InstType.EC => ASel.  PC // mepc = pc, pc = mtvec
             case _ => ASel.DontCare // Don't Care
         }
-        m += ("ASel" -> aSel.id)
+        m += ("ASel" -> aSel)
 
         val bSel = instType match {
             case InstType. R => BSel.GPR2
@@ -178,12 +185,12 @@ object Encode {
             case InstType.CR => BSel.GPR1
             case InstType.CI => BSel. Imm
             case InstType.EC => BSel. CSR
-            case _ => BSel.Imm // Dont care
+            case _ => BSel.DontCare // Dont care
         }
-        m += ("BSel" -> bSel.id)
-        if (instType == InstType.EC) {
-            println(ASel.PC.id)
-        }
+        m += ("BSel" -> bSel)
+        // if (instType == InstType.EC) {
+        //     println(ASel.PC.id)
+        // }
 
         val cSel = Seq(
             InstType.IJ,
