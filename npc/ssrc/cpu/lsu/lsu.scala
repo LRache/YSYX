@@ -48,17 +48,17 @@ class LSU extends Module {
 
     // WRITE
     // WMASK
-    val wmask_b = MuxLookup(offset, 0.U)(Seq (
-        0.U -> 0b0001.U,
-        1.U -> 0b0010.U,
-        2.U -> 0b0100.U,
-        3.U -> 0b1000.U
+    val wmask_b = MuxLookup(offset, 0.U(4.W))(Seq (
+        0.U -> 0b0001.U(4.W),
+        1.U -> 0b0010.U(4.W),
+        2.U -> 0b0100.U(4.W),
+        3.U -> 0b1000.U(4.W)
     ))
-    val wmask_h = MuxLookup(offset, 0.U)(Seq (
-        0.U -> 0b0011.U,
-        2.U -> 0b1100.U
+    val wmask_h = MuxLookup(offset, 0.U(4.W))(Seq (
+        0.U -> 0b0011.U(4.W),
+        2.U -> 0b1100.U(4.W)
     ))
-    val wmask_w = 0b1111.U
+    val wmask_w = 0b1111.U(4.W)
     val wmask = Mux(memType(1), wmask_w, Mux(memType(0), wmask_h, wmask_b))
 
     // WDATA
