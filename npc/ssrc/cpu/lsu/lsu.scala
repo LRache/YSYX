@@ -2,6 +2,7 @@ package cpu.lsu
 
 import chisel3._
 import chisel3.util._
+import chisel3.util.experimental.decode._
 
 import cpu.EXUMessage
 import cpu.LSUMessage
@@ -48,11 +49,18 @@ class LSU extends Module {
 
     // WRITE
     // WMASK
-    val wmask_b = MuxLookup(offset, 0.U(4.W))(Seq (
-        0.U -> 0b0001.U(4.W),
-        1.U -> 0b0010.U(4.W),
-        2.U -> 0b0100.U(4.W),
-        3.U -> 0b1000.U(4.W)
+    // val wmask_b = MuxLookup(offset, 0.U(4.W))(Seq (
+    //     0.U -> 0b0001.U(4.W),
+    //     1.U -> 0b0010.U(4.W),
+    //     2.U -> 0b0100.U(4.W),
+    //     3.U -> 0b1000.U(4.W)
+    // ))
+    val wmask_b = decoder(offset, TruthTable(Map(
+            BitPat("b00") -> BitPat("b0001"),
+            BitPat("b01") -> BitPat("b0010"),
+            BitPat("b10") -> BitPat("b0100"),
+            BitPat("b11") -> BitPat("b1000"),
+        ), BitPat("b0")
     ))
     // val wmask_h = MuxLookup(offset, 0.U(4.W))(Seq (
     //     0.U -> 0b0011.U(4.W),
@@ -106,6 +114,7 @@ class LSU extends Module {
     //     2.U -> io.mem.rdata(31, 24)
     // ))
     val mem_rdata_1_h = Mux(offset(1), io.mem.rdata(31, 24), io.mem.rdata(15, 8))
+    
     val mem_rdata_1 = Mux(memType(1), origin_rdata_1, Mux(memType(0), mem_rdata_1_h, Mux(memType(2), 0.U(8.W), mem_rdata_sign)))
     val mem_rdata_2 = Mux(memType(1), origin_rdata_2, Mux(memType(2), 0.U(8.W), mem_rdata_sign))
     val mem_rdata_3 = Mux(memType(1), origin_rdata_3, Mux(memType(2), 0.U(8.W), mem_rdata_sign))
