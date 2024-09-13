@@ -485,7 +485,8 @@ object Decoder {
             ECALL   -> Encode.encode(InstType.EC, EXUTag.DontCare),
             MRET    -> Encode.encode(InstType.MR, EXUTag.DontCare)
         ),
-        default = Encode.encode(InstType.IVD, EXUTag.DontCare)
+        default = Encode.encode(InstType.IVD, EXUTag.DontCare),
+        sort = false
     )
 
     def decode(inst: UInt) : OP = {
