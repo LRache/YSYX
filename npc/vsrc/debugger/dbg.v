@@ -29,7 +29,7 @@ module Dbg(
         if (brk) env_break();
         if (ivd) invalid_inst();
         if (gpr_wen) set_gpr(gpr_waddr, gpr_wdata);
-        if (csr_wen) set_csr(csr_waddr, csr_wdata)
+        if (csr_wen) set_csr(csr_waddr, csr_wdata);
     end
 
     always @(reset)
