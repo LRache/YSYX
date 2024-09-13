@@ -182,7 +182,7 @@ object Encode {
         }
         m += ("BSel" -> bSel.id)
         if (instType == InstType.EC) {
-            println(BSel.CSR.id)
+            println(BSel.Imm.id)
         }
 
         val cSel = Seq(
