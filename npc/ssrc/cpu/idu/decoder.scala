@@ -165,7 +165,7 @@ object Encode {
             case InstType.UA => ASel.  PC
             case InstType.CR => ASel. CSR
             case InstType.CI => ASel. CSR
-            case InstType.MR => ASel. CSR // pc = mepc
+            // case InstType.MR => ASel. CSR // pc = mepc
             case InstType.EC => ASel.  PC // mepc = pc, pc = mtvec
             case _ => ASel.DontCare // Don't Care
         }
@@ -185,6 +185,7 @@ object Encode {
             case InstType.CR => BSel.GPR1
             case InstType.CI => BSel. Imm
             case InstType.EC => BSel. CSR
+            case InstType.MR => BSel. CSR
             case _ => BSel.DontCare // Dont care
         }
         m += ("BSel" -> bSel)
