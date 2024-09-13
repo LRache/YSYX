@@ -232,7 +232,7 @@ static uint32_t test_img_ecall[] = {
     0xfff00793, // 0c addi x15, x0, -1
     0x00000073, // 10 ecall
     0x00000000, // 14
-    0x30200073, // mret
+    // 0x30200073, // mret
     0x34201673, // csrrw x12, mcause, x0
 
     GOOD_TRAP
