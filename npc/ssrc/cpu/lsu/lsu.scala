@@ -60,7 +60,7 @@ class LSU extends Module {
             BitPat("b01") -> BitPat("b0010"),
             BitPat("b10") -> BitPat("b0100"),
             BitPat("b11") -> BitPat("b1000"),
-        ), BitPat("b0")
+        ), BitPat("b0000")
     ))
     // val wmask_h = MuxLookup(offset, 0.U(4.W))(Seq (
     //     0.U -> 0b0011.U(4.W),
