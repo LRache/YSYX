@@ -101,10 +101,11 @@ class LSU extends Module {
         2.U -> origin_rdata_2,
         3.U -> origin_rdata_3
     ))
-    val mem_rdata_1_h =MuxLookup(offset, 0.U)(Seq(
-        0.U -> io.mem.rdata(15,  8),
-        2.U -> io.mem.rdata(31, 24)
-    ))
+    // val mem_rdata_1_h =MuxLookup(offset, 0.U)(Seq(
+    //     0.U -> io.mem.rdata(15,  8),
+    //     2.U -> io.mem.rdata(31, 24)
+    // ))
+    val mem_rdata_1_h = Mux(offset(1), io.mem.rdata(31, 24), io.mem.rdata(15, 8))
     val mem_rdata_1 = Mux(memType(1), origin_rdata_1, Mux(memType(0), mem_rdata_1_h, Mux(memType(2), 0.U(8.W), mem_rdata_sign)))
     val mem_rdata_2 = Mux(memType(1), origin_rdata_2, Mux(memType(2), 0.U(8.W), mem_rdata_sign))
     val mem_rdata_3 = Mux(memType(1), origin_rdata_3, Mux(memType(2), 0.U(8.W), mem_rdata_sign))
