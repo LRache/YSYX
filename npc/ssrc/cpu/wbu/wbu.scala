@@ -17,12 +17,12 @@ class WBU extends Module {
         val gpr_wen   = Output(Bool())
 
         val dbg = new Bundle {
-            val brk = Output(Bool())
-            val ivd = Output(Bool())
-            val done  = Output(Bool())
-            val pc = Output(UInt(32.W))
+            val brk  = Output(Bool())
+            val ivd  = Output(Bool())
+            val done = Output(Bool())
+            val pc   = Output(UInt(32.W))
             val inst = Output(UInt(32.W))
-            val csr = new RegWIO(32)
+            val csr  = new RegWIO(32)
         }
     })
     io.gpr_waddr := io.in.bits.gpr_waddr
