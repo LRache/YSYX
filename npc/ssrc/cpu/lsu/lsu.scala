@@ -49,19 +49,19 @@ class LSU extends Module {
 
     // WRITE
     // WMASK
-    // val wmask_b = MuxLookup(offset, 0.U(4.W))(Seq (
-    //     0.U -> 0b0001.U(4.W),
-    //     1.U -> 0b0010.U(4.W),
-    //     2.U -> 0b0100.U(4.W),
-    //     3.U -> 0b1000.U(4.W)
-    // ))
-    val wmask_b = decoder(offset, TruthTable(Map(
-            BitPat("b00") -> BitPat("b0001"),
-            BitPat("b01") -> BitPat("b0010"),
-            BitPat("b10") -> BitPat("b0100"),
-            BitPat("b11") -> BitPat("b1000"),
-        ), BitPat("b0000")
+    val wmask_b = MuxLookup(offset, 0.U(4.W))(Seq (
+        0.U -> 0b0001.U(4.W),
+        1.U -> 0b0010.U(4.W),
+        2.U -> 0b0100.U(4.W),
+        3.U -> 0b1000.U(4.W)
     ))
+    // val wmask_b = decoder(offset, TruthTable(Map(
+    //         BitPat("b00") -> BitPat("b0001"),
+    //         BitPat("b01") -> BitPat("b0010"),
+    //         BitPat("b10") -> BitPat("b0100"),
+    //         BitPat("b11") -> BitPat("b1000"),
+    //     ), BitPat("b0000")
+    // ))
     // val wmask_h = MuxLookup(offset, 0.U(4.W))(Seq (
     //     0.U -> 0b0011.U(4.W),
     //     2.U -> 0b1100.U(4.W)
