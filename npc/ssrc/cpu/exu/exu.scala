@@ -73,5 +73,7 @@ class EXU extends Module {
     // DEBUG
     io.out.bits.dbg.pc := io.in.bits.dbg.pc
     io.out.bits.dbg.inst := io.in.bits.dbg.inst
-    io.out.bits.dbg.csr := Flipped(io.csr)
+    io.out.bits.dbg.csr.waddr := io.csr.waddr
+    io.out.bits.dbg.csr.wdata := io.csr.waddr
+    io.out.bits.dbg.csr.wen   := io.csr.wen
 }
