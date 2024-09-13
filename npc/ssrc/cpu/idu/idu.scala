@@ -96,7 +96,7 @@ class IDU extends Module {
     io.out.bits.rs4 := Mux(op.dSel, imm, io.gpr_rdata2)
 
     when (io.in.valid) {
-        printf("0x%x %d\n", io.in.bits.dbg.pc, io.csr_raddr)
+        printf("0x%x %d 0x%x\n", io.in.bits.dbg.pc, io.csr_raddr, io.csr_rdata)
     }
 
     io.out.bits.exu_tag := op.exuTag
