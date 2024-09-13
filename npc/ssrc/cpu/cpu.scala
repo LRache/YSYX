@@ -77,16 +77,41 @@ class HCPU(instStart : BigInt) extends Module {
     icache.io.fence := idu.io.fence_i
 
     // Data Hazard
-    def is_raw(raddr: UInt, ren: Bool, waddr: UInt, wen: Bool, valid: Bool) = (waddr === raddr && ren && waddr.orR && wen && valid)
-    val exuRaw1 = is_raw(idu.io.gpr_raddr1, idu.io.gpr_ren1, exu.io.out.bits.gpr_waddr, exu.io.out.bits.gpr_wen, exu.io.out.valid)
-    val exuRaw2 = is_raw(idu.io.gpr_raddr2, idu.io.gpr_ren2, exu.io.out.bits.gpr_waddr, exu.io.out.bits.gpr_wen, exu.io.out.valid)
-    val lsuRaw1 = is_raw(idu.io.gpr_raddr1, true.B, lsu.io.out.bits.gpr_waddr, lsu.io.out.bits.gpr_wen, lsu.io.out.valid)
-    val lsuRaw2 = is_raw(idu.io.gpr_raddr2, true.B, lsu.io.out.bits.gpr_waddr, lsu.io.out.bits.gpr_wen, lsu.io.out.valid)
+    def raw_con(wen: Bool, valid: Bool, waddr: UInt): Bool = {
+        wen && valid && waddr.orR
+    }
+    def is_raw(raddr: UInt, ren: Bool, waddr: UInt, con: Bool): Bool = {
+        waddr === raddr && ren && con
+    }
+    
+    val exuGPRWaddr = exu.io.out.bits.gpr_waddr
+    val exuRawGPRCon = raw_con(
+        exu.io.out.bits.gpr_wen,
+        exu.io.out.valid,
+        exuGPRWaddr
+    )
+    
+    val exuRaw1 = is_raw(idu.io.gpr_raddr1, idu.io.gpr_ren1, exuGPRWaddr, exuRawGPRCon)
+    val exuRaw2 = is_raw(idu.io.gpr_raddr2, idu.io.gpr_ren2, exuGPRWaddr, exuRawGPRCon)
+
+    val lsuGPRWaddr = lsu.io.out.bits.gpr_waddr
+    val lsuRawCon = raw_con(
+        lsu.io.out.bits.gpr_wen,
+        lsu.io.out.valid,
+        lsuGPRWaddr
+    )
+    val lsuRaw1 = is_raw(idu.io.gpr_raddr1, true.B, lsuGPRWaddr, lsuRawCon)
+    val lsuRaw2 = is_raw(idu.io.gpr_raddr2, true.B, lsuGPRWaddr, lsuRawCon)
     idu.io.raw := exuRaw1 || exuRaw2
     idu.io.gpr_rdata1 := Mux(lsuRaw1, lsu.io.out.bits.gpr_wdata, gpr.io.rdata1)
     idu.io.gpr_rdata2 := Mux(lsuRaw2, lsu.io.out.bits.gpr_wdata, gpr.io.rdata2)
 
-    val exuRawCSR = is_raw(idu.io.csr_raddr, idu.io.csr_ren, exu.io.csr.waddr, exu.io.csr.wen, exu.io.out.valid)
+    val exuRawCSRCon = raw_con(
+        exu.io.csr.wen,
+        exu.io.out.valid,
+        exuGPRWaddr
+    )
+    val exuRawCSR = is_raw(idu.io.csr_raddr, idu.io.csr_ren, exu.io.csr.waddr, exuRawCSRCon)
     idu.io.csr_rdata := Mux(exuRawCSR, exu.io.csr.wdata, csr.io.rdata)
 
     // Branch predict

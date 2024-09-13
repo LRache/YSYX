@@ -67,18 +67,21 @@ object CSRAddrSel extends Enumeration {
 }
 
 object Encode {
-    class Tag(s: Int, l: Int) {
+    class Tag(s: Int, l: Int, i: Int) {
         val start = s
         val length = l
         val mask = (1 << l) - 1
+        val index = i
     }
 
     val tags: Map[String, Tag] = Map()
     var current = 0
+    var count = 0
 
     def add_tag(name: String, length: Int) = {
-        tags += (name -> new Tag(current, length))
+        tags += (name -> new Tag(current, length, count))
         current += length
+        count += 1
     }
 
     // IDU
@@ -123,6 +126,14 @@ object Encode {
             bits |= (attr(name) & tag.mask).toLong << tag.start
         }
         return BitPat(bits.U(current.W))
+    }
+
+    def gen_list(attr: Map[String, Int]) : List[UInt] = {
+        var l: List[UInt] = List.fill(count)(UInt())
+        for ((name, tag) <- tags) {
+            l(tag.index) := attr(name).U
+        }
+        return l
     }
 
     def get_tag(name: String, bits: UInt) : UInt = {
@@ -486,7 +497,6 @@ object Decoder {
             MRET    -> Encode.encode(InstType.MR, EXUTag.DontCare)
         ),
         default = Encode.encode(InstType.IVD, EXUTag.DontCare),
-        sort = false
     )
 
     def decode(inst: UInt) : OP = {
