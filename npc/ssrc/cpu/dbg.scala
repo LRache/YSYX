@@ -12,7 +12,7 @@ class Dbg extends BlackBox {
         val inst  = Input(UInt(32.W))
         val done  = Input(Bool())
 
-        val gpr = new RegWIO(32)
-        val csr = new RegWIO(32)
+        val gpr = Flipped(new RegWIO(32))
+        val csr = Flipped(new RegWIO(32))
     })
 }
