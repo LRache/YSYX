@@ -74,6 +74,6 @@ class EXU extends Module {
     io.out.bits.dbg.pc := io.in.bits.dbg.pc
     io.out.bits.dbg.inst := io.in.bits.dbg.inst
     io.out.bits.dbg.csr.waddr := io.csr.waddr
-    io.out.bits.dbg.csr.wdata := io.csr.waddr
+    io.out.bits.dbg.csr.wdata := io.csr.wdata
     io.out.bits.dbg.csr.wen   := io.csr.wen
 }
