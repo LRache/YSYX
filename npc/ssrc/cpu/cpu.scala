@@ -110,6 +110,7 @@ class HCPU(instStart : BigInt) extends Module {
         debugger.io.gpr.waddr := gpr.io.waddr
         debugger.io.gpr.wen   := gpr.io.wen
         debugger.io.gpr.wdata := gpr.io.wdata
+        debugger.io.csr := wbu.io.dbg.csr
 
         val counter = Module(new PerfCounter())
         counter.io.ifu_valid := ifu.io.out.valid
