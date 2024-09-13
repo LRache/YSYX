@@ -181,6 +181,9 @@ object Encode {
             case _ => BSel.Imm // Dont care
         }
         m += ("BSel" -> bSel.id)
+        if (instType == InstType.EC) {
+            println(m("BSel"))
+        }
 
         val cSel = Seq(
             InstType.IJ,
