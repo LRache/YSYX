@@ -36,8 +36,8 @@ class WBU extends Module {
     io.dbg.ivd  := RegEnable(io.in.bits.is_ivd, io.in.valid)
     io.dbg.pc   := RegEnable(io.in.bits.dbg.pc, io.in.valid)
     io.dbg.inst := RegEnable(io.in.bits.dbg.inst, io.in.valid)
-    io.dbg.csr.waddr := RegNext(io.in.bits.dbg.csr.waddr, io.in.valid)
-    io.dbg.csr.wdata := RegNext(io.in.bits.dbg.csr.wdata, io.in.valid)
-    io.dbg.csr.wen   := RegNext(io.in.bits.dbg.csr.wen && io.in.valid)
+    io.dbg.csr.waddr := io.in.bits.dbg.csr.waddr
+    io.dbg.csr.wdata := io.in.bits.dbg.csr.wdata
+    io.dbg.csr.wen   := io.in.bits.dbg.csr.wen && io.in.valid
     io.dbg.done := RegNext(io.in.valid)
 }
