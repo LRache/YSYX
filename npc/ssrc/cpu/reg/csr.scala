@@ -66,17 +66,17 @@ class CSR extends Module {
         CSRAddr.MCAUSE  -> mcause
     ))
 
-    if (Config.HasDBG) {
-        val debugger = Module(new CSRDebugger())
-        debugger.io.clk := clock
-        debugger.io.wen := io.wen
-        debugger.io.waddr := io.waddr
-        debugger.io.wdata := io.wdata
+    // if (Config.HasDBG) {
+    //     val debugger = Module(new CSRDebugger())
+    //     debugger.io.clk := clock
+    //     debugger.io.wen := io.wen
+    //     debugger.io.waddr := io.waddr
+    //     debugger.io.wdata := io.wdata
 
-        val debugger2 = Module(new CSRDebugger())
-        debugger2.io.clk := clock
-        debugger2.io.wen := io.cause_en
-        debugger2.io.waddr := CSRAddr.MCAUSE
-        debugger2.io.wdata := io.cause
-    }
+    //     val debugger2 = Module(new CSRDebugger())
+    //     debugger2.io.clk := clock
+    //     debugger2.io.wen := io.cause_en
+    //     debugger2.io.waddr := CSRAddr.MCAUSE
+    //     debugger2.io.wdata := io.cause
+    // }
 }

@@ -130,8 +130,8 @@ void hdb_set_csr(uint32_t addr, word_t data) {
     // Log("Set csr %d[%s]=" FMT_WORD, addr, name, data);
 }
 
-void hdb_set_reg(uint32_t addr, word_t data) {
-    // Log("Set register x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
+void hdb_set_gpr(uint32_t addr, word_t data) {
+    // Log("Set gpr x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
     if (addr != 0) cpu.gpr[addr] = data;
 }
 
@@ -167,8 +167,8 @@ extern "C" {
         hdb_set_reg(addr, data);
     }
 
-    void set_csr(uint32_t addr, uint32_t data) {
-        hdb_set_csr(addr, data);
+    void set_gpr(uint32_t addr, uint32_t data) {
+        hdb_set_gpr(addr, data);
     }
 
     void update_reset(uint8_t reset) {}

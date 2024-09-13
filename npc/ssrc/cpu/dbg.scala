@@ -2,6 +2,12 @@ package cpu
 
 import chisel3._
 
+class RegDbgMessage extends Bundle {
+    val waddr = Input(UInt(32.W))
+    val wen   = Input(Bool())
+    val wdata = Input(UInt(32.W))
+}
+
 class Dbg extends BlackBox {
     val io = IO(new Bundle {
         val clk   = Input(Clock())
@@ -12,8 +18,7 @@ class Dbg extends BlackBox {
         val inst  = Input(UInt(32.W))
         val done  = Input(Bool())
 
-        val gpr_waddr = Input(UInt(32.W))
-        val gpr_wdata = Input(UInt(32.W))
-        val gpr_wen   = Input(Bool())
+        val gpr = new RegDbgMessage
+        val csr = new RegDbgMessage
     })
 }
