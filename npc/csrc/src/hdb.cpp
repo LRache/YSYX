@@ -127,11 +127,11 @@ void hdb_set_csr(uint32_t addr, word_t data) {
         case 7: cpu.mcause   = data; name = "mcause"; break;
         default: panic("Invalid CSR: %d at pc=0x%08x(inst=0x%08x)", addr, cpu.pc, cpu.inst);
     }
-    Log("Set csr %d[%s]=" FMT_WORD " at pc=" FMT_WORD, addr, name, data, cpu.pc);
+    // Log("Set csr %d[%s]=" FMT_WORD " at pc=" FMT_WORD, addr, name, data, cpu.pc);
 }
 
 void hdb_set_gpr(uint32_t addr, word_t data) {
-    Log("Set gpr x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
+    // Log("Set gpr x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
     if (addr != 0) cpu.gpr[addr] = data;
 }
 

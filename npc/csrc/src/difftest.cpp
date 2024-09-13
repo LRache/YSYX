@@ -100,7 +100,7 @@ void difftest::pc() {
 }
 
 void difftest::step() {
-    Log("Difftest at pc " FMT_WORD, cpu.pc);
+    // Log("Difftest at pc " FMT_WORD, cpu.pc);
     nemu_difftest_exec(1);
     bool nemu_skip;
     nemu_difftest_skip(&nemu_skip, DIFFTEST_TO_DUT);
