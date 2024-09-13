@@ -58,7 +58,7 @@ class LSU extends Module {
     //     0.U -> 0b0011.U(4.W),
     //     2.U -> 0b1100.U(4.W)
     // ))
-    val wmash_h = Mux(offset(1), 0b1100.U(4.W), 0b0011.U(4.W))
+    val wmask_h = Mux(offset(1), 0b1100.U(4.W), 0b0011.U(4.W))
     val wmask_w = 0b1111.U(4.W)
     val wmask = Mux(memType(1), wmask_w, Mux(memType(0), wmask_h, wmask_b))
 
