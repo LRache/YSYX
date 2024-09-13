@@ -32,10 +32,10 @@ class GPR(addrLength : Int) extends Module {
     val waddr  = io.waddr 
 
     val gpr = VecInit((0 to gprCount - 1).map(i => RegEnable(io.wdata, Config.GPRInitValue(i).U, (waddr === (i+1).U && io.wen))))
-    val t: Seq[(UInt, UInt)] = ((for (i <- 0 to gprCount - 1) yield((i+1).U, gpr(i))))
-    val table = t :+ (0.U, 0.U)
-    // io.rdata1 := Mux(raddr1.orR, MuxLookup(raddr1, 0.U)(table), 0.U)
-    // io.rdata2 := Mux(raddr2.orR, MuxLookup(raddr2, 0.U)(table), 0.U)
-    io.rdata1 := MuxLookup(raddr1, 0.U)(table)
-    io.rdata2 := MuxLookup(raddr2, 0.U)(table)
+    val table: Seq[(UInt, UInt)] = ((for (i <- 0 to gprCount - 1) yield((i+1).U, gpr(i))))
+    // val table = t :+ (0.U, 0.U)
+    io.rdata1 := Mux(raddr1.orR, MuxLookup(raddr1, 0.U)(table), 0.U)
+    io.rdata2 := Mux(raddr2.orR, MuxLookup(raddr2, 0.U)(table), 0.U)
+    // io.rdata1 := MuxLookup(raddr1, 0.U)(table)
+    // io.rdata2 := MuxLookup(raddr2, 0.U)(table)
 }
