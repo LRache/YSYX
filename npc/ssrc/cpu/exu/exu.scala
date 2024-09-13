@@ -54,9 +54,9 @@ class EXU extends Module {
     io.jmp := jmp
     io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_result)
 
-    when (io.in.valid) {
-        printf("0x%x 0x%x\n", io.in.bits.dbg.pc, rs2)
-    }
+    // when (io.in.valid) {
+    //     printf("0x%x 0x%x\n", io.in.bits.dbg.pc, rs2)
+    // }
 
     // CSR
     io.csr_waddr := io.in.bits.csr_waddr
