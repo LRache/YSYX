@@ -34,7 +34,7 @@ class IDU extends Module {
         val truthTable = TruthTable(Map(
             BitPat(0x100.U(12.W)) -> BitPat(CSRAddr.MVENDORID),
             BitPat(0x101.U(12.W)) -> BitPat(CSRAddr.MARCHID),
-            BitPat(0x180.U(12.W)) -> BitPat(CSRAddr.SATP),
+            // BitPat(0x180.U(12.W)) -> BitPat(CSRAddr.SATP),
             BitPat(0x300.U(12.W)) -> BitPat(CSRAddr.MSTATUS),
             BitPat(0x305.U(12.W)) -> BitPat(CSRAddr.MTVEC),
             BitPat(0x340.U(12.W)) -> BitPat(CSRAddr.MSCRATCH),
