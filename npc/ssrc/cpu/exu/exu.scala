@@ -42,24 +42,18 @@ class EXU extends Module {
     alu.io.tag   := io.in.bits.exu_tag
     val alu_result = Mux(io.in.bits.alu_bsel, rs2, alu.io.res)
 
-    // io.out.bits.exu_result := alu_result
+    io.out.bits.exu_result := alu_result
     
     val jmp = (io.in.bits.is_branch && alu.io.cmp) || io.in.bits.is_jmp
-    io.jmp := jmp && io.in.valid
+    io.jmp := jmp
     io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_result)
-    // io.dnpc := alu_result
 
     // CSR
     io.csr.waddr := io.in.bits.csr_waddr
     io.csr.wdata := alu.io.csr
     io.csr.wen   := io.in.bits.csr_wen && io.in.valid
     
-    io.out.bits.rs := MuxLookup(io.in.bits.gpr_ws, 0.U(32.W))(Seq (
-        GPRWSel. CSR.U -> rs1,
-        GPRWSel. EXU.U -> alu_result,
-        GPRWSel. MEM.U -> alu_result,
-        GPRWSel.SNPC.U -> rs3
-    ))
+    io.out.bits.gpr_wdata := Mux(io.in.bits.gpr_ws(0), rs1, rs3)
 
     // Passthrough
     io.out.bits.func3    := func3
