@@ -144,12 +144,12 @@ void hdb_invalid_inst() {
 
 void hdb_update_pc(uint32_t pc) {
     if (!cpu.running) return ;
-
+    
+    if (!(top.reset || in_flash(pc) || in_sdram(pc))) {
+        panic("Invalid PC = " FMT_WORD", lastPC = " FMT_WORD, pc, lastPC);
+    }
     lastPC = cpu.pc;
     cpu.pc = pc;
-    if (!(top.reset || in_flash(pc) || in_sdram(pc))) {
-        panic("Invalid PC = " FMT_WORD, pc);
-    }
     itrace::trace(pc);
     // Log("Exec to pc=" FMT_WORD " at clock=%lu", pc, cpu.clockCount);
 }
