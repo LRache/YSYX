@@ -26,8 +26,8 @@ class ICache (e: Int, s: Int) extends Module {
     val E = 1 << e
 
     val tag = io.io.raddr(31, s + b)
-    val groupIndex = Wire(UInt(s.W))
-    // val groupIndex = 0.U(0.W)
+    // val groupIndex = Wire(UInt(s.W))
+    val groupIndex = 0.U(0.W)
     if (s == 0) {
         groupIndex := 0.U(0.W)
     } else {

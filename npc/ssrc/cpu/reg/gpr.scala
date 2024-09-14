@@ -2,15 +2,17 @@ package cpu.reg
 
 import chisel3._
 import chisel3.util.MuxLookup
-import chisel3.util.RegEnable
 
 import cpu.Config
+import chisel3.util.RegEnable
 
 object GPRWSel {
     val SNPC = 0b00
     val CSR  = 0b01
     val EXU  = 0b10
     val MEM  = 0b11
+    // 1st Select in EXU: snpc and csr
+    // 2nd Select in LSU: exu result and mem
 }
 
 class GPR(addrLength : Int) extends Module {
