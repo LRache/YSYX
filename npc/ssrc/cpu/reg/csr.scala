@@ -53,12 +53,12 @@ class CSR extends Module {
     val mscratch= gen_csr(CSRAddr.MSCRATCH, "mscratch"  )
     val mstatus = gen_csr(CSRAddr.MSTATUS,  "mstatus"   )
     val mtvec   = gen_csr(CSRAddr.MTVEC,    "mtvec"     )
-    val satp    = gen_csr(CSRAddr.SATP,     "satp"      )
+    // val satp    = gen_csr(CSRAddr.SATP,     "satp"      )
 
     io.rdata := MuxLookup(io.raddr, 0.U(32.W))(Seq (
         CSRAddr.MVENDORID -> Config.VendorID.U(32.W),
         CSRAddr.MARCHID -> Config.ArchID.U(32.W),
-        CSRAddr.SATP    -> satp,
+        // CSRAddr.SATP    -> satp,
         CSRAddr.MSTATUS -> mstatus,
         CSRAddr.MTVEC   -> mtvec,
         CSRAddr.MSCRATCH-> mscratch,
