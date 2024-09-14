@@ -43,8 +43,8 @@ class LSU extends Module {
     ))
 
     // COMMON
-    // val addr = io.in.bits.exu_result
-    val addr = io.in.bits.rs
+    val addr = io.in.bits.exu_result
+    // val addr = io.in.bits.rs
     val offset = addr(1,0)
     val memType = io.in.bits.func3
     val size = Cat(0.B, memType(1, 0))
