@@ -66,6 +66,7 @@ class EXUMessage extends Bundle {
     val exu_result = Output(UInt(32.W))
 
     val gpr_wdata = Output(UInt(32.W))
+    val rs = Output(UInt(32.W))
 
     // Passthrough
     val func3   = Output(UInt(3.W))

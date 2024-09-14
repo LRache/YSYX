@@ -42,7 +42,8 @@ class LSU extends Module {
     ))
 
     // COMMON
-    val addr = io.in.bits.exu_result
+    // val addr = io.in.bits.exu_result
+    val addr = io.in.bits.rs
     val offset = addr(1,0)
     val memType = io.in.bits.func3
     val size = Cat(0.B, memType(1, 0))
@@ -121,7 +122,8 @@ class LSU extends Module {
     
     // val mem_rdata = RegInit(0.U(32.W))
     val mem_rdata = Cat(mem_rdata_3, mem_rdata_2, mem_rdata_1, mem_rdata_0)
-    val gpr_wdata = Mux(io.in.bits.gpr_ws(1), Mux(io.in.bits.gpr_ws(0), mem_rdata, io.in.bits.exu_result), io.in.bits.gpr_wdata)
+    // val gpr_wdata = Mux(io.in.bits.gpr_ws(1), Mux(io.in.bits.gpr_ws(0), mem_rdata, io.in.bits.exu_result), io.in.bits.gpr_wdata)
+    val gpr_wdata = Mux(io.in.bits.gpr_ws === GPRWSel.MEM.U, mem_rdata, io.in.bits.rs)
     io.out.bits.gpr_wdata := gpr_wdata
 
     val done = (state === s_wait_mem_valid && memValid)
