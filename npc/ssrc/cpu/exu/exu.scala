@@ -46,8 +46,8 @@ class EXU extends Module {
     
     val jmp = (io.in.bits.is_branch && alu.io.cmp) || io.in.bits.is_jmp
     io.jmp := jmp && io.in.valid
-    // io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_result)
-    io.dnpc := alu_result
+    io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_result)
+    // io.dnpc := alu_result
 
     // CSR
     io.csr.waddr := io.in.bits.csr_waddr
