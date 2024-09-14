@@ -9,7 +9,6 @@ import bus.AXI4IO
 
 class IFU(instStart : BigInt) extends Module {
     val io = IO(new Bundle {
-        // val in      = Flipped(Decoupled(new WBUMessage))
         val out     = Decoupled(new IFUMessage)
         val cache   = Flipped(new ICacheIO)
 

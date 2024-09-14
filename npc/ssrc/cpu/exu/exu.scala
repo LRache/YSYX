@@ -7,21 +7,23 @@ import cpu.reg.CSRWSel
 import cpu.IDUMessage
 import cpu.EXUMessage
 import cpu.Config
+import cpu.RegWIO
+import cpu.reg.GPRWSel
 
 class EXU extends Module {
     val io = IO(new Bundle {
         val in  = Flipped(Decoupled(new IDUMessage))
         val out = Decoupled(new EXUMessage)
+
+        // CSR
+        val csr = new RegWIO(Config.CSRAddrLength)
         
         // Data Hazard
-        val gpr_waddr = Output(UInt(Config.CSRAddrLength.W))
+        val gpr_waddr = Output(UInt(Config.GPRAddrLength.W))
 
         // Control Hazard
         val jmp = Output(Bool())
         val dnpc = Output(UInt(32.W))
-
-        val is_ecall = Output(Bool())
-        val csr_wdata2 = Output(UInt(32.W))
     })
     val func3 = io.in.bits.func3
     val rs1 = io.in.bits.rs1
@@ -33,34 +35,31 @@ class EXU extends Module {
     val alu = Module(new Alu())
     alu.io.a := rs1
     alu.io.b := rs2
-    alu.io.func3 := Mux(io.in.bits.alu_add, AluFunc3.ADD, func3)
-    alu.io.tag := io.in.bits.exu_tag
-    val alu_result = Mux(io.in.bits.alu_bsel, rs2, alu.io.result)
+    alu.io.c := rs3
+    alu.io.d := rs4
+    alu.io.func3 := func3
+    alu.io.addT  := io.in.bits.alu_add
+    alu.io.tag   := io.in.bits.exu_tag
+    val alu_result = Mux(io.in.bits.alu_bsel, rs2, alu.io.res)
 
-    val cmp = Module(new Cmp())
-    cmp.io.a := rs3
-    cmp.io.b := rs4
-    cmp.io.func3 := func3
-
-    io.out.bits.exu_result := alu_result
-    val jmp = (io.in.bits.is_branch && cmp.io.res) || io.in.bits.is_jmp
-    io.jmp := jmp
+    // io.out.bits.exu_result := alu_result
+    
+    val jmp = (io.in.bits.is_branch && alu.io.cmp) || io.in.bits.is_jmp
+    io.jmp := jmp && io.in.valid
+    io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_result)
+    // io.dnpc := alu_result
 
     // CSR
-    io.out.bits.csr_wdata := Mux(
-        io.in.bits.is_ecall,
-        rs1,
-        MuxLookup(func3(1,0), 0.U(32.W))(Seq (
-            1.U ->         rs2,
-            2.U -> (rs1 |  rs2),
-            3.U -> (rs1 & ~rs2)
-        ))
-    )
-    io.csr_wdata2 := rs1
-    io.is_ecall := io.in.bits.is_ecall && io.in.valid
-    io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_result)
+    io.csr.waddr := io.in.bits.csr_waddr
+    io.csr.wdata := alu.io.csr
+    io.csr.wen   := io.in.bits.csr_wen && io.in.valid
     
-    io.out.bits.gpr_wdata := Mux(io.in.bits.gpr_ws(0), rs1, rs3)
+    io.out.bits.rs := MuxLookup(io.in.bits.gpr_ws, 0.U(32.W))(Seq (
+        GPRWSel. CSR.U -> rs1,
+        GPRWSel. EXU.U -> alu_result,
+        GPRWSel. MEM.U -> alu_result,
+        GPRWSel.SNPC.U -> rs3
+    ))
 
     // Passthrough
     io.out.bits.func3    := func3
@@ -72,25 +71,16 @@ class EXU extends Module {
     io.out.bits.gpr_wen    := io.in.bits.gpr_wen
     io.out.bits.gpr_ws     := io.in.bits.gpr_ws
 
-    io.out.bits.csr_waddr  := io.in.bits.csr_waddr
-    io.out.bits.is_ecall   := io.in.bits.is_ecall
-
     io.out.bits.is_brk := io.in.bits.is_brk
     io.out.bits.is_ivd := io.in.bits.is_ivd
 
     io. in.ready := io.out.ready
     io.out.valid := io.in.valid
 
-    // when(io.out.valid) {
-    //     printf("out valid: EXU %d\n", io.out.bits.rd)
-    // }
-    // when(io.in.valid) {
-    //     printf("EXU 0x%x %d %d\n", io.out.bits.dbg.pc, io.out.bits.gpr_waddr, io.in.bits.gpr_rdata1)
-    // }
-    // when(io.out.valid && io.out.ready) {
-    //     printf("EXU [0x%x] %d 0x%x 0x%x 0x%x\n", io.in.bits.dbg.pc, io.out.bits.mem_ren, io.out.bits.exu_result, io.in.bits.imm, io.gpr_rdata1)
-    // }
-
     // DEBUG
-    io.out.bits.dbg <> io.in.bits.dbg
+    io.out.bits.dbg.pc := io.in.bits.dbg.pc
+    io.out.bits.dbg.inst := io.in.bits.dbg.inst
+    io.out.bits.dbg.csr.waddr := io.csr.waddr
+    io.out.bits.dbg.csr.wdata := io.csr.wdata
+    io.out.bits.dbg.csr.wen   := io.csr.wen
 }

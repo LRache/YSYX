@@ -23,37 +23,36 @@ class HCPU(instStart : BigInt) extends Module {
         val slave   = Flipped(new AXI4IO)
         val interrupt = Input(Bool())
     })
-
-    def pipeline_connect[T <: Data](prevOut: DecoupledIO[T], nextIn: DecoupledIO[T]) = {
-        prevOut.ready := nextIn.ready
-        nextIn.valid := RegEnable(prevOut.valid, false.B, nextIn.ready)
-        nextIn.bits := RegEnable(prevOut.bits, prevOut.valid && nextIn.ready)
-    }
     
     val gpr = Module(new GPR(Config.GPRAddrLength))
     val csr = Module(new CSR)
+    csr.io.cause_en := false.B
+    csr.io.cause := 0.U
 
     val icache = Module(new ICache(2, 0))
     
     val arbiter = Module(new AXI4Arbiter)
     arbiter.io.sel <> io.master
 
+    def pipeline_connect[T <: Data](prevOut: DecoupledIO[T], nextIn: DecoupledIO[T]) = {
+        prevOut.ready := nextIn.ready
+        nextIn.valid := RegEnable(prevOut.valid, false.B, nextIn.ready)
+        nextIn.bits := RegEnable(prevOut.bits, prevOut.valid && nextIn.ready)
+    }
+
     val ifu = Module(new IFU(instStart))
     val idu = Module(new IDU)
     val exu = Module(new EXU)
     val lsu = Module(new LSU)
     val wbu = Module(new WBU)
-    // pipeline_connect(ifu.io.out, idu.io.in, idu.io.out)
-    // ifu.io.out.ready := idu.io.in.ready
-    // idu.io.in.bits := ifu.io.out.bits
-    // idu.io.in.valid := RegEnable(ifu.io.out.valid, false.B, idu.io.in.ready)
     
     pipeline_connect(ifu.io.out, idu.io.in)
     pipeline_connect(idu.io.out, exu.io.in)
     pipeline_connect(exu.io.out, lsu.io.in)
-    // pipeline_connect(lsu.io.out, wbu.io.in)
-    // pipeline_connect(wbu.io.out, ifu.io.in)
     lsu.io.out <> wbu.io.in
+
+    // EXU
+    csr.io.w <> exu.io.csr
 
     // IFU
     icache.io.mem <> arbiter.io.icache
@@ -65,16 +64,11 @@ class HCPU(instStart : BigInt) extends Module {
     csr.io.raddr  := idu.io.csr_raddr
     idu.io.gpr_rdata1 := gpr.io.rdata1
     idu.io.gpr_rdata2 := gpr.io.rdata2
-    idu.io.csr_rdata  := csr.io.rdata
 
     // LSU
     lsu.io.mem <> arbiter.io.lsu
 
     // WBU
-    csr.io.waddr := wbu.io.csr_waddr1
-    csr.io.is_ecall := exu.io.is_ecall
-    csr.io.wdata1 := wbu.io.csr_wdata1
-    csr.io.wdata2 := exu.io.csr_wdata2
     gpr.io.waddr := wbu.io.gpr_waddr
     gpr.io.wdata := wbu.io.gpr_wdata
     gpr.io.wen   := wbu.io.gpr_wen
@@ -83,40 +77,72 @@ class HCPU(instStart : BigInt) extends Module {
     icache.io.fence := idu.io.fence_i
 
     // Data Hazard
-    def is_raw(raddr: UInt, ren: Bool, waddr: UInt, wen: Bool, valid: Bool) = (waddr === raddr && ren && waddr.orR && wen && valid)
-    val exuRaw1 = is_raw(idu.io.gpr_raddr1, idu.io.gpr_ren1, exu.io.out.bits.gpr_waddr, exu.io.out.bits.gpr_wen, exu.io.out.valid)
-    val exuRaw2 = is_raw(idu.io.gpr_raddr2, idu.io.gpr_ren2, exu.io.out.bits.gpr_waddr, exu.io.out.bits.gpr_wen, exu.io.out.valid)
-    val lsuRaw1 = is_raw(idu.io.gpr_raddr1, idu.io.gpr_ren1, lsu.io.out.bits.gpr_waddr, lsu.io.out.bits.gpr_wen, lsu.io.out.valid)
-    val lsuRaw2 = is_raw(idu.io.gpr_raddr2, idu.io.gpr_ren2, lsu.io.out.bits.gpr_waddr, lsu.io.out.bits.gpr_wen, lsu.io.out.valid)
+    def raw_con(wen: Bool, valid: Bool, waddr: UInt): Bool = {
+        wen && valid && waddr.orR
+    }
+    def is_raw(raddr: UInt, ren: Bool, waddr: UInt, con: Bool): Bool = {
+        waddr === raddr && ren && con
+    }
+    
+    val exuGPRWaddr = exu.io.out.bits.gpr_waddr
+    val exuRawGPRCon = raw_con(
+        exu.io.out.bits.gpr_wen,
+        exu.io.out.valid,
+        exuGPRWaddr
+    )
+    
+    val exuRaw1 = is_raw(idu.io.gpr_raddr1, idu.io.gpr_ren1, exuGPRWaddr, exuRawGPRCon)
+    val exuRaw2 = is_raw(idu.io.gpr_raddr2, idu.io.gpr_ren2, exuGPRWaddr, exuRawGPRCon)
+
+    val lsuGPRWaddr = lsu.io.out.bits.gpr_waddr
+    val lsuRawCon = raw_con(
+        lsu.io.out.bits.gpr_wen,
+        lsu.io.out.valid,
+        lsuGPRWaddr
+    )
+    val lsuRaw1 = is_raw(idu.io.gpr_raddr1, true.B, lsuGPRWaddr, lsuRawCon)
+    val lsuRaw2 = is_raw(idu.io.gpr_raddr2, true.B, lsuGPRWaddr, lsuRawCon)
     idu.io.raw := exuRaw1 || exuRaw2
     idu.io.gpr_rdata1 := Mux(lsuRaw1, lsu.io.out.bits.gpr_wdata, gpr.io.rdata1)
     idu.io.gpr_rdata2 := Mux(lsuRaw2, lsu.io.out.bits.gpr_wdata, gpr.io.rdata2)
 
+    val exuRawCSRCon = raw_con(
+        exu.io.csr.wen,
+        exu.io.out.valid,
+        exuGPRWaddr
+    )
+    val exuRawCSR = is_raw(idu.io.csr_raddr, idu.io.csr_ren, exu.io.csr.waddr, exuRawCSRCon)
+    idu.io.csr_rdata := Mux(exuRawCSR, exu.io.csr.wdata, csr.io.rdata)
+
     // Branch predict
-    val predict_failed = exu.io.jmp && exu.io.out.valid
+    val predict_failed = exu.io.jmp
     ifu.io.predict_failed := predict_failed
     idu.io.predict_failed := predict_failed
     ifu.io.dnpc := RegEnable(exu.io.dnpc, exu.io.out.valid)
 
     io.slave := DontCare
 
-    val debugger = Module(new Dbg())
-    debugger.io.clk   := clock
-    debugger.io.reset := reset
-    debugger.io.brk   := wbu.io.dbg.brk
-    debugger.io.ivd   := wbu.io.dbg.ivd
-    debugger.io.pc    := wbu.io.dbg.pc
-    debugger.io.inst  := wbu.io.dbg.inst
-    debugger.io.done  := wbu.io.dbg.done
-    debugger.io.gpr_waddr := gpr.io.waddr
-    debugger.io.gpr_wdata := gpr.io.wdata
-    debugger.io.gpr_wen   := gpr.io.wen
+    // Debugger
+    if (Config.HasDBG) {
+        val debugger = Module(new Dbg())
+        debugger.io.clk   := clock
+        debugger.io.reset := reset
+        debugger.io.brk   := wbu.io.dbg.brk
+        debugger.io.ivd   := wbu.io.dbg.ivd
+        debugger.io.pc    := wbu.io.dbg.pc
+        debugger.io.inst  := wbu.io.dbg.inst
+        debugger.io.done  := wbu.io.dbg.done
+        debugger.io.gpr.waddr := gpr.io.waddr
+        debugger.io.gpr.wen   := gpr.io.wen
+        debugger.io.gpr.wdata := gpr.io.wdata
+        debugger.io.csr := wbu.io.dbg.csr
 
-    val counter = Module(new PerfCounter())
-    counter.io.ifu_valid := ifu.io.out.valid
-    counter.io.icache <> icache.io.perf
-    counter.io.lsu <> lsu.io.perf
-    counter.io.reset := reset
+        val counter = Module(new PerfCounter())
+        counter.io.ifu_valid := ifu.io.out.valid
+        counter.io.icache <> icache.io.perf
+        counter.io.lsu <> lsu.io.perf
+        counter.io.reset := reset
+    }
 }
 
 import circt.stage.ChiselStage

@@ -6,6 +6,7 @@ import chisel3.util._
 import cpu.reg.GPRWSel
 import cpu.LSUMessage
 import cpu.reg.CSRAddr
+import cpu.RegWIO
 
 class WBU extends Module {
     val io = IO(new Bundle {
@@ -15,25 +16,19 @@ class WBU extends Module {
         val gpr_wdata = Output(UInt(32.W))
         val gpr_wen   = Output(Bool())
 
-        val csr_waddr1 = Output(UInt(12.W))
-        val is_ecall = Output(Bool())
-        val csr_wdata1 = Output(UInt(32.W))
-
         val dbg = new Bundle {
-            val brk = Output(Bool())
-            val ivd = Output(Bool())
-            val done  = Output(Bool())
-            val pc = Output(UInt(32.W))
+            val brk  = Output(Bool())
+            val ivd  = Output(Bool())
+            val done = Output(Bool())
+            val pc   = Output(UInt(32.W))
             val inst = Output(UInt(32.W))
+            val csr  = new RegWIO(32)
         }
     })
     io.gpr_waddr := io.in.bits.gpr_waddr
     io.gpr_wdata := io.in.bits.gpr_wdata
     io.gpr_wen := io.in.bits.gpr_wen && io.in.valid
 
-    io.csr_waddr1 := Mux(io.in.valid, io.in.bits.csr_waddr, CSRAddr.NONE)
-    io.csr_wdata1 := io.in.bits.csr_wdata
-    io.is_ecall := io.in.bits.is_ecall && io.in.valid
     io.in.ready := true.B
     
     // DEBUG
@@ -41,5 +36,8 @@ class WBU extends Module {
     io.dbg.ivd  := RegEnable(io.in.bits.is_ivd, io.in.valid)
     io.dbg.pc   := RegEnable(io.in.bits.dbg.pc, io.in.valid)
     io.dbg.inst := RegEnable(io.in.bits.dbg.inst, io.in.valid)
+    io.dbg.csr.waddr := io.in.bits.dbg.csr.waddr
+    io.dbg.csr.wdata := io.in.bits.dbg.csr.wdata
+    io.dbg.csr.wen   := io.in.bits.dbg.csr.wen && io.in.valid
     io.dbg.done := RegNext(io.in.valid)
 }

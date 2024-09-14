@@ -9,7 +9,6 @@
 #ifdef DIFFTEST
 
 uint32_t refRegs[DIFFTEST_COMMON_REG_COUNT];
-uint32_t refCSR[DIFFTEST_CSR_COUNT];
 
 uint32_t difftestCount;
 uint32_t memAddr = 0;
@@ -53,11 +52,12 @@ void difftest::regs() {
 }
 
 #define csr_cmp(i, name) \
-    Assert(refCSR[i] == cpu.name , "Difftest FAILED\nDifferent CSR: %s ref=" FMT_WORD \
+    Assert(refCSR[i] == cpu.name , "Difftest FAILED\nDifferent CSR:\n%s ref=" FMT_WORD \
     ", dut=" FMT_WORD " at pc=" FMT_WORD "(inst=" FMT_WORD ")", \
     #name, refCSR[i], cpu.name, cpu.pc, cpu.inst);
 
 void difftest::csr() {
+    word_t refCSR[DIFFTEST_CSR_COUNT];
     nemu_difftest_csrcpy(refCSR, DIFFTEST_TO_DUT);
     csr_cmp(0, mcause);
     csr_cmp(1, mepc);
@@ -100,6 +100,7 @@ void difftest::pc() {
 }
 
 void difftest::step() {
+    // Log("Difftest at pc " FMT_WORD, cpu.pc);
     nemu_difftest_exec(1);
     bool nemu_skip;
     nemu_difftest_skip(&nemu_skip, DIFFTEST_TO_DUT);
@@ -111,10 +112,10 @@ void difftest::step() {
         // nemu_difftest_pc(&cpu.pc, DIFFTEST_TO_REF);
         nemu_difftest_skip(&nemu_skip, DIFFTEST_TO_REF);
     } else {
+        pc();
         regs();
         csr();
         mem();
-        pc();
     }
     difftestCount++;
 }

@@ -42,7 +42,7 @@ Context* __am_irq_handle(Context *c) {
   __am_get_cur_as(c);
   if (user_handler) {
     Event ev = {0};
-    switch (c->mcause) {
+    switch (c->gpr[15]) {
       case IRQ_YIELD: 
         ev.event = EVENT_YIELD;     break;
       case IRQ_TIMER: 

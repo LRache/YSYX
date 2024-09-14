@@ -2,6 +2,7 @@ package cpu.idu
 
 import chisel3._
 import chisel3.util._
+import chisel3.util.experimental.decode._
 
 import cpu.Config
 import cpu.reg.CSRAddr
@@ -30,7 +31,18 @@ class IDU extends Module {
         val predict_failed = Input(Bool())
     })
     def csr_addr_translate(origin: UInt): UInt = {
-        MuxLookup(origin, CSRAddr.NONE) (Seq(
+        // val truthTable = TruthTable(Map(
+        //     BitPat(0x100.U(12.W)) -> BitPat(CSRAddr.MVENDORID),
+        //     BitPat(0x101.U(12.W)) -> BitPat(CSRAddr.MARCHID),
+        //     BitPat(0x180.U(12.W)) -> BitPat(CSRAddr.SATP),
+        //     BitPat(0x300.U(12.W)) -> BitPat(CSRAddr.MSTATUS),
+        //     BitPat(0x305.U(12.W)) -> BitPat(CSRAddr.MTVEC),
+        //     BitPat(0x340.U(12.W)) -> BitPat(CSRAddr.MSCRATCH),
+        //     BitPat(0x341.U(12.W)) -> BitPat(CSRAddr.MEPC),
+        //     BitPat(0x342.U(12.W)) -> BitPat(CSRAddr.MCAUSE) 
+        // ), BitPat(0.U(4.W)))
+        // decoder(origin, truthTable)
+        MuxLookup(origin, 0.U(Config.CSRAddrLength.W)) (Seq(
             0x100.U(12.W) -> CSRAddr.MVENDORID,
             0x101.U(12.W) -> CSRAddr.MARCHID,
             0x180.U(12.W) -> CSRAddr.SATP,
@@ -48,14 +60,11 @@ class IDU extends Module {
     // EXU
     io.out.bits.func3 := inst(14, 12)
 
-    val is_ecall = op.isEcall
     io.gpr_raddr1 := io.in.bits.inst(15 + Config.GPRAddrLength - 1, 15)
-    io.gpr_raddr2 := Mux(is_ecall, 15.U(5.W), io.in.bits.inst(20 + Config.GPRAddrLength - 1, 20))
+    io.gpr_raddr2 := io.in.bits.inst(20 + Config.GPRAddrLength - 1, 20)
     io.gpr_ren1 := op.gprRen1
     io.gpr_ren2 := op.gprRen2
-    io.csr_raddr := MuxLookup(op.csrRAddrSel, 0.U(12.W))(
-        Seq(
-          CSRAddrSel.N.id.U   -> CSRAddr.NONE,
+    io.csr_raddr := MuxLookup(op.csrRAddrSel, 0.U(12.W))(Seq(
           CSRAddrSel.VEC.id.U -> CSRAddr.MTVEC,
           CSRAddrSel.EPC.id.U -> CSRAddr.MEPC,
           CSRAddrSel.Ins.id.U -> csr_addr_translate(inst(31, 20))
@@ -82,20 +91,25 @@ class IDU extends Module {
     )
     
     val rs1 = MuxLookup(op.aSel, 0.U(32.W))(Seq(
-        ASel.  PC.id.U -> io.in.bits.pc,
-        ASel.GPR1.id.U -> io.gpr_rdata1,
-        ASel. CSR.id.U -> io.csr_rdata,
+        ASel.  PC.U -> io.in.bits.pc,
+        ASel.GPR1.U -> io.gpr_rdata1,
+        ASel. CSR.U -> io.csr_rdata,
     ))
     val rs2 = MuxLookup(op.bSel, 0.U(32.W))(Seq(
-        BSel.GPR1.id.U -> io.gpr_rdata1,
-        BSel.GPR2.id.U -> io.gpr_rdata2,
-        BSel. Imm.id.U -> imm,
-        BSel. CSR.id.U -> io.csr_rdata
+        BSel.GPR1.U -> io.gpr_rdata1,
+        BSel.GPR2.U -> io.gpr_rdata2,
+        BSel. Imm.U -> imm,
+        BSel. CSR.U -> io.csr_rdata
     ))
     io.out.bits.rs1 := rs1
     io.out.bits.rs2 := rs2
     io.out.bits.rs3 := Mux(op.cSel, io.in.bits.snpc, io.gpr_rdata1)
-    io.out.bits.rs4 := io.gpr_rdata2
+    // io.out.bits.rs4 := io.gpr_rdata2
+    io.out.bits.rs4 := Mux(op.dSel, imm, io.gpr_rdata2)
+
+    // when (io.in.valid) {
+    //     printf("0x%x %d 0x%x %d\n", io.in.bits.dbg.pc, io.csr_raddr, io.csr_rdata, op.bSel)
+    // }
 
     io.out.bits.exu_tag := op.exuTag
     io.out.bits.alu_bsel := op.aluBSel
@@ -114,9 +128,10 @@ class IDU extends Module {
     io.out.bits.gpr_wen := op.gprWen
     
     // CSR
-    io.out.bits.is_ecall := is_ecall
+    io.out.bits.cause_en := false.B
+    // io.out.bits.csr_ws := op.csrWSel
+    io.out.bits.csr_wen := op.csrWen
     io.out.bits.csr_waddr := MuxLookup(op.csrWAddrSel, 0.U(Config.CSRAddrLength.W))(Seq(
-        CSRAddrSel.  N.id.U -> CSRAddr.NONE,
         CSRAddrSel.VEC.id.U -> CSRAddr.MTVEC,
         CSRAddrSel.EPC.id.U -> CSRAddr.MEPC,
         CSRAddrSel.Ins.id.U -> csr_addr_translate(io.in.bits.inst(31, 20))
@@ -129,10 +144,6 @@ class IDU extends Module {
     // TAG
     io.out.bits.is_ivd := op.isIvd && !reset.asBool
     io.out.bits.is_brk := op.isBrk
-
-    // Passthrough
-    // io.out.bits.pc := io.in.bits.pc
-    // io.out.bits.snpc := io.in.bits.snpc
 
     io. in.ready := io.out.ready && !io.raw
     io.out.valid := io.in.valid && !io.predict_failed && !io.raw

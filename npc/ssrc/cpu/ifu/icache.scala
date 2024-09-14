@@ -27,6 +27,7 @@ class ICache (e: Int, s: Int) extends Module {
 
     val tag = io.io.raddr(31, s + b)
     val groupIndex = Wire(UInt(s.W))
+    // val groupIndex = 0.U(0.W)
     if (s == 0) {
         groupIndex := 0.U(0.W)
     } else {
@@ -86,7 +87,6 @@ class ICache (e: Int, s: Int) extends Module {
     
     io.mem.rready := true.B
     io.mem.arlen  := 3.U // BURST 4
-    // io.mem.arlen  := 0.U // BURST 1
     io.mem.arsize := 2.U // 4 bytes per burst
     io.mem.arburst := 1.U // INCR
 

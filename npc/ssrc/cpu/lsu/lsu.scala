@@ -2,6 +2,7 @@ package cpu.lsu
 
 import chisel3._
 import chisel3.util._
+import chisel3.util.experimental.decode._
 
 import cpu.EXUMessage
 import cpu.LSUMessage
@@ -24,9 +25,6 @@ class LSU extends Module {
         val out = Decoupled(new LSUMessage)
 
         val mem = new AXI4IO
-        // val gpr_waddr = Output(UInt(32.W))
-        // val gpr_wdata = Output(UInt(32.W))
-        // val gpr_wen   = Output(Bool())
         
         val perf = new LSUPerfCounter
     })
@@ -44,24 +42,33 @@ class LSU extends Module {
     ))
 
     // COMMON
-    val addr = io.in.bits.exu_result
+    // val addr = io.in.bits.exu_result
+    val addr = io.in.bits.rs
     val offset = addr(1,0)
     val memType = io.in.bits.func3
     val size = Cat(0.B, memType(1, 0))
 
     // WRITE
     // WMASK
-    val wmask_b = MuxLookup(offset, 0.U)(Seq (
-        0.U -> 0b0001.U,
-        1.U -> 0b0010.U,
-        2.U -> 0b0100.U,
-        3.U -> 0b1000.U
+    val wmask_b = MuxLookup(offset, 0.U(4.W))(Seq (
+        0.U -> 0b0001.U(4.W),
+        1.U -> 0b0010.U(4.W),
+        2.U -> 0b0100.U(4.W),
+        3.U -> 0b1000.U(4.W)
     ))
-    val wmask_h = MuxLookup(offset, 0.U)(Seq (
-        0.U -> 0b0011.U,
-        2.U -> 0b1100.U
-    ))
-    val wmask_w = 0b1111.U
+    // val wmask_b = decoder(offset, TruthTable(Map(
+    //         BitPat("b00") -> BitPat("b0001"),
+    //         BitPat("b01") -> BitPat("b0010"),
+    //         BitPat("b10") -> BitPat("b0100"),
+    //         BitPat("b11") -> BitPat("b1000"),
+    //     ), BitPat("b0000")
+    // ))
+    // val wmask_h = MuxLookup(offset, 0.U(4.W))(Seq (
+    //     0.U -> 0b0011.U(4.W),
+    //     2.U -> 0b1100.U(4.W)
+    // ))
+    val wmask_h = Mux(offset(1), 0b1100.U(4.W), 0b0011.U(4.W))
+    val wmask_w = 0b1111.U(4.W)
     val wmask = Mux(memType(1), wmask_w, Mux(memType(0), wmask_h, wmask_b))
 
     // WDATA
@@ -103,30 +110,27 @@ class LSU extends Module {
         2.U -> origin_rdata_2,
         3.U -> origin_rdata_3
     ))
-    val mem_rdata_1_h =MuxLookup(offset, 0.U)(Seq(
-        0.U -> io.mem.rdata(15,  8),
-        2.U -> io.mem.rdata(31, 24)
-    ))
+    // val mem_rdata_1_h =MuxLookup(offset, 0.U)(Seq(
+    //     0.U -> io.mem.rdata(15,  8),
+    //     2.U -> io.mem.rdata(31, 24)
+    // ))
+    val mem_rdata_1_h = Mux(offset(1), io.mem.rdata(31, 24), io.mem.rdata(15, 8))
+    
     val mem_rdata_1 = Mux(memType(1), origin_rdata_1, Mux(memType(0), mem_rdata_1_h, Mux(memType(2), 0.U(8.W), mem_rdata_sign)))
     val mem_rdata_2 = Mux(memType(1), origin_rdata_2, Mux(memType(2), 0.U(8.W), mem_rdata_sign))
     val mem_rdata_3 = Mux(memType(1), origin_rdata_3, Mux(memType(2), 0.U(8.W), mem_rdata_sign))
     
     // val mem_rdata = RegInit(0.U(32.W))
     val mem_rdata = Cat(mem_rdata_3, mem_rdata_2, mem_rdata_1, mem_rdata_0)
-    val gpr_wdata = Mux(io.in.bits.gpr_ws(1), Mux(io.in.bits.gpr_ws(0), mem_rdata, io.in.bits.exu_result), io.in.bits.gpr_wdata)
+    // val gpr_wdata = Mux(io.in.bits.gpr_ws(1), Mux(io.in.bits.gpr_ws(0), mem_rdata, io.in.bits.exu_result), io.in.bits.gpr_wdata)
+    val gpr_wdata = Mux(io.in.bits.gpr_ws === GPRWSel.MEM.U, mem_rdata, io.in.bits.rs)
     io.out.bits.gpr_wdata := gpr_wdata
 
     val done = (state === s_wait_mem_valid && memValid)
     val nothingToDo = state === s_idle && !(memRen || memWen)
-    // io. in.ready := ((!(io.in.bits.mem_ren || io.in.bits.mem_wen)) || (state === s_wait_mem_valid && memValid))
     io.in.ready  := (nothingToDo || done) && io.out.ready
-    // io.out.valid := ((!(io.in.bits.mem_ren || io.in.bits.mem_wen)) || (state === s_wait_mem_valid && memValid)) && io.in.valid
     io.out.valid := (nothingToDo || done) && io.in.valid
-
-    // when(done) {
-    //     printf("mem read: %d\n", io.mem.rdata)
-    // }
-
+    
     // Unused
     io.mem.awid    := 0.U
     io.mem.awlen   := 0.U
@@ -136,29 +140,12 @@ class LSU extends Module {
     io.mem.arlen   := 0.U
     io.mem.arburst := 0.U
 
-    // Passthrough
-    // io.out.bits.pc_sel     := io.in.bits.pc_sel
-    // io.out.bits.dnpc := io.in.bits.dnpc
-        
+    // Passthrough        
     io.out.bits.gpr_waddr  := io.in.bits.gpr_waddr
     io.out.bits.gpr_wen    := io.in.bits.gpr_wen
 
-    io.out.bits.csr_waddr  := io.in.bits.csr_waddr
-    io.out.bits.is_ecall   := io.in.bits.is_ecall
-    io.out.bits.csr_wdata  := io.in.bits.csr_wdata
-
     io.out.bits.is_brk := io.in.bits.is_brk
     io.out.bits.is_ivd := io.in.bits.is_ivd
-
-    // when(io.in.valid) {
-    //     printf("in valid: LSU %d %d\n", io.in.bits.gpr_waddr, io.in.bits.mem_wen)
-    // }
-    // when(io.out.valid) {
-    //     printf("out valid: LSU %d\n", io.out.bits.rd)
-    // }
-    // when(io.in.valid && io.out.ready) {
-    //     printf("set: LSU %d\n", io.out.bits.rd)
-    // }
 
     // PERF
     io.perf.isWaiting := state === s_wait_mem_valid

@@ -14,7 +14,7 @@ extern "C" void psram_read(addr_t addr, uint8_t *data, int count) {
     } else {
         *data &= 0b00001111;
     }
-    Log("PSRAM read [" FMT_WORD "]=" FMT_WORD " (%d)", raddr, *data, count);
+    // Log("PSRAM read [" FMT_WORD "]=" FMT_WORD " (%d)", raddr + PSRAM_BASE, *data, count);
 }
 
 static int c = 0;

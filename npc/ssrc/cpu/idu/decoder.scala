@@ -9,11 +9,12 @@ import chisel3.util.experimental.decode._
 import cpu.exu.CmpSel
 import cpu.lsu.MemType
 import cpu.reg.GPRWSel
-import cpu.reg.CSRWSel
 
 object InstType extends Enumeration {
     type InstType = Value
-    val R, IA, IJ, IU, L, S, B, J, UL, UA, CR, CI, EB, EC, MR, FI, IVD = Value
+    val R, RC, IC, IA, IJ, IU, L, S, B, J, UL, UA, CR, CI, EB, EC, MR, FI, IVD = Value
+    // RC -> for xor, slt, sltu
+    // IC -> for xori, slti
     // IA -> normal I Arithmetic, like addi
     // IJ -> only jalr jump and link reg
     // IU -> only for sltiu
@@ -43,14 +44,21 @@ object EXUTag extends Enumeration {
 }
 import EXUTag.EXUTag
 
-object ASel extends Enumeration {
-    val ASel = Value
-    val PC, GPR1, CSR, DontCare = Value
+object ASel {
+    val PC   = 0
+    val GPR1 = 1
+    val CSR  = 2
+    
+    val DontCare = 0
 }
 
-object BSel extends Enumeration {
-    val BSel = Value
-    val Imm, GPR1, GPR2, CSR = Value
+object BSel {
+    val Imm  = 0
+    val GPR1 = 1
+    val GPR2 = 2
+    val CSR  = 3
+    
+    val DontCare = 0
 }
 
 object CSRAddrSel extends Enumeration {
@@ -59,18 +67,21 @@ object CSRAddrSel extends Enumeration {
 }
 
 object Encode {
-    class Tag(s: Int, l: Int) {
+    class Tag(s: Int, l: Int, i: Int) {
         val start = s
         val length = l
         val mask = (1 << l) - 1
+        val index = i
     }
 
     val tags: Map[String, Tag] = Map()
     var current = 0
+    var count = 0
 
     def add_tag(name: String, length: Int) = {
-        tags += (name -> new Tag(current, length))
+        tags += (name -> new Tag(current, length, count))
         current += length
+        count += 1
     }
 
     // IDU
@@ -105,7 +116,7 @@ object Encode {
     add_tag("GPRWSel",  2)
     add_tag("CSRWAddrSel", 2)
     add_tag("CSRWen",   1)
-    add_tag("IsEcall",  1)
+    // add_tag("CSRWSel",  1)
     add_tag("IsBrk",    1)
     add_tag("IsIvd",    1)
 
@@ -115,6 +126,14 @@ object Encode {
             bits |= (attr(name) & tag.mask).toLong << tag.start
         }
         return BitPat(bits.U(current.W))
+    }
+
+    def gen_list(attr: Map[String, Int]) : List[UInt] = {
+        var l: List[UInt] = List.fill(count)(UInt())
+        for ((name, tag) <- tags) {
+            l(tag.index) := attr(name).U
+        }
+        return l
     }
 
     def get_tag(name: String, bits: UInt) : UInt = {
@@ -157,11 +176,11 @@ object Encode {
             case InstType.UA => ASel.  PC
             case InstType.CR => ASel. CSR
             case InstType.CI => ASel. CSR
-            case InstType.MR => ASel. CSR // pc = mepc
+            // case InstType.MR => ASel. CSR // pc = mepc
             case InstType.EC => ASel.  PC // mepc = pc, pc = mtvec
             case _ => ASel.DontCare // Don't Care
         }
-        m += ("ASel" -> aSel.id)
+        m += ("ASel" -> aSel)
 
         val bSel = instType match {
             case InstType. R => BSel.GPR2
@@ -177,9 +196,13 @@ object Encode {
             case InstType.CR => BSel.GPR1
             case InstType.CI => BSel. Imm
             case InstType.EC => BSel. CSR
-            case _ => BSel.Imm // Dont care
+            case InstType.MR => BSel. CSR
+            case _ => BSel.DontCare // Dont care
         }
-        m += ("BSel" -> bSel.id)
+        m += ("BSel" -> bSel)
+        // if (instType == InstType.EC) {
+        //     println(ASel.PC.id)
+        // }
 
         val cSel = Seq(
             InstType.IJ,
@@ -187,7 +210,7 @@ object Encode {
         ).contains(instType)
         m += ("CSel" -> toInt(cSel))
 
-        val dSel = instType == InstType.L
+        val dSel = Seq(InstType.IA, InstType.IU).contains(instType)
         m += ("DSel" -> toInt(dSel))
             
         val gprRen1 = aSel == ASel.GPR1 || bSel == BSel.GPR1 || instType == InstType.B
@@ -211,7 +234,8 @@ object Encode {
 
         val aluBSel = Seq(
             InstType.UL, // lui
-            InstType.MR  // mret
+            InstType.MR, // mret
+            InstType.EC, // ecall
         ).contains(instType)
         m += ("AluBSel" -> toInt(aluBSel))
 
@@ -292,11 +316,11 @@ object Encode {
         }
         m += ("CSRWAddrSel" -> csrWAddrSel.id)
 
-        val csrWen = csrWAddrSel == CSRAddrSel.N
+        val csrWen = csrWAddrSel != CSRAddrSel.N
         m += ("CSRWen" -> toInt(csrWen))
 
-        val isEcall = instType == InstType.EC
-        m += ("IsEcall" -> toInt(isEcall))
+        // val csrWSel = instType == InstType.EC
+        // m += ("CSRWSel" -> toInt(csrWSel))
 
         val isBrk = instType == InstType.EB
         m += ("IsBrk" -> toInt(isBrk))
@@ -350,7 +374,7 @@ class OP(bits : UInt) {
     val gprWen = Encode.get_tag("GPRWen", bits).asBool
     val gprWSel = Encode.get_tag("GPRWSel", bits)
     val csrWen = Encode.get_tag("CSRWen", bits).asBool
-    val isEcall = Encode.get_tag("IsEcall", bits).asBool
+    // val csrWSel = Encode.get_tag("CSRWSel", bits).asBool
     val isBrk = Encode.get_tag("IsBrk", bits).asBool
     val isIvd = Encode.get_tag("IsIvd", bits).asBool
 }
@@ -473,7 +497,7 @@ object Decoder {
             ECALL   -> Encode.encode(InstType.EC, EXUTag.DontCare),
             MRET    -> Encode.encode(InstType.MR, EXUTag.DontCare)
         ),
-        default = Encode.encode(InstType.IVD, EXUTag.DontCare)
+        default = Encode.encode(InstType.IVD, EXUTag.DontCare),
     )
 
     def decode(inst: UInt) : OP = {

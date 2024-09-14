@@ -18,10 +18,11 @@ uint32_t lastPC;
 uint32_t lastInst;
 
 VTop top;
+std::chrono::time_point<std::chrono::system_clock> timerStart;
 static uint64_t timer = 0;
 std::string hdb::outputDir = "./";
 
-#define IMG_NAME test_img_control_hazard4
+#define IMG_NAME test_img_ecall
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
 
@@ -80,6 +81,9 @@ void hdb::step() {
 }
 
 void hdb_statistic() {
+    auto timerEnd = std::chrono::high_resolution_clock::now();
+    timer += std::chrono::duration_cast<std::chrono::microseconds>(timerEnd - timerStart).count();
+
     Log("Total count of instructions = %" PRIu64 " with %" PRIu64 " clocks, IPC=%.6lf", cpu.instCount, cpu.clockCount, (double)cpu.instCount / cpu.clockCount);
     Log("Total time spent = %'" PRIu64 " us, frequency=%.3lfkHz", timer, (double)cpu.clockCount * 1000 / timer);
     if (timer > 0) Log("Simulation frequency = %'" PRIu64 " clocks/s", cpu.clockCount * 1000000 / timer);
@@ -92,14 +96,12 @@ void hdb::end() {
 }
 
 int hdb::run(uint64_t n) {
-    auto timerStart = std::chrono::high_resolution_clock::now();
+    timerStart = std::chrono::high_resolution_clock::now();
     if (n == 0) {
         while (cpu.running) step();
     } else {
         while (cpu.running && n--) step();
     }
-    auto timerEnd = std::chrono::high_resolution_clock::now();
-    timer += std::chrono::duration_cast<std::chrono::microseconds>(timerEnd - timerStart).count();
     
     int r = cpu.gpr[10];
     if (r == 0) {
@@ -116,21 +118,22 @@ int hdb::run(uint64_t n) {
 
 void hdb_set_csr(uint32_t addr, word_t data) {
     if (addr == 0) return ;
+    const char *name = "unknown";
     switch (addr)
     {
-        case 3: cpu.satp    = data; break;
-        case 4: cpu.mstatus = data; break;
-        case 5: cpu.mtvec   = data; break;
-        case 6: cpu.mscratch= data; break;
-        case 7: cpu.mepc    = data; break;
-        case 8: cpu.mcause  = data; break;
+        case 2: cpu.satp     = data; name = "satp"; break;
+        case 3: cpu.mstatus  = data; name = "mstatus"; break;
+        case 4: cpu.mtvec    = data; name = "mtvec"; break;
+        case 5: cpu.mscratch = data; name = "mscratch"; break;
+        case 6: cpu.mepc     = data; name = "mepc"; break;
+        case 7: cpu.mcause   = data; name = "mcause"; break;
         default: panic("Invalid CSR: %d at pc=0x%08x(inst=0x%08x)", addr, cpu.pc, cpu.inst);
     }
-    Log("Set csr [%d]=%x", addr, data);
+    // Log("Set csr %d[%s]=" FMT_WORD " at pc=" FMT_WORD, addr, name, data, cpu.pc);
 }
 
-void hdb_set_reg(uint32_t addr, word_t data) {
-    // Log("Set register x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
+void hdb_set_gpr(uint32_t addr, word_t data) {
+    // Log("Set gpr x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
     if (addr != 0) cpu.gpr[addr] = data;
 }
 
@@ -141,12 +144,12 @@ void hdb_invalid_inst() {
 
 void hdb_update_pc(uint32_t pc) {
     if (!cpu.running) return ;
-
+    
+    if (!(top.reset || in_flash(pc) || in_sdram(pc))) {
+        panic("Invalid PC = " FMT_WORD", lastPC = " FMT_WORD, pc, lastPC);
+    }
     lastPC = cpu.pc;
     cpu.pc = pc;
-    if (!(top.reset || in_flash(pc) || in_sdram(pc))) {
-        panic("Invalid PC = " FMT_WORD, pc);
-    }
     itrace::trace(pc);
     // Log("Exec to pc=" FMT_WORD " at clock=%lu", pc, cpu.clockCount);
 }
@@ -162,8 +165,8 @@ void hdb_update_valid(bool valid) {
 }
 
 extern "C" {
-    void set_reg(uint32_t addr, word_t data) {
-        hdb_set_reg(addr, data);
+    void set_gpr(uint32_t addr, word_t data) {
+        hdb_set_gpr(addr, data);
     }
 
     void set_csr(uint32_t addr, uint32_t data) {
