@@ -115,7 +115,7 @@ class HCPU(instStart : BigInt) extends Module {
     idu.io.csr_rdata := Mux(exuRawCSR, exu.io.csr.wdata, csr.io.rdata)
 
     // Branch predict
-    val predict_failed = exu.io.jmp && exu.io.out.valid
+    val predict_failed = exu.io.jmp || idu.io.fence_i
     ifu.io.predict_failed := predict_failed
     idu.io.predict_failed := predict_failed
     ifu.io.dnpc := RegEnable(exu.io.dnpc, exu.io.out.valid)

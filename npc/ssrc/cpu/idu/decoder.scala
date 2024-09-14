@@ -234,7 +234,8 @@ object Encode {
 
         val aluBSel = Seq(
             InstType.UL, // lui
-            InstType.MR  // mret
+            InstType.MR, // mret
+            InstType.EC, // ecall
         ).contains(instType)
         m += ("AluBSel" -> toInt(aluBSel))
 
