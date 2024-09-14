@@ -146,7 +146,7 @@ class AXI4Arbiter extends Module {
     val arbiting = state === s_arbite
 
     io.sel.arvalid := Mux(arbiting, Mux(select, io.lsu.arvalid, io.icache.arvalid), false.B)
-    io.sel.araddr  := Mux(arbiting, Mux(select, io.lsu.araddr,  io.icache.araddr),  12345678.U)
+    io.sel.araddr  := Mux(arbiting, Mux(select, io.lsu.araddr,  io.icache.araddr),  DontCare)
     io.sel.arlen   := Mux(arbiting, Mux(select, io.lsu.arlen,   io.icache.arlen),   DontCare)
     io.sel.arsize  := Mux(arbiting, Mux(select, io.lsu.arsize,  io.icache.arsize),  DontCare)
     io.sel.arburst := Mux(arbiting, Mux(select, io.lsu.arburst, io.icache.arburst), DontCare)
