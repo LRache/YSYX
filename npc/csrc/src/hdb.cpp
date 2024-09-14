@@ -18,6 +18,7 @@ uint32_t lastPC;
 uint32_t lastInst;
 
 VTop top;
+std::chrono::time_point<std::chrono::system_clock> timerStart;
 static uint64_t timer = 0;
 std::string hdb::outputDir = "./";
 
@@ -80,6 +81,9 @@ void hdb::step() {
 }
 
 void hdb_statistic() {
+    auto timerEnd = std::chrono::high_resolution_clock::now();
+    timer += std::chrono::duration_cast<std::chrono::microseconds>(timerEnd - timerStart).count();
+
     Log("Total count of instructions = %" PRIu64 " with %" PRIu64 " clocks, IPC=%.6lf", cpu.instCount, cpu.clockCount, (double)cpu.instCount / cpu.clockCount);
     Log("Total time spent = %'" PRIu64 " us, frequency=%.3lfkHz", timer, (double)cpu.clockCount * 1000 / timer);
     if (timer > 0) Log("Simulation frequency = %'" PRIu64 " clocks/s", cpu.clockCount * 1000000 / timer);
@@ -92,14 +96,12 @@ void hdb::end() {
 }
 
 int hdb::run(uint64_t n) {
-    auto timerStart = std::chrono::high_resolution_clock::now();
+    timerStart = std::chrono::high_resolution_clock::now();
     if (n == 0) {
         while (cpu.running) step();
     } else {
         while (cpu.running && n--) step();
     }
-    auto timerEnd = std::chrono::high_resolution_clock::now();
-    timer += std::chrono::duration_cast<std::chrono::microseconds>(timerEnd - timerStart).count();
     
     int r = cpu.gpr[10];
     if (r == 0) {
