@@ -424,3 +424,7 @@ static uint32_t test_img_temp[] = {
     0xfff0c093,
     GOOD_TRAP
 };
+
+static uint32_t test_img_ivd_read[] = {
+    
+};

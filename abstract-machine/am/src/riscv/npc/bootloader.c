@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#define HAS_EXTRA
+#define __RTTHREAD__
 
 static inline void __memcpy(char *__dst, char *__src, uint32_t size) {
     if (__dst == __src) return;
@@ -30,7 +30,7 @@ extern char _data_start[];
 extern char _data_size[];
 extern char _data_load_start[];
 
-#ifdef HAS_EXTRA
+#ifdef __RTTHREAD__
 
 extern char _data_extra_start[];
 extern char _data_extra_size[];
@@ -42,7 +42,7 @@ __attribute__((section(".bootloader"))) void _bootloader() {
     __memcpy(  _text_start,   _text_load_start, (uint32_t)  _text_size);
     __memcpy(_rodata_start, _rodata_load_start, (uint32_t)_rodata_size);
     __memcpy(  _data_start,   _data_load_start, (uint32_t)  _data_size);
-    #ifdef HAS_EXTRA
+    #ifdef __RTTHREAD__
     __memcpy(_data_extra_start, _data_extra_load_start, (uint32_t)_data_extra_size);
     #endif
     _trm_init();
