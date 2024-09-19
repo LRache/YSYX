@@ -93,6 +93,8 @@ class HCPU(instStart : BigInt) extends Module {
     
     val exuRaw1 = is_raw(idu.io.gpr_raddr1, idu.io.gpr_ren1, exuGPRWaddr, exuRawGPRCon)
     val exuRaw2 = is_raw(idu.io.gpr_raddr2, idu.io.gpr_ren2, exuGPRWaddr, exuRawGPRCon)
+    val exuRaw  = exuRaw1 || exuRaw2
+    idu.io.raw := exuRaw
 
     val lsuGPRWaddr = lsu.io.out.bits.gpr_waddr
     val lsuRawCon = raw_con(
@@ -102,7 +104,6 @@ class HCPU(instStart : BigInt) extends Module {
     )
     val lsuRaw1 = is_raw(idu.io.gpr_raddr1, true.B, lsuGPRWaddr, lsuRawCon)
     val lsuRaw2 = is_raw(idu.io.gpr_raddr2, true.B, lsuGPRWaddr, lsuRawCon)
-    idu.io.raw := exuRaw1 || exuRaw2
     idu.io.gpr_rdata1 := Mux(lsuRaw1, lsu.io.out.bits.gpr_wdata, gpr.io.rdata1)
     idu.io.gpr_rdata2 := Mux(lsuRaw2, lsu.io.out.bits.gpr_wdata, gpr.io.rdata2)
 

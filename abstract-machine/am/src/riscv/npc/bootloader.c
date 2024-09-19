@@ -16,8 +16,6 @@ extern char _bootloader_start[];
 extern char _bootloader_size[];
 extern char _bootloader_load_start[];
 
-void _trm_init();
-
 extern char _text_start[];
 extern char _text_size[];
 extern char _text_load_start[];
@@ -45,10 +43,10 @@ __attribute__((section(".bootloader"))) void _bootloader() {
     #ifdef __RTTHREAD__
     __memcpy(_data_extra_start, _data_extra_load_start, (uint32_t)_data_extra_size);
     #endif
-    _trm_init();
+    // _trm_init();
 }
 
 __attribute__((section(".entry"))) void _entry_bootloader() {
     __memcpy(_bootloader_start, _bootloader_load_start, (uint32_t)_bootloader_size);
-    _bootloader();
+    // _bootloader();
 }

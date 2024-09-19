@@ -30,30 +30,6 @@ class IDU extends Module {
         val raw = Input(Bool())
         val predict_failed = Input(Bool())
     })
-    def csr_addr_translate(origin: UInt): UInt = {
-        // val truthTable = TruthTable(Map(
-        //     BitPat(0x100.U(12.W)) -> BitPat(CSRAddr.MVENDORID),
-        //     BitPat(0x101.U(12.W)) -> BitPat(CSRAddr.MARCHID),
-        //     BitPat(0x180.U(12.W)) -> BitPat(CSRAddr.SATP),
-        //     BitPat(0x300.U(12.W)) -> BitPat(CSRAddr.MSTATUS),
-        //     BitPat(0x305.U(12.W)) -> BitPat(CSRAddr.MTVEC),
-        //     BitPat(0x340.U(12.W)) -> BitPat(CSRAddr.MSCRATCH),
-        //     BitPat(0x341.U(12.W)) -> BitPat(CSRAddr.MEPC),
-        //     BitPat(0x342.U(12.W)) -> BitPat(CSRAddr.MCAUSE) 
-        // ), BitPat(0.U(4.W)))
-        // decoder(origin, truthTable)
-        MuxLookup(origin, 0.U(Config.CSRAddrLength.W)) (Seq(
-            0x100.U(12.W) -> CSRAddr.MVENDORID,
-            0x101.U(12.W) -> CSRAddr.MARCHID,
-            0x180.U(12.W) -> CSRAddr.SATP,
-            0x300.U(12.W) -> CSRAddr.MSTATUS,
-            0x305.U(12.W) -> CSRAddr.MTVEC,
-            0x340.U(12.W) -> CSRAddr.MSCRATCH,
-            0x341.U(12.W) -> CSRAddr.MEPC,
-            0x342.U(12.W) -> CSRAddr.MCAUSE
-        ))
-    }
-
     val inst = io.in.bits.inst
     val op = Decoder.decode(inst)
     
@@ -67,7 +43,7 @@ class IDU extends Module {
     io.csr_raddr := MuxLookup(op.csrRAddrSel, 0.U(12.W))(Seq(
           CSRAddrSel.VEC.id.U -> CSRAddr.MTVEC,
           CSRAddrSel.EPC.id.U -> CSRAddr.MEPC,
-          CSRAddrSel.Ins.id.U -> csr_addr_translate(inst(31, 20))
+          CSRAddrSel.Ins.id.U -> CSRAddr.csr_addr_translate(inst(31, 20))
         )
     )
     io.csr_ren := op.csrRen
@@ -134,7 +110,7 @@ class IDU extends Module {
     io.out.bits.csr_waddr := MuxLookup(op.csrWAddrSel, 0.U(Config.CSRAddrLength.W))(Seq(
         CSRAddrSel.VEC.id.U -> CSRAddr.MTVEC,
         CSRAddrSel.EPC.id.U -> CSRAddr.MEPC,
-        CSRAddrSel.Ins.id.U -> csr_addr_translate(io.in.bits.inst(31, 20))
+        CSRAddrSel.Ins.id.U -> CSRAddr.csr_addr_translate(io.in.bits.inst(31, 20))
     ))
     io.out.bits.dnpc_sel := op.dnpcSel
 

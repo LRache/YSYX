@@ -43,8 +43,7 @@ class LSU extends Module {
     ))
 
     // COMMON
-    val addr = io.in.bits.exu_result
-    // val addr = io.in.bits.rs
+    val addr = io.in.bits.rs
     val offset = addr(1,0)
     val memType = io.in.bits.func3
     val size = Cat(0.B, memType(1, 0))
@@ -121,9 +120,9 @@ class LSU extends Module {
     val mem_rdata_2 = Mux(memType(1), origin_rdata_2, Mux(memType(2), 0.U(8.W), mem_rdata_sign))
     val mem_rdata_3 = Mux(memType(1), origin_rdata_3, Mux(memType(2), 0.U(8.W), mem_rdata_sign))
     
-    // val mem_rdata = RegInit(0.U(32.W))
     val mem_rdata = Cat(mem_rdata_3, mem_rdata_2, mem_rdata_1, mem_rdata_0)
-    val gpr_wdata = Mux(io.in.bits.gpr_ws(1), Mux(io.in.bits.gpr_ws(0), mem_rdata, io.in.bits.exu_result), io.in.bits.gpr_wdata)
+    val gpr_wdata = Mux(io.in.bits.gpr_ws === GPRWSel.MEM.U, mem_rdata, io.in.bits.rs);
+    // val gpr_wdata = Mux(io.in.bits.gpr_ws(1), Mux(io.in.bits.gpr_ws(0), mem_rdata, io.in.bits.exu_result), io.in.bits.gpr_wdata)
     io.out.bits.gpr_wdata := gpr_wdata
 
     val done = (state === s_wait_mem_valid && memValid)
@@ -132,11 +131,11 @@ class LSU extends Module {
     io.out.valid := (nothingToDo || done) && io.in.valid
     
     // Unused
-    io.mem.awid    := 0.U
-    io.mem.awlen   := 0.U
-    io.mem.awburst := 0.U
-    io.mem.wlast   := true.B
-    io.mem.arid    := 0.U
+    io.mem.awid    := DontCare
+    io.mem.awlen   := DontCare
+    io.mem.awburst := DontCare
+    io.mem.wlast   := DontCare
+    io.mem.arid    := DontCare
     io.mem.arlen   := 0.U
     io.mem.arburst := 0.U
 

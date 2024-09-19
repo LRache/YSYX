@@ -1,8 +1,8 @@
 package cpu.reg
 
 import chisel3._
-import chisel3.util.MuxLookup
-import chisel3.util.MuxCase
+import chisel3.util._
+import chisel3.util.experimental.decode._
 
 import cpu.Config.CSRAddrLength
 import cpu.Config
@@ -23,6 +23,30 @@ object CSRAddr {
     val MSCRATCH    = 0x5.U(4.W)
     val MEPC        = 0x6.U(4.W)
     val MCAUSE      = 0x7.U(4.W)
+
+    def csr_addr_translate(origin: UInt): UInt = {
+        // val truthTable = TruthTable(Map(
+        //     BitPat(0x100.U(12.W)) -> BitPat(CSRAddr.MVENDORID),
+        //     BitPat(0x101.U(12.W)) -> BitPat(CSRAddr.MARCHID),
+        //     // BitPat(0x180.U(12.W)) -> BitPat(CSRAddr.SATP),
+        //     BitPat(0x300.U(12.W)) -> BitPat(CSRAddr.MSTATUS),
+        //     BitPat(0x305.U(12.W)) -> BitPat(CSRAddr.MTVEC),
+        //     BitPat(0x340.U(12.W)) -> BitPat(CSRAddr.MSCRATCH),
+        //     BitPat(0x341.U(12.W)) -> BitPat(CSRAddr.MEPC),
+        //     BitPat(0x342.U(12.W)) -> BitPat(CSRAddr.MCAUSE) 
+        // ), BitPat(0.U(4.W)))
+        // decoder(origin, truthTable)
+        MuxLookup(origin, 0.U(Config.CSRAddrLength.W)) (Seq(
+            0x100.U(12.W) -> CSRAddr.MVENDORID,
+            0x101.U(12.W) -> CSRAddr.MARCHID,
+            // 0x180.U(12.W) -> CSRAddr.SATP,
+            0x300.U(12.W) -> CSRAddr.MSTATUS,
+            0x305.U(12.W) -> CSRAddr.MTVEC,
+            0x340.U(12.W) -> CSRAddr.MSCRATCH,
+            0x341.U(12.W) -> CSRAddr.MEPC,
+            0x342.U(12.W) -> CSRAddr.MCAUSE
+        ))
+    }
 }
 
 class CSRDebugger extends BlackBox {

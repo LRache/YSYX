@@ -39,7 +39,7 @@ class ICache (e: Int, s: Int) extends Module {
     val cache     = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(VecInit(Seq.fill(b)(0.U(32.W))))))))
     val metaTag   = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((t).W))))))
     val metaValid = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(false.B)))))
-    val group = cache(groupIndex)
+    val hitGroup = cache(groupIndex)
     
     val lineHits = Wire(Vec(E, Bool()))
     for (i <- 0 to E-1) {
@@ -47,7 +47,7 @@ class ICache (e: Int, s: Int) extends Module {
     }
     val isHit = lineHits.asUInt.orR
     val hitLineIndex = PriorityEncoder(lineHits)
-    val hitEntry = group(hitLineIndex)
+    val hitEntry = hitGroup(hitLineIndex)
 
     val s_idle :: s_wait_mem_0 :: s_wait_mem_1 :: s_wait_mem_2 :: s_wait_mem_3 :: s_mem_valid :: Nil = Enum(6)
     val state = RegInit(s_idle)
@@ -68,10 +68,10 @@ class ICache (e: Int, s: Int) extends Module {
     val groupCounter = counter(groupIndex)
     counter(groupIndex) := Mux(memValid, groupCounter+1.U, groupCounter)
     for (i <- 0 to E-1) {
-        group(i)(0) := Mux(io.mem.rvalid && state === s_wait_mem_0 && groupCounter === i.U, io.mem.rdata, group(i)(0))
-        group(i)(1) := Mux(io.mem.rvalid && state === s_wait_mem_1 && groupCounter === i.U, io.mem.rdata, group(i)(1))
-        group(i)(2) := Mux(io.mem.rvalid && state === s_wait_mem_2 && groupCounter === i.U, io.mem.rdata, group(i)(2))
-        group(i)(3) := Mux(memValid && groupCounter === i.U, io.mem.rdata, group(i)(3))
+        hitGroup(i)(0) := Mux(io.mem.rvalid && state === s_wait_mem_0 && groupCounter === i.U, io.mem.rdata, hitGroup(i)(0))
+        hitGroup(i)(1) := Mux(io.mem.rvalid && state === s_wait_mem_1 && groupCounter === i.U, io.mem.rdata, hitGroup(i)(1))
+        hitGroup(i)(2) := Mux(io.mem.rvalid && state === s_wait_mem_2 && groupCounter === i.U, io.mem.rdata, hitGroup(i)(2))
+        hitGroup(i)(3) := Mux(memValid && groupCounter === i.U, io.mem.rdata, hitGroup(i)(3))
         metaTag(groupIndex)(i) := Mux(memValid && groupCounter === i.U, tag, metaTag(groupIndex)(i));
         metaValid(groupIndex)(i) := Mux(memValid && groupCounter === i.U, true.B, Mux(io.fence, false.B, metaValid(groupIndex)(i)))
     }

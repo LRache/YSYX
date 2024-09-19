@@ -1,5 +1,6 @@
 #pragma once
 
+#define NOP 0x00000013
 #define __EBREAK 0x00100073
 #define GOOD_TRAP 0x00000513, __EBREAK,
 
@@ -77,8 +78,8 @@ static uint32_t test_img_upper[] = {
 };
 
 static uint32_t test_img_jump0[] = {
-    0x008000ef, // jal x1, 8
-    0x00000000, // invalid
+    // 0x008000ef, // jal x1, 8
+    // 0x00000000, // invalid
     0x00000517, // auipc x10, 0
     0x00c500e7, // jalr x1, 12(x10)
     0x00000000, // invalid
@@ -232,7 +233,7 @@ static uint32_t test_img_ecall[] = {
     0xfff00793, // 0c addi x15, x0, -1
     0x00000073, // 10 ecall
     0x00000000, // 14
-    // 0x30200073, // mret
+    0x30200073, // mret
     0x34201673, // csrrw x12, mcause, x0
 
     GOOD_TRAP
@@ -425,6 +426,8 @@ static uint32_t test_img_temp[] = {
     GOOD_TRAP
 };
 
-static uint32_t test_img_ivd_read[] = {
-    
+static uint32_t test_img_ivd_load[] = {
+    0x500000b7, // lui x1, 0x50000
+    0x0000a103, // lw x2, 0(x1)
+    GOOD_TRAP
 };

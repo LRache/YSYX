@@ -36,8 +36,8 @@ class IDUMessage extends Bundle {
     val alu_bsel= Output(Bool())
     val alu_add = Output(Bool())
     val is_branch = Output(Bool())
-    val is_jmp  = Output(Bool())
-    val dnpc_sel   = Output(Bool())
+    val is_jmp   = Output(Bool())
+    val dnpc_sel = Output(Bool())
 
     // LSU
     val mem_wen    = Output(Bool())
@@ -63,9 +63,7 @@ class IDUMessage extends Bundle {
 }
 
 class EXUMessage extends Bundle {
-    val exu_result = Output(UInt(32.W))
-
-    val gpr_wdata = Output(UInt(32.W))
+    val rs = Output(UInt(32.W))
 
     // Passthrough
     val func3   = Output(UInt(3.W))

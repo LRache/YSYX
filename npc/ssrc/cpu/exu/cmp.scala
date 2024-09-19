@@ -17,7 +17,7 @@ class Cmp extends Module {
         val a     = Input (UInt(32.W))
         val b     = Input (UInt(32.W))
         val func3 = Input (UInt(3.W))
-        val res  = Output(Bool())
+        val res   = Output(Bool())
     })
     val func3 = io.func3
     val sa = io.a.asSInt

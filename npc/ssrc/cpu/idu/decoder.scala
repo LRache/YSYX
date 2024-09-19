@@ -104,7 +104,6 @@ object Encode {
     // Jump
     add_tag("DNPCSel",  1)
     add_tag("IsJmp",    1) // no condition jump
-    add_tag("IsLink",   1) // for jal and jalr
     add_tag("IsBranch", 1)
 
     // LSU
@@ -116,7 +115,6 @@ object Encode {
     add_tag("GPRWSel",  2)
     add_tag("CSRWAddrSel", 2)
     add_tag("CSRWen",   1)
-    // add_tag("CSRWSel",  1)
     add_tag("IsBrk",    1)
     add_tag("IsIvd",    1)
 
@@ -200,9 +198,6 @@ object Encode {
             case _ => BSel.DontCare // Dont care
         }
         m += ("BSel" -> bSel)
-        // if (instType == InstType.EC) {
-        //     println(ASel.PC.id)
-        // }
 
         val cSel = Seq(
             InstType.IJ,
@@ -262,12 +257,6 @@ object Encode {
             InstType.EC
         ).contains(instType)
         m += ("IsJmp" -> toInt(isJmp))
-
-        val isLink = Seq(
-            InstType. J,
-            InstType.IJ
-        ).contains(instType)
-        m += ("IsLink" -> toInt(isLink))
 
         val isBranch = instType == InstType.B
         m += ("IsBranch" -> toInt(isBranch))
