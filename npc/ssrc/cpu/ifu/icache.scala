@@ -1,7 +1,10 @@
 package cpu.ifu
 
+import scala.collection.mutable.ArrayBuffer
+
 import chisel3._
 import chisel3.util._
+
 import bus.AXI4IO
 import cpu.ICachePerfCounter
 
@@ -27,7 +30,6 @@ class ICache (e: Int, s: Int) extends Module {
 
     val tag = io.io.raddr(31, s + b)
     val groupIndex = Wire(UInt(s.W))
-    // val groupIndex = 0.U(0.W)
     if (s == 0) {
         groupIndex := 0.U(0.W)
     } else {
@@ -36,7 +38,7 @@ class ICache (e: Int, s: Int) extends Module {
     val offset = io.io.raddr(b-1, 2)
     val memRAddr = Cat(io.io.raddr(31, b), 0.U(b.W))
 
-    val cache     = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(VecInit(Seq.fill(b)(0.U(32.W))))))))
+    val cache     = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(VecInit(Seq.fill(4)(0.U(32.W))))))))
     val metaTag   = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((t).W))))))
     val metaValid = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(false.B)))))
     val hitGroup = cache(groupIndex)
@@ -67,17 +69,42 @@ class ICache (e: Int, s: Int) extends Module {
     val counter = RegInit(VecInit(Seq.fill(S)(0.U(e.W))))
     val groupCounter = counter(groupIndex)
     counter(groupIndex) := Mux(memValid, groupCounter+1.U, groupCounter)
-    for (i <- 0 to E-1) {
-        hitGroup(i)(0) := Mux(io.mem.rvalid && state === s_wait_mem_0 && groupCounter === i.U, io.mem.rdata, hitGroup(i)(0))
-        hitGroup(i)(1) := Mux(io.mem.rvalid && state === s_wait_mem_1 && groupCounter === i.U, io.mem.rdata, hitGroup(i)(1))
-        hitGroup(i)(2) := Mux(io.mem.rvalid && state === s_wait_mem_2 && groupCounter === i.U, io.mem.rdata, hitGroup(i)(2))
-        hitGroup(i)(3) := Mux(memValid && groupCounter === i.U, io.mem.rdata, hitGroup(i)(3))
-        metaTag(groupIndex)(i) := Mux(memValid && groupCounter === i.U, tag, metaTag(groupIndex)(i));
-        metaValid(groupIndex)(i) := Mux(memValid && groupCounter === i.U, true.B, Mux(io.fence, false.B, metaValid(groupIndex)(i)))
+    for (i <- 0 until S) {
+        for (j <- 0 until E) {
+            val select = groupIndex === i.U && groupCounter === j.U
+            cache(i)(j)(0) := Mux(io.mem.rvalid && state === s_wait_mem_0 && select, io.mem.rdata, cache(i)(j)(0))
+            cache(i)(j)(1) := Mux(io.mem.rvalid && state === s_wait_mem_1 && select, io.mem.rdata, cache(i)(j)(1))
+            cache(i)(j)(2) := Mux(io.mem.rvalid && state === s_wait_mem_2 && select, io.mem.rdata, cache(i)(j)(2))
+            cache(i)(j)(3) := Mux(memValid && select, io.mem.rdata, cache(i)(j)(3))
+            metaTag(i)(j)   := Mux(memValid && select, tag, metaTag(i)(j))
+            metaValid(i)(j) := Mux(memValid && select, true.B, Mux(io.fence, false.B, metaValid(i)(j)))
+        }
     }
 
-    val hitDataMuxSeq : Seq[(UInt, UInt)] = for (i <- 0 to E-1) yield (i.U, hitEntry(i))
-    val hitData = MuxLookup(offset, 0.U)(hitDataMuxSeq)
+    val hitDataLookupArray : ArrayBuffer[(UInt, UInt)] = ArrayBuffer()
+    for (i <- 0 until S) {
+        val entryLookupArray : ArrayBuffer[(UInt, UInt)] = ArrayBuffer()
+        for (j <- 0 until E) {
+            val offsetLookupArray : ArrayBuffer[(UInt, UInt)] = ArrayBuffer()
+            for (k <- 0 until 4) {
+                offsetLookupArray += (k.U -> cache(i)(j)(k))
+            }
+            entryLookupArray += (j.U -> MuxLookup(offset, 0.U)(offsetLookupArray.toSeq))
+        }
+        hitDataLookupArray += (i.U -> MuxLookup(hitLineIndex, 0.U)(entryLookupArray.toSeq))
+    }
+    val hitData = MuxLookup(groupIndex, 0.U)(hitDataLookupArray.toSeq)
+
+    // when(io.mem.rvalid) {
+    //     printf("0x%x\n", io.mem.rdata)
+    // }
+    // when(io.io.valid) {
+    //     printf("%d 0x%x 0x%x %d 0x%x 0x%x 0x%x 0x%x\n", offset, io.io.rdata, io.io.raddr, hitLineIndex, hitEntry(0), hitEntry(1), hitEntry(2), hitEntry(3))
+    // }
+    // when(state === s_idle && !isHit && io.io.ready) {
+    //     printf("Cache miss\n")
+    // }
+    // assert(io.io.raddr < 0x30000020L.U)
 
     io.io.valid := hitValid || state === s_mem_valid
     io.io.rdata := hitData
