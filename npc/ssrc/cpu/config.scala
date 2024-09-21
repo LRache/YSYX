@@ -3,7 +3,12 @@ package cpu
 import scala.collection.mutable.Map
 
 object Config {
-    val HasDBG = false
+    val HasDBG = true
+
+    // Config
+    val HasMscratch = false
+    val HasSatp = false
+    val HasFastAlu = true
     
     // ysyx
     val VendorID = 0x79737938

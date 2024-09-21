@@ -17,9 +17,6 @@ class EXU extends Module {
 
         // CSR
         val csr = new RegWIO(Config.CSRAddrLength)
-        
-        // Data Hazard
-        val gpr_waddr = Output(UInt(Config.GPRAddrLength.W))
 
         // Control Hazard
         val jmp = Output(Bool())
@@ -30,7 +27,6 @@ class EXU extends Module {
     val rs2 = io.in.bits.rs2
     val rs3 = io.in.bits.rs3
     val rs4 = io.in.bits.rs4
-    io.gpr_waddr := io.in.bits.gpr_waddr
  
     val alu = Module(new Alu())
     alu.io.a := rs1
@@ -49,10 +45,6 @@ class EXU extends Module {
         GPRWSel. EXU.U -> alu_result,
         GPRWSel. MEM.U -> alu_result,
     ))
-
-    // when(io.in.bits.dbg.pc === 0xa00136f4L.U) {
-    //     printf("0x%x\n", rs1)
-    // }
     
     val jmp = (io.in.bits.is_branch && alu.io.cmp) || io.in.bits.is_jmp
     io.jmp := jmp
@@ -62,8 +54,6 @@ class EXU extends Module {
     io.csr.waddr := io.in.bits.csr_waddr
     io.csr.wdata := alu.io.csr
     io.csr.wen   := io.in.bits.csr_wen && io.in.valid
-    
-    // io.out.bits.gpr_wdata := Mux(io.in.bits.gpr_ws(0), rs1, rs3)
 
     // Passthrough
     io.out.bits.func3    := func3
@@ -72,8 +62,8 @@ class EXU extends Module {
     io.out.bits.mem_wdata:= rs4
         
     io.out.bits.gpr_waddr  := io.in.bits.gpr_waddr
-    io.out.bits.gpr_wen    := io.in.bits.gpr_wen
-    io.out.bits.gpr_ws     := io.in.bits.gpr_ws
+    // io.out.bits.gpr_wen    := io.in.bits.gpr_wen
+    // io.out.bits.gpr_ws     := io.in.bits.gpr_ws
 
     io.out.bits.is_brk := io.in.bits.is_brk
     io.out.bits.is_ivd := io.in.bits.is_ivd

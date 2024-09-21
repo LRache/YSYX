@@ -3,6 +3,7 @@ package cpu.exu;
 import chisel3._
 import chisel3.util.MuxLookup
 import circt.stage.ChiselStage
+import cpu.Config
 
 // object AluSel extends Enumeration {
 //     type AluSel = Value
@@ -27,13 +28,12 @@ class Alu extends Module {
         val c     = Input(UInt(32.W))
         val d     = Input(UInt(32.W))
         val func3 = Input(UInt(3.W))
-        val addT  = Input(Bool())
-        val tag   = Input(Bool())
+        val addT  = Input(Bool())     // select a plus b anyway
+        val tag   = Input(Bool())     // for sub or unsinged operation
         
-        val res = Output(UInt(32.W))
-        val cmp = Output(Bool())
-        val csr = Output(UInt(32.W))
-        val t = Output(Bool())
+        val res = Output(UInt(32.W))  // alu result
+        val cmp = Output(Bool())      // cmp result
+        val csr = Output(UInt(32.W))  // csr result
     })
     val func3 = io.func3
     val sa = io.a.asSInt
@@ -47,11 +47,17 @@ class Alu extends Module {
     val shift = io.b(4,0)
     val tag = io.tag
 
-    val add = (sa + Mux(io.tag, -sb, sb)).asUInt
+    val add = Wire(UInt(32.W))
+    if (Config.HasFastAlu) {
+        add := Mux(io.tag, sa - sb, sa + sb).asUInt
+    } else {
+        add := (sa + Mux(io.tag, -sb, sb)).asUInt
+    }
     val lt  = sc < sd
     val ltu = uc < ud
     val or  = ua | ub
     val xor = uc ^ ud
+    val sr  = ua >> shift
     val eq  = !xor.orR
 
     val resultTable = Seq(
@@ -76,7 +82,6 @@ class Alu extends Module {
         eq
     )
     io.cmp := Mux(func3(0), !t, t)
-    io.t := t
 
     io.csr := MuxLookup(func3(1,0), 0.U(32.W))(Seq (
         0.U -> ua,

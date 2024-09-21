@@ -30,6 +30,8 @@ class IDU extends Module {
         val raw = Input(Bool())
         val predict_failed = Input(Bool())
     })
+    val pc = io.in.bits.pc
+    val snpc = io.in.bits.snpc
     val inst = io.in.bits.inst
     val op = Decoder.decode(inst)
     
@@ -48,10 +50,16 @@ class IDU extends Module {
     )
     io.csr_ren := op.csrRen
 
-    val imm_i  = Cat(Fill(20, io.in.bits.inst(31)), io.in.bits.inst(31, 20))
+    def gen_one_bits(length: Int) : UInt = {
+        ((1 << length) - 1).U(length.W)
+    }
+
+    // val imm_i  = Cat(Fill(20, io.in.bits.inst(31)), io.in.bits.inst(31, 20))
+    val signExtend20 = Fill(20, io.in.bits.inst(31))
+    val imm_i  = Cat(signExtend20, io.in.bits.inst(31, 20))
     val imm_iu = Cat(0.U(20.W), io.in.bits.inst(31, 20))
-    val imm_s  = Cat(Fill(20, io.in.bits.inst(31)), io.in.bits.inst(31, 25), io.in.bits.inst(11, 7))
-    val imm_b  = Cat(Fill(20, io.in.bits.inst(31)), io.in.bits.inst(31), io.in.bits.inst(7), io.in.bits.inst(30, 25), io.in.bits.inst(11, 8), 0.B)
+    val imm_s  = Cat(signExtend20, io.in.bits.inst(31, 25), io.in.bits.inst(11, 7))
+    val imm_b  = Cat(signExtend20, io.in.bits.inst(31), io.in.bits.inst(7), io.in.bits.inst(30, 25), io.in.bits.inst(11, 8), 0.B)
     val imm_u  = Cat(io.in.bits.inst(31, 12), 0.U(12.W))
     val imm_j  = Cat(Fill(11, io.in.bits.inst(31)), io.in.bits.inst(31), io.in.bits.inst(19, 12), io.in.bits.inst(20), io.in.bits.inst(30, 21), 0.B)
     val imm_c  = Cat(0.U(27.W), io.in.bits.inst(19, 15))
@@ -67,7 +75,7 @@ class IDU extends Module {
     )
     
     val rs1 = MuxLookup(op.aSel, 0.U(32.W))(Seq(
-        ASel.  PC.U -> io.in.bits.pc,
+        ASel.  PC.U -> pc,
         ASel.GPR1.U -> io.gpr_rdata1,
         ASel. CSR.U -> io.csr_rdata,
     ))
@@ -79,13 +87,8 @@ class IDU extends Module {
     ))
     io.out.bits.rs1 := rs1
     io.out.bits.rs2 := rs2
-    io.out.bits.rs3 := Mux(op.cSel, io.in.bits.snpc, io.gpr_rdata1)
-    // io.out.bits.rs4 := io.gpr_rdata2
+    io.out.bits.rs3 := Mux(op.cSel, snpc, io.gpr_rdata1)
     io.out.bits.rs4 := Mux(op.dSel, imm, io.gpr_rdata2)
-
-    // when (io.in.valid) {
-    //     printf("0x%x %d 0x%x %d\n", io.in.bits.dbg.pc, io.csr_raddr, io.csr_rdata, op.bSel)
-    // }
 
     io.out.bits.exu_tag := op.exuTag
     io.out.bits.alu_bsel := op.aluBSel
@@ -99,18 +102,17 @@ class IDU extends Module {
 
     // WBU
     // GPR
-    io.out.bits.gpr_waddr := io.in.bits.inst(7 + Config.GPRAddrLength - 1, 7)
+    io.out.bits.gpr_waddr := Mux(op.gprWen, inst(7 + Config.GPRAddrLength - 1, 7), 0.U)
     io.out.bits.gpr_ws := op.gprWSel
-    io.out.bits.gpr_wen := op.gprWen
+    // io.out.bits.gpr_wen := true.B
     
     // CSR
     io.out.bits.cause_en := false.B
-    // io.out.bits.csr_ws := op.csrWSel
     io.out.bits.csr_wen := op.csrWen
     io.out.bits.csr_waddr := MuxLookup(op.csrWAddrSel, 0.U(Config.CSRAddrLength.W))(Seq(
         CSRAddrSel.VEC.id.U -> CSRAddr.MTVEC,
         CSRAddrSel.EPC.id.U -> CSRAddr.MEPC,
-        CSRAddrSel.Ins.id.U -> CSRAddr.csr_addr_translate(io.in.bits.inst(31, 20))
+        CSRAddrSel.Ins.id.U -> CSRAddr.csr_addr_translate(inst(31, 20))
     ))
     io.out.bits.dnpc_sel := op.dnpcSel
 

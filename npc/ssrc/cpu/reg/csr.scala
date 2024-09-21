@@ -8,6 +8,7 @@ import cpu.Config.CSRAddrLength
 import cpu.Config
 import chisel3.util.RegEnable
 import cpu.RegWIO
+import scala.collection.mutable.ArrayBuffer
 
 object CSRWSel extends Enumeration {
     type CSRWSel = Value
@@ -15,37 +16,27 @@ object CSRWSel extends Enumeration {
 }
 
 object CSRAddr {
-    val MVENDORID   = 0x0.U(4.W)
-    val MARCHID     = 0x1.U(4.W)
-    val SATP        = 0x2.U(4.W)
-    val MSTATUS     = 0x3.U(4.W)
-    val MTVEC       = 0x4.U(4.W)
-    val MSCRATCH    = 0x5.U(4.W)
-    val MEPC        = 0x6.U(4.W)
-    val MCAUSE      = 0x7.U(4.W)
+    val MVENDORID   = 0x0.U(CSRAddrLength.W)
+    val MARCHID     = 0x1.U(CSRAddrLength.W)
+    val SATP        = 0x2.U(CSRAddrLength.W)
+    val MSTATUS     = 0x3.U(CSRAddrLength.W)
+    val MTVEC       = 0x4.U(CSRAddrLength.W)
+    val MSCRATCH    = 0x5.U(CSRAddrLength.W)
+    val MEPC        = 0x6.U(CSRAddrLength.W)
+    val MCAUSE      = 0x7.U(CSRAddrLength.W)
 
     def csr_addr_translate(origin: UInt): UInt = {
-        // val truthTable = TruthTable(Map(
-        //     BitPat(0x100.U(12.W)) -> BitPat(CSRAddr.MVENDORID),
-        //     BitPat(0x101.U(12.W)) -> BitPat(CSRAddr.MARCHID),
-        //     // BitPat(0x180.U(12.W)) -> BitPat(CSRAddr.SATP),
-        //     BitPat(0x300.U(12.W)) -> BitPat(CSRAddr.MSTATUS),
-        //     BitPat(0x305.U(12.W)) -> BitPat(CSRAddr.MTVEC),
-        //     BitPat(0x340.U(12.W)) -> BitPat(CSRAddr.MSCRATCH),
-        //     BitPat(0x341.U(12.W)) -> BitPat(CSRAddr.MEPC),
-        //     BitPat(0x342.U(12.W)) -> BitPat(CSRAddr.MCAUSE) 
-        // ), BitPat(0.U(4.W)))
-        // decoder(origin, truthTable)
-        MuxLookup(origin, 0.U(Config.CSRAddrLength.W)) (Seq(
+        val table = ArrayBuffer(
             0x100.U(12.W) -> CSRAddr.MVENDORID,
             0x101.U(12.W) -> CSRAddr.MARCHID,
-            // 0x180.U(12.W) -> CSRAddr.SATP,
             0x300.U(12.W) -> CSRAddr.MSTATUS,
             0x305.U(12.W) -> CSRAddr.MTVEC,
-            0x340.U(12.W) -> CSRAddr.MSCRATCH,
             0x341.U(12.W) -> CSRAddr.MEPC,
             0x342.U(12.W) -> CSRAddr.MCAUSE
-        ))
+        )
+        if (Config.HasMscratch) { table.append(0x340.U(12.W) -> CSRAddr.MSCRATCH) }
+        if (Config.HasSatp    ) { table.append(0x180.U(12.W) -> CSRAddr.SATP    ) }
+        return MuxLookup(origin, 0.U(Config.CSRAddrLength.W))(table.toSeq)
     }
 }
 
@@ -63,7 +54,7 @@ class CSR extends Module {
         val w       = Flipped(new RegWIO(CSRAddrLength))
         val cause_en= Input (Bool())
         val cause   = Input (UInt(32.W))
-        val raddr   = Input (UInt(4.W))
+        val raddr   = Input (UInt(CSRAddrLength.W))
         val rdata   = Output(UInt(32.W))
     })
 
@@ -74,19 +65,24 @@ class CSR extends Module {
     val mcause  = RegEnable(Mux(io.cause_en, io.cause, io.w.wdata) , 0.U(32.W), (io.w.waddr === CSRAddr.MCAUSE && io.w.wen) || io.cause_en)
     
     val mepc    = gen_csr(CSRAddr.MEPC,     "mepc"      )
-    val mscratch= gen_csr(CSRAddr.MSCRATCH, "mscratch"  )
     val mstatus = gen_csr(CSRAddr.MSTATUS,  "mstatus"   )
     val mtvec   = gen_csr(CSRAddr.MTVEC,    "mtvec"     )
-    // val satp    = gen_csr(CSRAddr.SATP,     "satp"      )
+    
+    val mscratch= Wire(UInt(32.W))
+    val satp    = Wire(UInt(32.W))
+    if (Config.HasMscratch) { mscratch := gen_csr(CSRAddr.MSCRATCH, "mscratch"  ) } else { mscratch := 0.U }
+    if (Config.HasSatp    ) { satp     := gen_csr(CSRAddr.SATP    , "satp"      ) } else { satp     := 0.U }
 
-    io.rdata := MuxLookup(io.raddr, 0.U(32.W))(Seq (
+    val table = ArrayBuffer(
         CSRAddr.MVENDORID -> Config.VendorID.U(32.W),
         CSRAddr.MARCHID -> Config.ArchID.U(32.W),
-        // CSRAddr.SATP    -> satp,
-        CSRAddr.MSTATUS -> mstatus,
+        CSRAddr.MSTATUS -> mstatus, 
         CSRAddr.MTVEC   -> mtvec,
-        CSRAddr.MSCRATCH-> mscratch,
         CSRAddr.MEPC    -> mepc,
         CSRAddr.MCAUSE  -> mcause
-    ))
+    )
+    if (Config.HasMscratch) { table.append(CSRAddr.MSCRATCH-> mscratch) }
+    if (Config.HasSatp    ) { table.append(CSRAddr.SATP    -> satp    ) }
+
+    io.rdata := MuxLookup(io.raddr, 0.U(32.W))(table.toSeq)
 }

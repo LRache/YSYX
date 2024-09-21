@@ -25,7 +25,8 @@ image: $(IMAGE).elf
 
 NPC_EXE=$(NPC_HOME)/build/VysyxSoCFull
 OUTPUT_DIR=$(NPC_HOME)/output/$(NAME)-$(ARCH)
+NPC_FLAGS += --flash $(IMAGE).bin -o $(OUTPUT_DIR)
 
 .PHONY run: image
 	mkdir -p $(OUTPUT_DIR)
-	$(NPC_EXE) -f $(IMAGE).bin -o $(OUTPUT_DIR)
+	$(NPC_EXE) $(NPC_FLAGS)

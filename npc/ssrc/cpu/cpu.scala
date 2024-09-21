@@ -69,9 +69,12 @@ class HCPU(instStart : BigInt) extends Module {
     lsu.io.mem <> arbiter.io.lsu
 
     // WBU
-    gpr.io.waddr := wbu.io.gpr_waddr
-    gpr.io.wdata := wbu.io.gpr_wdata
-    gpr.io.wen   := wbu.io.gpr_wen
+    // gpr.io.waddr := wbu.io.gpr_waddr
+    // gpr.io.wdata := wbu.io.gpr_wdata
+    // gpr.io.wen   := true.B
+    gpr.io.waddr := wbu.io.in.bits.gpr_waddr
+    gpr.io.wdata := wbu.io.in.bits.gpr_wdata
+    gpr.io.wen   := wbu.io.in.valid
 
     // ICache
     icache.io.fence := idu.io.fence_i
@@ -86,7 +89,8 @@ class HCPU(instStart : BigInt) extends Module {
     
     val exuGPRWaddr = exu.io.out.bits.gpr_waddr
     val exuRawGPRCon = raw_con(
-        exu.io.out.bits.gpr_wen,
+        // exu.io.out.bits.gpr_wen,
+        true.B,
         exu.io.out.valid,
         exuGPRWaddr
     )
@@ -98,7 +102,8 @@ class HCPU(instStart : BigInt) extends Module {
 
     val lsuGPRWaddr = lsu.io.out.bits.gpr_waddr
     val lsuRawCon = raw_con(
-        lsu.io.out.bits.gpr_wen,
+        // lsu.io.out.bits.gpr_wen,
+        true.B,
         lsu.io.out.valid,
         lsuGPRWaddr
     )
@@ -143,6 +148,7 @@ class HCPU(instStart : BigInt) extends Module {
         counter.io.icache <> icache.io.perf
         counter.io.lsu <> lsu.io.perf
         counter.io.reset := reset
+        counter.io.clk   := clock.asBool
     }
 }
 

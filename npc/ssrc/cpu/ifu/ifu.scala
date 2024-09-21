@@ -15,16 +15,10 @@ class IFU(instStart : BigInt) extends Module {
         // Branch
         val dnpc = Input(UInt(32.W))
         val predict_failed = Input(Bool())
-
-        val dbg = new Bundle {
-            val npc = Output(UInt(32.W))
-        }
     })
-
+    val dnpc = io.dnpc
     val pc   = RegInit(instStart.U(32.W))
     val snpc = pc + 4.U(32.W)
-    // val pc   = RegInit(instStart.U(32.W)(31, 2))
-    // val snpc = pc + 4.U(32.W)
 
     val s_fetch :: s_skip_once :: Nil = Enum(2)
     val state = RegInit(s_fetch)
@@ -35,7 +29,7 @@ class IFU(instStart : BigInt) extends Module {
 
     io.cache.raddr := pc
     io.cache.ready := true.B
-    val npc = Mux(state === s_skip_once, io.dnpc, snpc)
+    val npc = Mux(state === s_skip_once, dnpc, snpc)
     pc := Mux(io.out.ready && io.cache.valid, npc, pc)
     val inst = io.cache.rdata
     
@@ -46,6 +40,4 @@ class IFU(instStart : BigInt) extends Module {
     io.out.valid := io.cache.valid && state === s_fetch && !io.predict_failed
     io.out.bits.dbg.pc   := pc
     io.out.bits.dbg.inst := inst
-
-    io.dbg.npc := npc
 }

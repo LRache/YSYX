@@ -41,7 +41,7 @@ class ICache (e: Int, s: Int) extends Module {
     val cache     = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(VecInit(Seq.fill(4)(0.U(32.W))))))))
     val metaTag   = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((t).W))))))
     val metaValid = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(false.B)))))
-    val hitGroup = cache(groupIndex)
+    val hitGroup  = cache(groupIndex)
     
     val lineHits = Wire(Vec(E, Bool()))
     for (i <- 0 to E-1) {
@@ -69,6 +69,7 @@ class ICache (e: Int, s: Int) extends Module {
     val counter = RegInit(VecInit(Seq.fill(S)(0.U(e.W))))
     val groupCounter = counter(groupIndex)
     counter(groupIndex) := Mux(memValid, groupCounter+1.U, groupCounter)
+    
     for (i <- 0 until S) {
         for (j <- 0 until E) {
             val select = groupIndex === i.U && groupCounter === j.U
@@ -95,17 +96,6 @@ class ICache (e: Int, s: Int) extends Module {
     }
     val hitData = MuxLookup(groupIndex, 0.U)(hitDataLookupArray.toSeq)
 
-    // when(io.mem.rvalid) {
-    //     printf("0x%x\n", io.mem.rdata)
-    // }
-    // when(io.io.valid) {
-    //     printf("%d 0x%x 0x%x %d 0x%x 0x%x 0x%x 0x%x\n", offset, io.io.rdata, io.io.raddr, hitLineIndex, hitEntry(0), hitEntry(1), hitEntry(2), hitEntry(3))
-    // }
-    // when(state === s_idle && !isHit && io.io.ready) {
-    //     printf("Cache miss\n")
-    // }
-    // assert(io.io.raddr < 0x30000020L.U)
-
     io.io.valid := hitValid || state === s_mem_valid
     io.io.rdata := hitData
 
@@ -117,9 +107,10 @@ class ICache (e: Int, s: Int) extends Module {
     io.mem.arsize := 2.U // 4 bytes per burst
     io.mem.arburst := 1.U // INCR
 
-    io.perf.valid := memValid
-    io.perf.isHit := hitValid
-    io.perf.start := ready
+    io.perf.valid := state === s_mem_valid
+    io.perf.isHit := hitValid && state === s_idle && io.io.ready
+    io.perf.start := state =/= s_idle && state =/= s_mem_valid
+    io.perf.pc    := io.io.raddr
 
     // Unused
     io.mem.bready  := DontCare

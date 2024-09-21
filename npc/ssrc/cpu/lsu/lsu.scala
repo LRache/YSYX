@@ -29,7 +29,6 @@ class LSU extends Module {
         
         val perf = new LSUPerfCounter
     })
-    val memWen = io.in.bits.mem_wen && io.in.valid
     val memEnable = (io.in.bits.mem_ren || io.in.bits.mem_wen) && io.in.valid
     val memValid = Mux(io.in.bits.mem_ren, io.mem.rvalid,  io.mem.bvalid)
     val memReady = Mux(io.in.bits.mem_ren, io.mem.arready, io.mem.awready && io.mem.wready)
@@ -49,6 +48,7 @@ class LSU extends Module {
     val size = Cat(0.B, memType(1, 0))
 
     // WRITE
+    val memWen = io.in.bits.mem_wen && io.in.valid
     // WMASK
     val wmask_b = MuxLookup(offset, 0.U(4.W))(Seq (
         0.U -> 0b0001.U(4.W),
@@ -110,19 +110,15 @@ class LSU extends Module {
         2.U -> origin_rdata_2,
         3.U -> origin_rdata_3
     ))
-    // val mem_rdata_1_h =MuxLookup(offset, 0.U)(Seq(
-    //     0.U -> io.mem.rdata(15,  8),
-    //     2.U -> io.mem.rdata(31, 24)
-    // ))
-    val mem_rdata_1_h = Mux(offset(1), io.mem.rdata(31, 24), io.mem.rdata(15, 8))
-    
+
+    val mem_rdata_1_h = Mux(offset(1), io.mem.rdata(31, 24), io.mem.rdata(15, 8)) 
     val mem_rdata_1 = Mux(memType(1), origin_rdata_1, Mux(memType(0), mem_rdata_1_h, Mux(memType(2), 0.U(8.W), mem_rdata_sign)))
     val mem_rdata_2 = Mux(memType(1), origin_rdata_2, Mux(memType(2), 0.U(8.W), mem_rdata_sign))
     val mem_rdata_3 = Mux(memType(1), origin_rdata_3, Mux(memType(2), 0.U(8.W), mem_rdata_sign))
     
     val mem_rdata = Cat(mem_rdata_3, mem_rdata_2, mem_rdata_1, mem_rdata_0)
-    val gpr_wdata = Mux(io.in.bits.gpr_ws === GPRWSel.MEM.U, mem_rdata, io.in.bits.rs);
-    // val gpr_wdata = Mux(io.in.bits.gpr_ws(1), Mux(io.in.bits.gpr_ws(0), mem_rdata, io.in.bits.exu_result), io.in.bits.gpr_wdata)
+    val gpr_wdata = Mux(io.in.bits.mem_ren, mem_rdata, io.in.bits.rs)
+    // val gpr_wdata = Mux(io.in.bits.gpr_ws === GPRWSel.MEM.U, mem_rdata, io.in.bits.rs)
     io.out.bits.gpr_wdata := gpr_wdata
 
     val done = (state === s_wait_mem_valid && memValid)
@@ -141,7 +137,7 @@ class LSU extends Module {
 
     // Passthrough        
     io.out.bits.gpr_waddr  := io.in.bits.gpr_waddr
-    io.out.bits.gpr_wen    := io.in.bits.gpr_wen
+    // io.out.bits.gpr_wen    := io.in.bits.gpr_wen
 
     io.out.bits.is_brk := io.in.bits.is_brk
     io.out.bits.is_ivd := io.in.bits.is_ivd

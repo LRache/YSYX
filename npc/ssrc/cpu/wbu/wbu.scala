@@ -14,7 +14,7 @@ class WBU extends Module {
 
         val gpr_waddr = Output(UInt(5.W))
         val gpr_wdata = Output(UInt(32.W))
-        val gpr_wen   = Output(Bool())
+        // val gpr_wen   = Output(Bool())
 
         val dbg = new Bundle {
             val brk  = Output(Bool())
@@ -26,8 +26,11 @@ class WBU extends Module {
         }
     })
     io.gpr_waddr := io.in.bits.gpr_waddr
+    // io.gpr_waddr := Mux(io.in.valid, io.in.bits.gpr_waddr, 0.U)
     io.gpr_wdata := io.in.bits.gpr_wdata
-    io.gpr_wen := io.in.bits.gpr_wen && io.in.valid
+    // io.gpr_wen := io.in.bits.gpr_wen && io.in.valid
+
+    // io.gpr_wen := io.in.valid
 
     io.in.ready := true.B
     

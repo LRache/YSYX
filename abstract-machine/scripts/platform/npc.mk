@@ -21,6 +21,7 @@ image: $(IMAGE).elf
 	@$(OBJCOPY) -S --set-section-flags .bss=alloc,contents -O binary $(IMAGE).elf $(IMAGE).bin
 
 NPC_EXE=$(NPC_HOME)/sim/VTop
+SIM_FLAGS += -i $(IMAGE).bin
 
 .PHONY run: image
-	$(NPC_EXE) -i $(IMAGE).bin
+	$(NPC_EXE) $(SIM_FLAGS)

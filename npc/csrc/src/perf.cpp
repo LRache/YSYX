@@ -28,64 +28,30 @@ struct Counter {
 };
 
 static struct {
-    Counter flash;
-    Counter sdram;
-    Counter other;
-
-    uint64_t start = 0;
-} ifu;
-
-static void ifu_valid_update(bool v) {
-    if (v) {
-        // Log("IFU valid at pc=" FMT_WORD " " FMT_WORD, cpu.pc, cpu.inst);
-        uint64_t clockCount = cpu.clockCount - ifu.start;
-        if (in_flash(cpu.pc)) ifu.flash.pref_count(clockCount);
-        else if (in_sdram(cpu.pc)) ifu.sdram.pref_count(clockCount);
-        else ifu.other.pref_count(clockCount);
-    } else {
-        ifu.start = cpu.clockCount;
-    }
-}
-
-static inline void print_ifu_statistic(const char *name, const Counter &c) {
-    std::cout 
-    << std::setw( 6) << name << " | "
-    << std::setw(12) << c.clockCount << " | " 
-    << std::setw(10) << c.count << " | " 
-    << std::setw( 8) << c.average() << " | "
-    << std::setw( 5) << (double)c.clockCount / cpu.clockCount * 100 << "%" << std::endl;
-}
-
-void perf::ifu_statistic() {
-    std::cout << "Performance Statistic of IFU" << std::endl;
-    std::cout 
-    << std::setw( 6) << "Source" << " | "
-    << std::setw(12) << "Clock" << " | " 
-    << std::setw(10) << "Count" << " | " 
-    << std::setw( 8) << "Average" << " | " << std::endl;
-    
-    STATISTIC_OUTPUT_INIT;
-    print_ifu_statistic("flash", ifu.flash);
-    print_ifu_statistic("sdram", ifu.sdram);
-    print_ifu_statistic("other", ifu.other);
-    STATISTIC_OUTPUT_DEINIT;
-}
-
-static struct {
     Counter hit;
     Counter miss;
 
     uint64_t start;
+    bool isStart = false;
+
+    word_t pc;
+    Counter flash;
+    Counter sdram;
+    Counter other;
 } icache;
 
-static void icache_valid_update(bool valid) {
+static void icache_mem_valid_update(bool valid) {
     if (valid) {
+        // Log(FMT_WORD, icache.pc);
         uint64_t clockCount = cpu.clockCount - icache.start;
         icache.miss.pref_count(clockCount);
+        if (in_flash(icache.pc)) icache.flash.pref_count(clockCount);
+        else if (in_sdram(icache.pc)) icache.sdram.pref_count(clockCount);
+        else icache.other.pref_count(clockCount);
     }
 }
 
-static void icache_start_update(bool start) {
+static void icache_mem_start_update(bool start) {
     if (start) {
         icache.start = cpu.clockCount;
     }
@@ -95,6 +61,19 @@ static void icache_is_hit_update(bool isHit) {
     if (isHit) {
         icache.hit.pref_count(0);
     }
+}
+
+static void icache_pc_update(word_t pc) {
+    icache.pc = pc;
+}
+
+static inline void print_icache_statistic(const std::string &name, const Counter &c) {
+    std::cout 
+    << std::setw( 6) << name << " | "
+    << std::setw(12) << c.clockCount << " | " 
+    << std::setw(10) << c.count << " | " 
+    << std::setw( 8) << c.average() << " | "
+    << std::setw( 5) << (double)c.clockCount / cpu.clockCount * 100 << "%" << std::endl;
 }
 
 void perf::icache_statistic() {
@@ -111,16 +90,12 @@ void perf::icache_statistic() {
     << std::setw( 5) << "hit" << " | "
     << std::setw(10) << icache.hit.count << " | "
     << std::setw( 6) << (double)icache.hit.count / total * 100 << "% | " 
-    // << std::setw(12) << icache.hit.clockCount << " | "
-    // << std::setw( 6) << (double)icache.hit.clockCount / totalClk * 100 << "%" 
     << std::endl;
 
     std::cout 
     << std::setw( 5) << "miss" << " | "
     << std::setw(10) << icache.miss.count << " | "
     << std::setw( 6) << (double)icache.miss.count / total * 100 << "% | "
-    // << std::setw(12) << icache.miss.clockCount << " | "
-    // << std::setw( 6) << (double)icache.miss.clockCount / totalClk * 100 << "%" 
     << std::endl;
 
     std::cout 
@@ -129,6 +104,18 @@ void perf::icache_statistic() {
     << std::setw( 7) << "" << " | "
     << std::setw(12) << totalClk << " | "
     << std::endl;
+
+    std::cout << std::endl;
+
+    std::cout 
+    << std::setw( 6) << "Source" << " | "
+    << std::setw(12) << "Clock" << " | " 
+    << std::setw(10) << "Count" << " | " 
+    << std::setw( 8) << "Average" << " | " << std::endl;
+
+    print_icache_statistic("flash", icache.flash);
+    print_icache_statistic("sdram", icache.sdram);
+    print_icache_statistic("other", icache.other);
 
     STATISTIC_OUTPUT_DEINIT;
 
@@ -216,21 +203,14 @@ void perf::lsu_statistic() {
 }
 
 void perf::init() {
-    ifu.start = cpu.clockCount;
     icache.start = cpu.clockCount;
     lsu.start = cpu.clockCount;
 }
 
 void perf::statistic() {
-    ifu_statistic();
-    std::cout << std::endl;
     icache_statistic();
     std::cout << std::endl;
     lsu_statistic();
-}
-
-extern "C" void perf_ifu_valid_update(bool v) {
-    ifu_valid_update(v);
 }
 
 extern "C" void perf_lsu_state_update(bool ren, bool wen, bool waiting, uint32_t addr) {
@@ -238,26 +218,28 @@ extern "C" void perf_lsu_state_update(bool ren, bool wen, bool waiting, uint32_t
 }
 
 extern "C" void perf_icache_valid_update(bool valid) {
-    icache_valid_update(valid);
+    icache_mem_valid_update(valid);
 }
 
 extern "C" void perf_icache_start_update(bool start) {
-    icache_start_update(start);
+    icache_mem_start_update(start);
 }
 
 extern "C" void perf_icache_is_hit_update(bool isHit) {
     icache_is_hit_update(isHit);
 }
 
+extern "C" void perf_icache_pc_update(word_t pc) {
+    icache_pc_update(pc);
+}
+
 #else
 
 void perf::init() {}
 void perf::statistic() {}
-void perf::ifu_statistic() {}
 void perf::lsu_statistic() {}
 void perf::icache_statistic() {}
 
-extern "C" void perf_ifu_valid_update(bool v) {}
 extern "C" void perf_lsu_state_update(bool ren, bool wen, bool waiting, uint32_t addr) {}
 extern "C" void perf_icache_valid_update(bool valid) {}
 extern "C" void perf_icache_start_update(bool start) {}

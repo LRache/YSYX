@@ -45,12 +45,11 @@ class IDUMessage extends Bundle {
     
     // WBU
     val gpr_waddr  = Output(UInt(Config.GPRAddrLength.W))
-    val gpr_wen    = Output(Bool())
+    // val gpr_wen    = Output(Bool())
     val gpr_ws     = Output(UInt(2.W))
 
     val csr_waddr  = Output(UInt(Config.CSRAddrLength.W))
     val csr_wen    = Output(Bool())
-    // val csr_ws     = Output(Bool())
     val cause_en   = Output(Bool())
 
     val is_brk     = Output(Bool())
@@ -70,10 +69,10 @@ class EXUMessage extends Bundle {
     val mem_wen = Output(Bool())
     val mem_ren = Output(Bool())
     val mem_wdata = Output(UInt(32.W))
-        
+
     val gpr_waddr  = Output(UInt(Config.GPRAddrLength.W))
-    val gpr_wen    = Output(Bool())
-    val gpr_ws     = Output(UInt(3.W))
+    // val gpr_wen    = Output(Bool())
+    // val gpr_ws     = Output(UInt(2.W))
 
     val is_brk     = Output(Bool())
     val is_ivd     = Output(Bool())
@@ -90,7 +89,7 @@ class LSUMessage extends Bundle {
 
     // Passthrough        
     val gpr_waddr  = Output(UInt(Config.GPRAddrLength.W))
-    val gpr_wen    = Output(Bool())
+    // val gpr_wen    = Output(Bool())
 
     val is_brk = Output(Bool())
     val is_ivd = Output(Bool())

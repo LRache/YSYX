@@ -62,7 +62,7 @@ ifneq ($(rom),)
 SIM_FLAGS += -r $(abspath $(rom))
 endif
 ifneq ($(flash),)
-SIM_FLAGS += -f $(abspath $(flash))
+SIM_FLAGS += -flash $(abspath $(flash))
 endif
 SIM_FLAGS += -o $(OUTPUT_DIR)
 

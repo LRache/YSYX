@@ -32,7 +32,8 @@ void load_img_to_flash_from_file(const std::string &path) {
 
     std::ifstream f;
     f.open(path, std::ios::binary);
-    assert(f.is_open());
+    Assert(f.is_open(), "Can't open file: %s", path.c_str());
+    
     addr_t addr = FLASH_BASE;
     while (!f.eof()) {
         uint32_t buf;

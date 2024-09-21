@@ -6,6 +6,7 @@ class ICachePerfCounter extends Bundle {
     val valid = Output(Bool())
     val isHit = Output(Bool())
     val start = Output(Bool())
+    val pc    = Output(UInt(32.W))
 }
 
 class LSUPerfCounter extends Bundle {
@@ -18,6 +19,7 @@ class LSUPerfCounter extends Bundle {
 class PerfCounter extends BlackBox {
     val io = IO(new Bundle {
         val reset = Input(Bool())
+        val clk   = Input(Bool())
 
         val ifu_valid = Input(Bool())
         val icache = Flipped(new ICachePerfCounter)
