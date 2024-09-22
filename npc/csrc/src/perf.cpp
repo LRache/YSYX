@@ -9,6 +9,8 @@
 
 #ifdef PERF
 
+#define CHECK if (!config::perf) return ;
+
 #define STATISTIC_OUTPUT_INIT std::cout << std::fixed << std::setprecision(2);
 #define STATISTIC_OUTPUT_DEINIT std::cout.unsetf(std::ios::fixed); std::cout.unsetf(std::ios::floatfield);
 
@@ -40,7 +42,8 @@ static struct {
     Counter other;
 } icache;
 
-static void icache_mem_valid_update(bool valid) {
+void perf::icache_mem_valid_update(bool valid) {
+    CHECK;
     if (valid) {
         // Log(FMT_WORD, icache.pc);
         uint64_t clockCount = cpu.clockCount - icache.start;
@@ -51,19 +54,22 @@ static void icache_mem_valid_update(bool valid) {
     }
 }
 
-static void icache_mem_start_update(bool start) {
-    if (start) {
+void perf::icache_mem_start_update(bool start) {
+    CHECK;
+    if ((!icache.start) && start) {
         icache.start = cpu.clockCount;
     }
 }
 
-static void icache_is_hit_update(bool isHit) {
+void perf::icache_is_hit_update(bool isHit) {
+    CHECK;
     if (isHit) {
         icache.hit.pref_count(0);
     }
 }
 
-static void icache_pc_update(word_t pc) {
+void perf::icache_pc_update(word_t pc) {
+    CHECK;
     icache.pc = pc;
 }
 
@@ -77,6 +83,7 @@ static inline void print_icache_statistic(const std::string &name, const Counter
 }
 
 void perf::icache_statistic() {
+    CHECK;
     std::cout << "Performance Statistic of ICache" << std::endl;
     std::cout << std::setw(5) << "" << " | " 
     << std::setw(10) << "Count" << " | " 
@@ -141,7 +148,8 @@ static struct {
     uint64_t start;
 } lsu;
 
-static void lsu_state_update(bool ren, bool wen, bool waiting, addr_t addr) {
+void perf::lsu_state_update(bool ren, bool wen, bool waiting, addr_t addr) {
+    CHECK;
     if (waiting) {
         lsu.start = cpu.clockCount;
         lsu.isWaiting = true;
@@ -181,6 +189,7 @@ static void print_lsu_statistic(const char *name, const Counter &c, bool is_read
 }
 
 void perf::lsu_statistic() {
+    CHECK;
     std::cout << "Performance Statistic of LSU" << std::endl;
     std::cout
     << std::setw( 6) << "Source" << " | "
@@ -203,34 +212,16 @@ void perf::lsu_statistic() {
 }
 
 void perf::init() {
+    CHECK;
     icache.start = cpu.clockCount;
     lsu.start = cpu.clockCount;
 }
 
 void perf::statistic() {
+    CHECK;
     icache_statistic();
     std::cout << std::endl;
     lsu_statistic();
-}
-
-extern "C" void perf_lsu_state_update(bool ren, bool wen, bool waiting, uint32_t addr) {
-    lsu_state_update(ren, wen, waiting, addr);
-}
-
-extern "C" void perf_icache_valid_update(bool valid) {
-    icache_mem_valid_update(valid);
-}
-
-extern "C" void perf_icache_start_update(bool start) {
-    icache_mem_start_update(start);
-}
-
-extern "C" void perf_icache_is_hit_update(bool isHit) {
-    icache_is_hit_update(isHit);
-}
-
-extern "C" void perf_icache_pc_update(word_t pc) {
-    icache_pc_update(pc);
 }
 
 #else
@@ -239,6 +230,11 @@ void perf::init() {}
 void perf::statistic() {}
 void perf::lsu_statistic() {}
 void perf::icache_statistic() {}
+void perf::lsu_state_update(bool ren, bool wen, bool waiting, addr_t addr) {}
+void perf::icache_mem_valid_update(bool valid) {}
+void perf::icache_mem_start_update(bool start) {}
+void perf::icache_is_hit_update(bool isHit) {}
+void perf::icache_pc_update(word_t pc) {}
 
 extern "C" void perf_lsu_state_update(bool ren, bool wen, bool waiting, uint32_t addr) {}
 extern "C" void perf_icache_valid_update(bool valid) {}

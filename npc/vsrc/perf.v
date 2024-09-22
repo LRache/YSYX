@@ -15,26 +15,26 @@ module PerfCounter(
     input lsu_isWaiting
 );
 
-    import "DPI-C" function void perf_lsu_state_update(input ren, input wen, input waiting, input int addr);
+    import "DPI-C" function void interface_update_lsu_state(input ren, input wen, input waiting, input int addr);
     always @(lsu_isWaiting) begin
-        if (!reset) perf_lsu_state_update(lsu_ren, lsu_wen, lsu_isWaiting, lsu_addr);
+        if (!reset) interface_update_lsu_state(lsu_ren, lsu_wen, lsu_isWaiting, lsu_addr);
     end
 
-    import "DPI-C" function void perf_icache_pc_update(input int pc);
-    import "DPI-C" function void perf_icache_valid_update(input valid);
+    import "DPI-C" function void interface_update_icache_pc(input int pc);
+    import "DPI-C" function void interface_update_icache_mem_valid(input valid);
     always @(icache_valid or icache_pc) begin
-        if (!reset) perf_icache_pc_update(icache_pc);
-        if (!reset) perf_icache_valid_update(icache_valid);
+        if (!reset) interface_update_icache_pc(icache_pc);
+        if (!reset) interface_update_icache_mem_valid(icache_valid);
     end
 
-    import "DPI-C" function void perf_icache_start_update(input start);
+    import "DPI-C" function void interface_update_icache_mem_start(input start);
     always @(icache_start) begin
-        if (!reset) perf_icache_start_update(icache_start);
+        if (!reset) interface_update_icache_mem_start(icache_start);
     end
 
-    import "DPI-C" function void perf_icache_is_hit_update(input isHit);
+    import "DPI-C" function void interface_update_icache_hit(input isHit);
     always @(posedge clk) begin
-        if (!reset) perf_icache_is_hit_update(icache_isHit);
+        if (!reset) interface_update_icache_hit(icache_isHit);
     end
     
 endmodule //PrefCounter

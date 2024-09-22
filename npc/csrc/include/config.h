@@ -42,6 +42,7 @@ namespace config {
     extern bool hasNVBoard;
     extern bool hasDifftest;
     extern bool itrace;
+    extern bool perf;
 }
 
 #endif

@@ -126,7 +126,7 @@ void difftest::set_skip() {
 
 void difftest::end() {
     Log(ANSI_FG_GREEN "Difftest PASS. "  ANSI_FG_BLUE "count=%d", difftestCount);
-    nemu_difftest_statistic();
+    // nemu_difftest_statistic();
 }
 
 #else

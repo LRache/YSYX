@@ -1,9 +1,8 @@
 #include "common.h"
 #include "hdb.h"
+#include "perf.h"
 
-extern "C" void interface_update_reset(uint8_t reset) {
-    
-}
+extern "C" void interface_update_reset(uint8_t reset) {}
 
 extern "C" void interface_ebreak() {
     hdb::ebreak();
@@ -31,4 +30,24 @@ extern "C" void interface_update_gpr(uint32_t addr, word_t data) {
 
 extern "C" void interface_update_csr(uint32_t addr, word_t data) {
     hdb::set_csr(addr, data);
+}
+
+extern "C" void interface_update_lsu_state(bool ren, bool wen, bool waiting, uint32_t addr) {
+    perf::lsu_state_update(ren, wen, waiting, addr);
+}
+
+extern "C" void interface_update_icache_mem_valid(bool valid) {
+    perf::icache_mem_valid_update(valid);
+}
+
+extern "C" void interface_update_icache_mem_start(bool start) {
+    perf::icache_mem_start_update(start);
+}
+
+extern "C" void interface_update_icache_hit(bool hit) {
+    perf::icache_is_hit_update(hit);
+}
+
+extern "C" void interface_update_icache_pc(word_t pc) {
+    perf::icache_pc_update(pc);
 }
