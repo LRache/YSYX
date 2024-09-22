@@ -9,6 +9,7 @@ object Config {
     val HasMscratch = false
     val HasSatp = false
     val HasFastAlu = true
+    val JudgeExuRaw = false
     
     // ysyx
     val VendorID = 0x79737938

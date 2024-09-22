@@ -18,6 +18,7 @@ extern "C" {
     void nemu_difftest_exec(uint64_t n);
     void nemu_difftest_raise_intr(word_t NO);
     void nemu_difftest_init(int port);
+    void nemu_difftest_statistic();
 }
 
 namespace difftest {

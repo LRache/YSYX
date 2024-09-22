@@ -12,11 +12,12 @@ int main(int argc, char **argv) {
     Log("Hello World!");
 
     struct option options[] = {
-        {"mem",      required_argument, 0, 'm'},
-        {"rom",      required_argument, 0, 'r'},
-        {"flash",    required_argument, 0, 'f'},
+        {"mem"      ,required_argument, 0, 'm'},
+        {"rom"      ,required_argument, 0, 'r'},
+        {"flash"    ,required_argument, 0, 'f'},
         {"outputdir",required_argument, 0, 'o'},
-        {"nvboard",  no_argument      , 0, 'n'},
+        {"nvboard"  ,no_argument      , 0, 'n'},
+        {"itrace"   ,no_argument      , 0, 'i'},
         {0, 0, 0, 0}
     };
     
@@ -35,6 +36,7 @@ int main(int argc, char **argv) {
             case 'f': flashImg = optarg; break;
             case 'o': outputdir = optarg; break;
             case 'n': config::hasNVBoard = true; break;
+            case 'i': config::itrace = true; break;
             default: break;
         }
     }

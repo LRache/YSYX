@@ -138,7 +138,7 @@
                 "${workspaceFolder}/npc/obj/",
                 "${workspaceFolder}/npc/utils/*/include/"
             ],
-            "compilerPath": "/usr/bin/gcc",
+            "compilerPath": "/usr/bin/g++",
             "defines": [
                 "VTop=VysyxSoCFull",
                 "VTopHeader=\"VysyxSoCFull/VysyxSoCFull.h\""

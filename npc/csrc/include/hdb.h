@@ -21,7 +21,7 @@ typedef struct
     uint32_t satp;
     
     bool running;
-    bool valid;
+    bool done;
     uint32_t inst;
     uint64_t clockCount;
     uint64_t instCount;
@@ -39,6 +39,14 @@ namespace hdb
     void step();
     int run(uint64_t n = 0);
     void end();
+
+    void ebreak();
+    void invalid_inst();
+    void set_pc(word_t pc);
+    void set_inst(word_t inst);
+    void set_done(bool done);
+    void set_gpr(uint32_t addr, word_t data);
+    void set_csr(uint32_t addr, word_t data);
     
     extern std::string outputDir;
 } // namespace hdb
@@ -57,7 +65,6 @@ namespace itrace
     void end();
     void dump_to_file(const std::string &filename);
     void print();
-    void sim_cache();
 } // namespace tracer
 
 

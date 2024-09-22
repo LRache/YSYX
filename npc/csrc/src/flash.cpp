@@ -12,14 +12,18 @@
 
 uint8_t flash[FLASH_SIZE];
 
+static inline uint32_t reserve(uint32_t d) {
+    uint32_t t = 0;
+    t |= (d & 0x000000ff) << 24;
+    t |= (d & 0x0000ff00) <<  8;
+    t |= (d & 0x00ff0000) >>  8;
+    t |= (d & 0xff000000) >> 24;
+    return t;
+}
+
 extern "C" void flash_read(addr_t addr, word_t *data) {
-    word_t d = *(word_t *)(flash + (addr & ~0x3));
-    word_t rdata = 0;
-    rdata |= (d & 0x000000ff) << 24;
-    rdata |= (d & 0x0000ff00) <<  8;
-    rdata |= (d & 0x00ff0000) >>  8;
-    rdata |= (d & 0xff000000) >> 24;
-    *data = rdata;
+    word_t rdata = *(word_t *)(flash + (addr & ~0x3));
+    *data = reserve(rdata);
     // Log("Read flash [" FMT_WORD "]=" FMT_WORD, FLASH_BASE + addr, d);
 }
 

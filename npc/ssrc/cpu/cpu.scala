@@ -69,9 +69,6 @@ class HCPU(instStart : BigInt) extends Module {
     lsu.io.mem <> arbiter.io.lsu
 
     // WBU
-    // gpr.io.waddr := wbu.io.gpr_waddr
-    // gpr.io.wdata := wbu.io.gpr_wdata
-    // gpr.io.wen   := true.B
     gpr.io.waddr := wbu.io.in.bits.gpr_waddr
     gpr.io.wdata := wbu.io.in.bits.gpr_wdata
     gpr.io.wen   := wbu.io.in.valid
@@ -80,8 +77,8 @@ class HCPU(instStart : BigInt) extends Module {
     icache.io.fence := idu.io.fence_i
 
     // Data Hazard
-    def raw_con(wen: Bool, valid: Bool, waddr: UInt): Bool = {
-        wen && valid && waddr.orR
+    def raw_con(valid: Bool, waddr: UInt, wen: Bool = true.B): Bool = {
+        valid && waddr.orR && wen
     }
     def is_raw(raddr: UInt, ren: Bool, waddr: UInt, con: Bool): Bool = {
         waddr === raddr && ren && con
@@ -89,39 +86,47 @@ class HCPU(instStart : BigInt) extends Module {
     
     val exuGPRWaddr = exu.io.out.bits.gpr_waddr
     val exuRawGPRCon = raw_con(
-        // exu.io.out.bits.gpr_wen,
-        true.B,
         exu.io.out.valid,
         exuGPRWaddr
     )
     
     val exuRaw1 = is_raw(idu.io.gpr_raddr1, idu.io.gpr_ren1, exuGPRWaddr, exuRawGPRCon)
     val exuRaw2 = is_raw(idu.io.gpr_raddr2, idu.io.gpr_ren2, exuGPRWaddr, exuRawGPRCon)
-    val exuRaw  = exuRaw1 || exuRaw2
-    idu.io.raw := exuRaw
+    val exuRawCantSolve1 = exuRaw1 && exu.io.gprWSel
+    val exuRawCantSolve2 = exuRaw2 && exu.io.gprWSel
+    val exuRawSolveable1 = exuRaw1 && !exu.io.gprWSel
+    val exuRawSolveable2 = exuRaw2 && !exu.io.gprWSel
+    if (Config.JudgeExuRaw) {
+        idu.io.raw := exuRawCantSolve1 || exuRawCantSolve2
+    } else {
+        idu.io.raw := exuRaw1 || exuRaw2
+    }
 
     val lsuGPRWaddr = lsu.io.out.bits.gpr_waddr
     val lsuRawCon = raw_con(
-        // lsu.io.out.bits.gpr_wen,
-        true.B,
         lsu.io.out.valid,
         lsuGPRWaddr
     )
     val lsuRaw1 = is_raw(idu.io.gpr_raddr1, true.B, lsuGPRWaddr, lsuRawCon)
     val lsuRaw2 = is_raw(idu.io.gpr_raddr2, true.B, lsuGPRWaddr, lsuRawCon)
-    idu.io.gpr_rdata1 := Mux(lsuRaw1, lsu.io.out.bits.gpr_wdata, gpr.io.rdata1)
-    idu.io.gpr_rdata2 := Mux(lsuRaw2, lsu.io.out.bits.gpr_wdata, gpr.io.rdata2)
+    if (Config.JudgeExuRaw) {
+        idu.io.gpr_rdata1 := Mux(exuRawSolveable1, exu.io.out.bits.rs, Mux(lsuRaw1, lsu.io.out.bits.gpr_wdata, gpr.io.rdata1))
+        idu.io.gpr_rdata2 := Mux(exuRawSolveable2, exu.io.out.bits.rs, Mux(lsuRaw2, lsu.io.out.bits.gpr_wdata, gpr.io.rdata2))
+    } else {
+        idu.io.gpr_rdata1 := Mux(lsuRaw1, lsu.io.out.bits.gpr_wdata, gpr.io.rdata1)
+        idu.io.gpr_rdata2 := Mux(lsuRaw2, lsu.io.out.bits.gpr_wdata, gpr.io.rdata2)
+    }
 
     val exuRawCSRCon = raw_con(
-        exu.io.csr.wen,
         exu.io.out.valid,
-        exuGPRWaddr
+        exuGPRWaddr,
+        exu.io.csr.wen
     )
     val exuRawCSR = is_raw(idu.io.csr_raddr, idu.io.csr_ren, exu.io.csr.waddr, exuRawCSRCon)
     idu.io.csr_rdata := Mux(exuRawCSR, exu.io.csr.wdata, csr.io.rdata)
 
     // Branch predict
-    val predict_failed = exu.io.jmp && exu.io.out.valid
+    val predict_failed = (exu.io.jmp && exu.io.out.valid) || idu.io.fence_i
     ifu.io.predict_failed := predict_failed
     idu.io.predict_failed := predict_failed
     ifu.io.dnpc := RegEnable(exu.io.dnpc, exu.io.out.valid)

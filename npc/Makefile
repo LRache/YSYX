@@ -2,14 +2,8 @@ VERILATOR= verilator
 VERILATOR_CFLAGS += -MMD --build -cc -O3 --trace-fst 
 VERILATOR_FLAGS += --timescale "1ns/1ns" --no-timing --autoflush
 
-m = Top
-ifeq ($(m),soc)
 TOP=ysyxSoCFull
 mainModule=cpu.CPU
-else
-TOP=$(lastword $(subst ., ,$(m)))
-mainModule=$(m)
-endif
 
 UTILS = cachesim
 
@@ -24,19 +18,16 @@ UTILS_DIR = $(abspath ./utils)
 
 SSRCS = $(abspath $(shell find $(SSRC_DIR) -name "*.scala"))
 VSRCS = $(abspath $(shell find $(VSRC_DIR) -name "*.v" -or -name "*.sv")) $(abspath $(shell find $(BUILD_DIR) -name "*.v" -or -name "*.sv"))
+VSRCS += $(abspath ../ysyxSoC/build/ysyxSoCFull.v)
+VSRCS += $(abspath $(shell find ../ysyxSoC/perip -name "*.v"))
 CSRCS = $(abspath $(shell find $(CSRC_DIR) -name "*.c" -or -name "*.cc" -or -name "*.cpp"))
 CSRCS += $(abspath $(shell find $(CSRC_DIR) -name "*.c" -or -name "*.cc" -or -name "*.cpp"))
 CSRCS += $(abspath $(shell find $(foreach util,$(UTILS),$(UTILS_DIR)/$(util)/src) -name "*.c" -or -name "*.cc" -or -name "*.cpp"))
 INC_PATH += $(abspath ./csrc/include)
 INC_PATH += $(abspath ./obj)
 INC_PATH += $(abspath $(foreach util,$(UTILS),$(UTILS_DIR)/$(util)/include))
-
-ifeq ($(m),soc)
-VSRCS += $(abspath ../ysyxSoC/build/ysyxSoCFull.v)
-VSRCS += $(abspath $(shell find ../ysyxSoC/perip -name "*.v"))
 VINC_PATH += $(abspath ../ysyxSoC/perip/uart16550/rtl)
 VINC_PATH += $(abspath ../ysyxSoC/perip/spi/rtl)
-endif
 
 NEMU_SO = $(abspath $(NEMU_HOME)/build/riscv32-nemu-interpreter-so)
 
@@ -62,7 +53,7 @@ ifneq ($(rom),)
 SIM_FLAGS += -r $(abspath $(rom))
 endif
 ifneq ($(flash),)
-SIM_FLAGS += -flash $(abspath $(flash))
+SIM_FLAGS += --flash $(abspath $(flash))
 endif
 SIM_FLAGS += -o $(OUTPUT_DIR)
 
@@ -114,8 +105,5 @@ all: npc
 
 npc: $(SIM_EXE)
 	$(call git_commit, "compile RTL")
-
-.PHONY sta:
-	cd $(abspath ../yosys-sta/) && make -f $(abspath ../yosys-sta/Makefile) sta SDC_FILE=$(abspath ./vsrc/hcpu.sdc) RTL_FILES="$(VSRCS)" CLK_FREQ_MHZ=100 DESIGN=ysyxSoCFull
 
 -include ../Makefile

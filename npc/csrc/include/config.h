@@ -3,7 +3,7 @@
 
 #define HAS_NVBOARD
 #define DIFFTEST
-// #define ITRACE
+#define ITRACE
 #define PERF
 
 // #define HAS_MEM
@@ -41,6 +41,7 @@
 namespace config {
     extern bool hasNVBoard;
     extern bool hasDifftest;
+    extern bool itrace;
 }
 
 #endif

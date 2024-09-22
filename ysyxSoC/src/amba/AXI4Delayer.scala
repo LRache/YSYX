@@ -22,7 +22,7 @@ class axi4_delayer extends BlackBox {
 
 class AXI4DelayerChisel extends Module {
   val io = IO(new AXI4DelayerIO)
-  // io.out <> io.in
+  io.out <> io.in
   val rs = 460
   val s = 100
 

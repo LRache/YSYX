@@ -9,6 +9,7 @@ import cpu.EXUMessage
 import cpu.Config
 import cpu.RegWIO
 import cpu.reg.GPRWSel
+import org.apache.commons.io.input.BOMInputStream
 
 class EXU extends Module {
     val io = IO(new Bundle {
@@ -17,6 +18,9 @@ class EXU extends Module {
 
         // CSR
         val csr = new RegWIO(Config.CSRAddrLength)
+
+        // Data Hazard
+        val gprWSel = Output(Bool())
 
         // Control Hazard
         val jmp = Output(Bool())
@@ -45,6 +49,7 @@ class EXU extends Module {
         GPRWSel. EXU.U -> alu_result,
         GPRWSel. MEM.U -> alu_result,
     ))
+    io.gprWSel := io.in.bits.gpr_ws === GPRWSel.MEM.U
     
     val jmp = (io.in.bits.is_branch && alu.io.cmp) || io.in.bits.is_jmp
     io.jmp := jmp

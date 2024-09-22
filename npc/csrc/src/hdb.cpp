@@ -11,7 +11,8 @@
 #include "config.h"
 #include "nvboard.h"
 #include "perf.h"
-#include "itrace.h"
+#include "itracer.h"
+#include "utils.h"
 
 CPU cpu;
 uint32_t lastPC;
@@ -72,7 +73,7 @@ void hdb::step() {
         return;
     }
     exec_once();
-    while (!cpu.valid && cpu.running) {
+    while (!cpu.done && cpu.running) {
         exec_once();
     }
     if (cpu.running) difftest::step();
@@ -84,7 +85,7 @@ void hdb_statistic() {
     timer += std::chrono::duration_cast<std::chrono::microseconds>(timerEnd - timerStart).count();
 
     Log("Total count of instructions = %" PRIu64 " with %" PRIu64 " clocks, IPC=%.6lf", cpu.instCount, cpu.clockCount, (double)cpu.instCount / cpu.clockCount);
-    Log("Total time spent = %'" PRIu64 " us, frequency=%.3lfkHz", timer, (double)cpu.clockCount * 1000 / timer);
+    Log("Total time spent = %'" PRIu64 " us(%s), frequency=%.3lfkHz", timer, us_to_text(timer).c_str(), (double)cpu.clockCount * 1000 / timer);
     if (timer > 0) Log("Simulation frequency = %'" PRIu64 " clocks/s", cpu.clockCount * 1000000 / timer);
 }
 
@@ -115,7 +116,22 @@ int hdb::run(uint64_t n) {
     return r;
 }
 
-void hdb_set_csr(uint32_t addr, word_t data) {
+void hdb::ebreak() {
+    Log("ebreak at pc=" FMT_WORD, cpu.pc);
+    cpu.running = false;
+}
+
+void hdb::invalid_inst() {
+    cpu.running = false;
+    panic("Invalid Inst at pc=" FMT_WORD " (inst=" FMT_WORD ") clock=%lu", cpu.pc, cpu.inst, cpu.clockCount);
+}
+
+void hdb::set_gpr(uint32_t addr, word_t data) {
+    // Log("Set gpr x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
+    if (addr != 0) cpu.gpr[addr] = data;
+}
+
+void hdb::set_csr(uint32_t addr, word_t data) {
     if (addr == 0) return ;
     const char *name = "unknown";
     switch (addr)
@@ -131,17 +147,7 @@ void hdb_set_csr(uint32_t addr, word_t data) {
     // Log("Set csr %d[%s]=" FMT_WORD " at pc=" FMT_WORD, addr, name, data, cpu.pc);
 }
 
-void hdb_set_gpr(uint32_t addr, word_t data) {
-    // Log("Set gpr x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
-    if (addr != 0) cpu.gpr[addr] = data;
-}
-
-void hdb_invalid_inst() {
-    cpu.running = false;
-    panic("Invalid Inst at pc=" FMT_WORD " (inst=" FMT_WORD ") clock=%lu", cpu.pc, cpu.inst, cpu.clockCount);
-}
-
-void hdb_update_pc(uint32_t pc) {
+void hdb::set_pc(word_t pc) {
     if (!cpu.running) return ;
     
     if (!(top.reset || in_flash(pc) || in_sdram(pc))) {
@@ -153,45 +159,12 @@ void hdb_update_pc(uint32_t pc) {
     // Log("Exec to pc=" FMT_WORD " at clock=%lu", pc, cpu.clockCount);
 }
 
-void hdb_update_inst(uint32_t inst) {
+void hdb::set_inst(word_t inst) {
     lastInst = cpu.inst;
     cpu.inst = inst;
     // Log(FMT_WORD, inst);
 }
 
-void hdb_update_valid(bool valid) {
-    cpu.valid = valid;
-}
-
-extern "C" {
-    void set_gpr(uint32_t addr, word_t data) {
-        hdb_set_gpr(addr, data);
-    }
-
-    void set_csr(uint32_t addr, uint32_t data) {
-        hdb_set_csr(addr, data);
-    }
-
-    void update_reset(uint8_t reset) {}
-
-    void update_pc(uint32_t pc) {
-        hdb_update_pc(pc);
-    }
-
-    void update_inst(uint32_t inst) {
-        hdb_update_inst(inst);
-    }
-
-    void update_valid(uint8_t valid) {
-        hdb_update_valid(valid);
-    }
-
-    void env_break() {
-        Log("ebreak at pc=" FMT_WORD, cpu.pc);
-        cpu.running = false;
-    }
-
-    void invalid_inst() {
-        hdb_invalid_inst();
-    }
+void hdb::set_done(bool done) {
+    cpu.done = done;
 }

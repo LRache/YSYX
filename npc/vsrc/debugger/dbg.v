@@ -15,41 +15,41 @@ module Dbg(
     input [31:0] csr_wdata,
     input csr_wen
 );
-    import "DPI-C" function void env_break();
-    import "DPI-C" function void invalid_inst();
-    import "DPI-C" function void update_reset(input byte reset);
-    import "DPI-C" function void update_pc(input int pc);
-    import "DPI-C" function void update_inst(input int inst);
-    import "DPI-C" function void update_valid(input byte valid);
-    import "DPI-C" function void set_gpr(input int addr, input int data);
-    import "DPI-C" function void set_csr(input int addr, input int data);
-
+    import "DPI-C" function void interface_ebreak();
+    import "DPI-C" function void interface_ivd_inst();
+    import "DPI-C" function void interface_update_gpr(input int addr, input int data);
+    import "DPI-C" function void interface_update_csr(input int addr, input int data);
+    import "DPI-C" function void interface_update_reset(input reset);
+    import "DPI-C" function void interface_update_pc(input int pc);
+    import "DPI-C" function void interface_update_inst(input int inst);
+   
     always @(posedge clk) 
     begin
-        if (brk) env_break();
-        if (ivd) invalid_inst();
-        if (gpr_wen) set_gpr(gpr_waddr, gpr_wdata);
-        if (csr_wen) set_csr(csr_waddr, csr_wdata);
+        if (brk) interface_ebreak();
+        if (ivd) interface_ivd_inst();
+        if (gpr_wen) interface_update_gpr(gpr_waddr, gpr_wdata);
+        if (csr_wen) interface_update_csr(csr_waddr, csr_wdata);
     end
 
     always @(reset)
     begin
-        update_reset({7'b0, reset});
+        interface_update_reset(reset);
     end
     
     always @(pc)
     begin
-        update_pc(pc);
+        if (!reset) interface_update_pc(pc);
     end
 
     always @(inst)
     begin
-        update_inst(inst);
+        interface_update_inst(inst);
     end
 
+    import "DPI-C" function void interface_update_done(input done);
     always @(done)
     begin
-        update_valid({7'b0, done});
+        interface_update_done(done);
     end
 
 endmodule //Dbg
