@@ -136,7 +136,7 @@
                 "${workspaceFolder}/nvboard/usr/include/",
                 "${workspaceFolder}/npc/csrc/include/",
                 "${workspaceFolder}/npc/obj/",
-                "${workspaceFolder}/npc/utils/*/include/"
+                "${workspaceFolder}/npc/utils/**/include/"
             ],
             "compilerPath": "/usr/bin/g++",
             "defines": [

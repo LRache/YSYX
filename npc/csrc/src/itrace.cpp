@@ -1,7 +1,6 @@
 #include "hdb.h"
 #include "config.h"
-#include "itracer.h"
-#include "cache.h"
+#include "itracer.hpp"
 
 #include <iostream>
 #include <iomanip>

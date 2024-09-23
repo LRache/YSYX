@@ -1,8 +1,10 @@
 #pragma once
 
-#include "tracer.h"
+#include "tracer.hpp"
 #include <iostream>
 #include <vector>
+
+typedef uint32_t word_t;
 
 class Cache {
 protected:

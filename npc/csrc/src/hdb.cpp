@@ -11,7 +11,7 @@
 #include "config.h"
 #include "nvboard.h"
 #include "perf.h"
-#include "itracer.h"
+#include "itracer.hpp"
 #include "utils.h"
 
 CPU cpu;
@@ -21,7 +21,6 @@ uint32_t lastInst;
 VTop top;
 std::chrono::time_point<std::chrono::system_clock> timerStart;
 static uint64_t timer = 0;
-std::string hdb::outputDir = "./";
 
 #define IMG_NAME test_img_no_hazard_addi
 static uint32_t *img = IMG_NAME;
@@ -38,8 +37,7 @@ static void exec_once() {
 void hdb::init(
     const std::string &memImgPath, 
     const std::string &romImgPath, 
-    const std::string &flashImgPath, 
-    const std::string &outputDir
+    const std::string &flashImgPath
 ) {
     difftest::init();
     nvboard::init();

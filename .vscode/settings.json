@@ -101,7 +101,7 @@
         "typeindex": "cpp",
         "difftest.h": "c",
         "locale.h": "c",
-        "utils.h": "c"
+        "utils.h": "c",
     },
     "files.watcherExclude": {
         "**/target": true

@@ -1,6 +1,6 @@
 #include <iostream>
 #include <iomanip>
-#include "itrace.h"
+#include "itracer.hpp"
 #include "sim.h"
 
 void output_icache_sim(const SimResult &r, std::string name, int e, int s, int b) {
