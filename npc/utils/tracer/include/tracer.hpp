@@ -41,8 +41,8 @@ public:
     virtual bool open(const std::string &filename) { return false; }
     virtual void open(std::istream &stream) {}
     virtual bool close() { return false; }
-    virtual Entry begin() { assert(0); }
-    virtual Entry next() { assert(0); }
+    virtual Entry begin() { return {}; }
+    virtual Entry next() { return {}; }
     virtual bool is_end() const = 0;
 };
 

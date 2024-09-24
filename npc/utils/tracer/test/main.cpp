@@ -5,9 +5,11 @@
 
 #define ADDR_BASE 0x30000000
 
+using word_t = uint32_t;
+
 int main() {
     std::stringstream byteStream(std::ios::in | std::ios::out | std::ios::binary);
-    ITracerWriter writer;
+    ITracerWriter<word_t> writer;
     writer.open(byteStream);
     for (uint32_t addr = ADDR_BASE; addr < ADDR_BASE + 0x20; addr += 4) {
         writer.trace(addr);
@@ -19,11 +21,11 @@ int main() {
     
     byteStream.seekg(0);
     
-    ITracerReader reader;
+    ITracerReader<word_t> reader;
     reader.open(byteStream);
     std::cout << std::endl;
-    for (uint32_t addr = reader.begin(); !reader.is_end(); addr = reader.next()) {
-        std::cout << std::hex << addr << std::endl;
+    for (auto e = reader.begin(); !reader.is_end(); e = reader.next()) {
+        std::cout << std::hex << e.addr << std::endl;
     }
     
     return 0;

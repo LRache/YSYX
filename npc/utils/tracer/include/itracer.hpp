@@ -12,7 +12,7 @@ class ITracerWriter : public TracerWriter<MemTracerEntry<addr_t>> {
 private:
     bool isStart;
     bool outOfRange;
-    word_t pc;
+    addr_t pc;
     std::ostream *stream;
     std::ofstream fstream;
     uint64_t turnCount;
@@ -43,8 +43,8 @@ public:
     bool open(const std::string &filename) override;
     void open(std::istream &stream) override;
     bool close() override;
-    addr_t begin() override;
-    addr_t next() override;
+    MemTracerEntry<addr_t> begin() override;
+    MemTracerEntry<addr_t> next() override;
     bool is_end() const override;
 };
 
@@ -79,7 +79,7 @@ void ITracerWriter<addr_t>::trace(addr_t dnpc) {
         this->isStart = true;
         this->stream->write((char *)&dnpc, sizeof(dnpc));
     } else {
-        word_t snpc = this->pc + 4;
+        addr_t snpc = this->pc + 4;
         if (snpc != dnpc) {
             if (this->turnCount == ITRacerMaxTurn) {
                 this->stream->write((char *)&this->pc, sizeof(this->pc));
@@ -130,7 +130,7 @@ bool ITracerReader<addr_t>::close() {
 
 template <typename addr_t>
 void ITracerReader<addr_t>::read_turn() {
-    word_t pc;
+    addr_t pc;
     this->stream->read((char *)&pc, sizeof(pc));
     this->nextJumpPC = pc;
     this->stream->read((char *)&pc, sizeof(pc));
@@ -142,16 +142,16 @@ void ITracerReader<addr_t>::read_turn() {
 }
 
 template <typename addr_t>
-addr_t ITracerReader<addr_t>::begin() {
+MemTracerEntry<addr_t> ITracerReader<addr_t>::begin() {
     this->stream->read((char *)&this->pc, sizeof(this->pc));
     assert(!this->stream->fail());
     this->read_turn();
-    return this->pc;
+    return {this->pc, MemType::READ};
 }
 
 template <typename addr_t>
-addr_t ITracerReader<addr_t>::next() {
-    word_t npc = pc + 4;
+MemTracerEntry<addr_t> ITracerReader<addr_t>::next() {
+    addr_t npc = pc + 4;
     if (this->pc == this->nextJumpPC) {
         npc = this->nextJumpDest;
         if (this->isEndTurn) {
@@ -162,7 +162,7 @@ addr_t ITracerReader<addr_t>::next() {
         }
     }
     this->pc = npc;
-    return npc;
+    return {npc, MemType::READ};
 }
 
 template <typename addr_t>
