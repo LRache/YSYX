@@ -33,8 +33,9 @@ extern CPU cpu;
 namespace hdb
 {
     void init(
-        const std::string &memImgPath="", const std::string &romImgPath="", 
-        const std::string &flashImgPath="", const std::string &outputDir="./"
+        const std::string &memImgPath="", 
+        const std::string &romImgPath="", 
+        const std::string &flashImgPath=""
         );
     void step();
     int run(uint64_t n = 0);

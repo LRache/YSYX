@@ -9,7 +9,7 @@
 
 typedef uint32_t word_t;
 
-class ITracerWriter : public TracerWriter<word_t, void> {
+class ITracerWriter : public TracerWriter<word_t, void *> {
 private:
     bool isStart;
     bool outOfRange;

@@ -38,10 +38,13 @@
 
 #define INST_START FLASH_BASE
 
+#include <string>
+
 namespace config {
     extern bool hasNVBoard;
     extern bool hasDifftest;
     extern bool itrace;
+    extern std::string itraceOutputFileName;
     extern bool perf;
 }
 

@@ -5,7 +5,7 @@ VERILATOR_FLAGS += --timescale "1ns/1ns" --no-timing --autoflush
 TOP=ysyxSoCFull
 mainModule=cpu.CPU
 
-UTILS = cachesim
+UTILS = tracer
 
 SSRC_DIR = $(abspath ./ssrc)
 CSRC_DIR = $(abspath ./csrc)
@@ -35,27 +35,26 @@ include $(NVBOARD_HOME)/scripts/nvboard.mk
 
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) 
-CXXFLAGS += -fexceptions
+CXXFLAGS += -fexceptions -Werror -Wall -Wextra -Wno-unused-parameter
 VINCFLAGS = $(addprefix -I, $(VINC_PATH))
 VERILATOR_FLAGS += $(VINCFLAGS)
 
 CXXFLAGS += $(addprefix -DVTop=, V$(TOP))
 CXXFLAGS += $(addprefix -DVTopHeader=, \"V$(TOP)/V$(TOP).h\")
-CXXFLAGS += -I/usr/lib/llvm-14/include -std=c++14   -fno-exceptions -lLLVM-14 -fPIE
 
 LDFLAGS += -dynamic-linker $(NEMU_SO)
 
 
 ifneq ($(mem),)
-SIM_FLAGS += -m $(abspath $(mem))
+NPCFLAGS += -m $(abspath $(mem))
 endif
 ifneq ($(rom),)
-SIM_FLAGS += -r $(abspath $(rom))
+NPCFLAGS += -r $(abspath $(rom))
 endif
 ifneq ($(flash),)
-SIM_FLAGS += --flash $(abspath $(flash))
+NPCFLAGS += --flash $(abspath $(flash))
 endif
-SIM_FLAGS += -o $(OUTPUT_DIR)
+NPCFLAGS += -o $(OUTPUT_DIR)
 
 PRJ = playground
 
@@ -97,7 +96,7 @@ $(SIM_EXE): $(CSRCS) $(VSRCS) $(NVBOARD_ARCHIVE)
 
 .PHONY sim: $(SIM_EXE)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	cd $(SIM_DIR) && $(SIM_EXE) $(SIM_FLAGS)
+	cd $(SIM_DIR) && $(SIM_EXE) $(NPCFLAGS)
 
 run: sim
 

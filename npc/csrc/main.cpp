@@ -6,6 +6,11 @@
 #include "hdb.h"
 #include "config.h"
 
+void atexit() {
+    hdb::end();
+    Log("Bye~");
+}
+
 int main(int argc, char **argv) {
     Verilated::commandArgs(argc, argv);
     
@@ -29,16 +34,28 @@ int main(int argc, char **argv) {
     {
         switch (o)
         {
-            case 'm': memImg = optarg; break;
-            case 'r': romImg = optarg; break;
-            case 'f': flashImg = optarg; break;
-            case 'n': config::hasNVBoard = true; break;
-            case 'i': config::itrace = true; break;
+            case 'm': 
+                memImg = optarg; 
+                break;
+            case 'r': 
+                romImg = optarg; 
+                break;
+            case 'f': 
+                flashImg = optarg; 
+                break;
+            case 'n': 
+                config::hasNVBoard = true; 
+                break;
+            case 'i': 
+                config::itrace = true; 
+                config::itraceOutputFileName = optarg;
+                break;
             default: break;
         }
     }
+    assert(config::itrace);
     hdb::init(memImg, romImg, flashImg);
-    std::atexit(hdb::end);
+    std::atexit(atexit);
     int r = 0;
     r = hdb::run();
     return r;

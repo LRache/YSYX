@@ -1,40 +1,39 @@
-#include "hdb.h"
-#include "config.h"
-#include "itracer.hpp"
-
 #include <iostream>
 #include <iomanip>
 
+#include "trace.h"
+#include "config.h"
+#include "itracer.hpp"
+#include "debug.h"
+
 #ifdef ITRACE
 
-static ITracer itracer;
+static ITracerWriter writer;
 
-void itrace::start(word_t pc) {
-    itracer.start_trace(pc);
+bool itrace::open_file(const std::string &filename) {
+    if (!config::itrace) return true;
+    return writer.open(filename);
+}
+
+bool itrace::open_file() {
+    return open_file(config::itraceOutputFileName);
 }
 
 void itrace::trace(word_t pc) {
-    itracer.trace(pc);
+    if (!config::itrace) return ;
+    writer.trace(pc);
 } 
 
-void itrace::end() {
-    itracer.end_trace();
-}
-
-void itrace::dump_to_file(const std::string &filename) {
-    itracer.dump_to_file(filename);
-}
-
-void itrace::print() {
-    itracer.print();
+bool itrace::close_file() {
+    if (!config::itrace) return true;
+    Log("close file %s", config::itraceOutputFileName.c_str());
+    return writer.close();
 }
 
 #else
 
-void itrace::start(word_t pc) {}
+bool itrace::open_file(const std::string &filename) { return true; }
 void itrace::trace(word_t pc) {}
-void itrace::end() {}
-void itrace::dump_to_file(const std::string &filename) {}
-void itrace::print() {}
+bool itrace::close_file() { return true; }
 
 #endif

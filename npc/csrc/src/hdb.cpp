@@ -11,7 +11,7 @@
 #include "config.h"
 #include "nvboard.h"
 #include "perf.h"
-#include "itracer.hpp"
+#include "trace.h"
 #include "utils.h"
 
 CPU cpu;
@@ -46,7 +46,6 @@ void hdb::init(
     load_img_to_mem_from_file(memImgPath);
     load_img_to_rom_from_file(romImgPath);
     load_img_to_flash_from_file(flashImgPath);
-    hdb::outputDir = outputDir;
 
     cpu.running = true;
     cpu.instCount = 0;
@@ -56,10 +55,11 @@ void hdb::init(
     top.reset = 1;
     for (int i = 0; i < 16; i++) exec_once();
     top.reset = 0;
-    Log("Reset at clock=%lu", cpu.clockCount);
+    Log("Reset at clock=%" PRIu64, cpu.clockCount);
     
     perf::init();
-    itrace::start(INST_START);
+    Assert(itrace::open_file(), "Failed to open itrace file: %s.", config::itraceOutputFileName.c_str());
+    itrace::trace(INST_START);
 
     cpu.mstatus = 0x1800;
     Log("Init finished.");
@@ -107,10 +107,7 @@ int hdb::run(uint64_t n) {
     } else {
         Log(ANSI_FG_RED "HIT BAD TRAP" ANSI_FG_BLUE " with code %d at pc=" FMT_WORD, r, cpu.pc);
     }
-    itrace::end();
-    if (!hdb::outputDir.empty()) {
-        itrace::dump_to_file(hdb::outputDir + "//itrace.bin");
-    }
+    Assert(itrace::close_file(), "Failed to close trace file.");
     return r;
 }
 

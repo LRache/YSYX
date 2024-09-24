@@ -1,5 +1,7 @@
 #include "itracer.hpp"
 
+#include <iostream>
+
 ITracerWriter::ITracerWriter() {
     this->isStart = false;
     this->turnCount = 0;

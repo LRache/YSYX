@@ -1,8 +1,15 @@
+#ifndef __TRACE_H__
+#define __TRACE_H__
+
+#include <string>
+#include "common.h"
+
 namespace itrace
 {
-    void start(word_t pc);
+    bool open_file(const std::string &filename);
+    bool open_file();
     void trace(word_t pc);
-    void end();
-    void dump_to_file(const std::string &filename);
-    void print();
+    bool close_file();
 } // namespace itrace
+
+#endif

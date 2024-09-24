@@ -35,7 +35,7 @@ public:
     virtual bool open(const std::istream &stream) { return false; }
     virtual bool close() { return false; }
     virtual Word begin() { assert(0); }
-    virtual Word begin(T *) { assert(0) }
+    virtual Word begin(T *) { assert(0); }
     virtual Word next() { assert(0); }
     virtual Word next(T *) { assert(0); }
     virtual bool is_end() const = 0;
