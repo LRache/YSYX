@@ -8,7 +8,7 @@
 
 #ifdef ITRACE
 
-static ITracerWriter writer;
+static ITracerWriter<word_t> writer;
 
 bool itrace::open_file(const std::string &filename) {
     if (!config::itrace) return true;
