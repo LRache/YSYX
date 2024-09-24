@@ -6,3 +6,4 @@ verilog
 .bloop
 out
 build.sc
+*.log
