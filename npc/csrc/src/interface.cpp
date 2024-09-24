@@ -44,10 +44,26 @@ extern "C" void interface_update_icache_mem_start(bool start) {
     perf::icache_mem_start_update(start);
 }
 
+extern "C" void interface_update_idu_ready(bool ready) {
+    perf::idu_ready_update(ready);
+}
+
+extern "C" void interface_update_exu_valid(bool valid) {
+    perf::exu_valid_update(valid);
+}
+
 extern "C" void interface_update_icache_hit(bool hit) {
     perf::icache_is_hit_update(hit);
 }
 
 extern "C" void interface_update_icache_pc(word_t pc) {
     perf::icache_pc_update(pc);
+}
+
+extern "C" void interface_update_branch_predict_failed(bool failed) {
+    perf::branch_predict_failed_update(failed);
+}
+
+extern "C" void interface_update_branch_predict_success(bool failed) {
+    perf::branch_predict_success_update(failed);
 }

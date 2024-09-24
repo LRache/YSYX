@@ -35,12 +35,18 @@ static struct {
 
     uint64_t start;
     bool isStart = false;
+    bool iduReady = false;
 
     word_t pc;
     Counter flash;
     Counter sdram;
     Counter other;
 } icache;
+
+void perf::idu_ready_update(bool ready) {
+    CHECK;
+    icache.iduReady = ready;
+}
 
 void perf::icache_mem_valid_update(bool valid) {
     CHECK;
@@ -56,14 +62,16 @@ void perf::icache_mem_valid_update(bool valid) {
 
 void perf::icache_mem_start_update(bool start) {
     CHECK;
-    if ((!icache.start) && start) {
+    if ((!icache.isStart) && start) {
         icache.start = cpu.clockCount;
     }
+    icache.isStart = start;
 }
 
 void perf::icache_is_hit_update(bool isHit) {
     CHECK;
-    if (isHit) {
+    if (isHit && icache.iduReady) {
+        // Log(FMT_WORD, icache.pc);
         icache.hit.pref_count(0);
     }
 }
@@ -156,7 +164,6 @@ void perf::lsu_state_update(bool ren, bool wen, bool waiting, addr_t addr) {
         lsu.wen = wen;
         lsu.ren = ren;
         lsu.addr = addr;
-        // Log(FMT_WORD " " FMT_WORD, cpu.pc, lsu.addr);
     } else if (lsu.isWaiting) {
         lsu.isWaiting = false;
         uint64_t clockCount = cpu.clockCount - lsu.start;
@@ -175,6 +182,7 @@ void perf::lsu_state_update(bool ren, bool wen, bool waiting, addr_t addr) {
             if (lsu.ren) lsu.otherRead.pref_count(clockCount);
             else if (lsu.wen) lsu.otherWrite.pref_count(clockCount);
         }
+        Log(FMT_WORD " %" PRIu64, cpu.pc, cpu.clockCount);
     }
 }
 
@@ -211,6 +219,47 @@ void perf::lsu_statistic() {
     STATISTIC_OUTPUT_DEINIT;
 }
 
+struct BranchPredict
+{
+    uint32_t success = 0;
+    uint32_t fail = 0;
+    bool exuValid = false;
+} branchPredict;
+
+void perf::exu_valid_update(bool valid) {
+    CHECK;
+    branchPredict.exuValid = valid;
+}
+
+void perf::branch_predict_failed_update(bool failed) {
+    CHECK;
+    if (failed) branchPredict.fail++;
+}
+
+void perf::branch_predict_success_update(bool success) {
+    CHECK;
+    if (success && branchPredict.exuValid) branchPredict.success++;
+}
+
+void perf::branch_predictor_statistic() {
+    CHECK;
+    std::cout << "Performance Statistic of Branch Predictor" << std::endl;
+    std::cout 
+    << std::setw( 7) << " " << " | "
+    << std::setw(10) << "Count" << " | "
+    << std::setw( 8) << "Rate" << " | " << std::endl;
+
+    double successRate = (double)branchPredict.success / (branchPredict.success + branchPredict.fail);
+    std::cout 
+    << std::setw( 7) << "success" << " | "
+    << std::setw(10) << branchPredict.success << " | "
+    << std::setw(8) << successRate << std::endl;
+    std::cout 
+    << std::setw( 7) << "fail" << " | "
+    << std::setw(10) << branchPredict.fail << " | "
+    << std::setw(8) << (1 - successRate) << std::endl;
+}
+
 void perf::init() {
     CHECK;
     icache.start = cpu.clockCount;
@@ -222,6 +271,8 @@ void perf::statistic() {
     icache_statistic();
     std::cout << std::endl;
     lsu_statistic();
+    std::cout << std::endl;
+    branch_predictor_statistic();
 }
 
 #else

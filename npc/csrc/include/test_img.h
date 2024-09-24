@@ -334,11 +334,11 @@ static uint32_t test_img_data_hazard[] = {
 
 static uint32_t test_img_simple_mem[] = {
     0xa0000537, // 00 lui x10, 0xa0000
-    0x123455b7, // 04 lui x11, 0x12345
+    // 0x123455b7, // 04 lui x11, 0x12345
     // 0x67858593, // 08 addi x11, x11, 0x678
     // 0x00b52023, // 0c sw x11, 0(x10)
     0x00050603, // 10 lb x12, 0(x10)
-    0x00100093, // 14 addi x1, x0, 1
+    // 0x00100093, // 14 addi x1, x0, 1
     // 0x00200093, // addi x1, x0, 2
     GOOD_TRAP
 };

@@ -15,6 +15,7 @@ import cpu.wbu.WBU
 
 import bus.AXI4Arbiter
 import bus.AXI4IO
+import cpu.idu.Encode.count
 
 
 class HCPU(instStart : BigInt) extends Module {
@@ -150,8 +151,12 @@ class HCPU(instStart : BigInt) extends Module {
 
         val counter = Module(new PerfCounter())
         counter.io.ifu_valid := ifu.io.out.valid
+        counter.io.idu_ready := idu.io.in.ready
+        counter.io.exu_valid := exu.io.out.valid
         counter.io.icache <> icache.io.perf
         counter.io.lsu <> lsu.io.perf
+        counter.io.branch_predict_failed := predict_failed
+        counter.io.branch_predict_success := (!predict_failed) && lsu.io.in.ready
         counter.io.reset := reset
         counter.io.clk   := clock.asBool
     }

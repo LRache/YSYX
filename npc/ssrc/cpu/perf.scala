@@ -22,7 +22,13 @@ class PerfCounter extends BlackBox {
         val clk   = Input(Bool())
 
         val ifu_valid = Input(Bool())
+        val idu_ready = Input(Bool())
+        val exu_valid = Input(Bool())
+        
         val icache = Flipped(new ICachePerfCounter)
         val lsu = Flipped(new LSUPerfCounter)
+
+        val branch_predict_failed = Input(Bool())
+        val branch_predict_success = Input(Bool())
     })
 }
