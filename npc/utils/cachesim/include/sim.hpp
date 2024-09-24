@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tracer.hpp"
-#include "cache.h"
+#include "cache.hpp"
 
 struct SimResult {
     uint64_t readHit   = 0;
@@ -10,7 +10,8 @@ struct SimResult {
     uint64_t writeMiss = 0;
 };
 
-SimResult sim(Cache &cache, TracerReader<MemTracerEntry<word_t>> &reader) {
+template <typename addr_t>
+SimResult sim(Cache<addr_t> &cache, TracerReader<MemTracerEntry<addr_t>> &reader) {
     SimResult result = {};
     for (auto entry = reader.begin(); !reader.is_end(); entry = reader.next()) {
         if (entry.memType == MemType::READ) {

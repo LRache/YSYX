@@ -1,7 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include "itracer.hpp"
-#include "sim.h"
+#include "sim.hpp"
 
 void output_icache_sim(const SimResult &r, std::string name, int e, int s, int b) {
     std::cout << std::fixed << std::setprecision(6);
