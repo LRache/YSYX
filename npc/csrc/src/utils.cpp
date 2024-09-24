@@ -27,6 +27,7 @@ std::string us_to_text(uint64_t t) {
     std::string result;
     for (int j = i; j < 5; j++) {
         result += std::to_string(r[j]) + units[j];
+        if (j != 4) result += " ";
     }
     return result;
 }

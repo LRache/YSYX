@@ -1,6 +1,9 @@
 #include <getopt.h>
 #include <string>
 #include <cstdlib>
+#include <unistd.h>
+#include <limits.h>
+#include <iostream>
 
 #include "debug.h"
 #include "hdb.h"
@@ -13,6 +16,15 @@ void atexit() {
 
 int main(int argc, char **argv) {
     Verilated::commandArgs(argc, argv);
+
+    // char path[PATH_MAX];
+    // ssize_t count = readlink("/proc/self/exe", path, PATH_MAX);
+    // if (count == -1) {
+    //     std::cerr << "无法获取路径" << std::endl;
+    //     return 1;
+    // }
+    // path[count] = '\0'; // null terminate
+    // std::cout << "可执行文件路径: " << path << std::endl;
     
     Log("Hello World!");
 
@@ -53,7 +65,6 @@ int main(int argc, char **argv) {
             default: break;
         }
     }
-    assert(config::itrace);
     hdb::init(memImg, romImg, flashImg);
     std::atexit(atexit);
     int r = 0;

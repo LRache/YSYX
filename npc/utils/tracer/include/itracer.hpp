@@ -7,9 +7,8 @@
 
 #define ITRacerMaxTurn 4294967296L
 
-typedef uint32_t word_t;
-
-class ITracerWriter : public TracerWriter<word_t, void *> {
+template <typename addr_t>
+class ITracerWriter : public TracerWriter<MemTracerEntry<addr_t>> {
 private:
     bool isStart;
     bool outOfRange;
@@ -20,29 +19,156 @@ private:
 public:
     ITracerWriter();
     bool open(const std::string &filename) override;
+    void open(std::ostream &stream) override;
     bool close() override;
-    void trace(word_t dnpc) override;
-    void end(word_t epc);
+    void trace(addr_t dnpc);
+    void trace(const MemTracerEntry<addr_t> &dnpc) override;
+    void end();
 };
 
-class ITracerReader : public TracerReader<word_t, void> {
+template <typename addr_t>
+class ITracerReader : public TracerReader<MemTracerEntry<addr_t>> {
 private:
     std::istream *stream;
     std::ifstream fstream;
 
     bool isEndTurn = false;
     bool isEnd = true;
-    word_t pc;
-    word_t nextJumpPC;
-    word_t nextJumpDest;
+    addr_t pc;
+    addr_t nextJumpPC;
+    addr_t nextJumpDest;
     void read_turn();
 public:
+    ITracerReader();
     bool open(const std::string &filename) override;
+    void open(std::istream &stream) override;
     bool close() override;
-    word_t begin() override;
-    word_t next() override;
+    addr_t begin() override;
+    addr_t next() override;
     bool is_end() const override;
 };
+
+template <typename addr_t>
+ITracerWriter<addr_t>::ITracerWriter() : isStart(false), outOfRange(false), turnCount(0) {}
+
+template <typename addr_t>
+bool ITracerWriter<addr_t>::open(const std::string &filename) {
+    this->fstream.open(filename, std::ios::out | std::ios::binary);
+    if (this->fstream.is_open()) {
+        this->stream = &this->fstream;
+    }
+    return this->fstream.is_open();
+}
+
+template <typename addr_t>
+void ITracerWriter<addr_t>::open(std::ostream &stream) {
+    this->stream = &stream;
+}
+
+template <typename addr_t>
+bool ITracerWriter<addr_t>::close() {
+    if (this->fstream.is_open()) this->fstream.close();
+    return !this->fstream.is_open();
+}
+
+template <typename addr_t>
+void ITracerWriter<addr_t>::trace(addr_t dnpc) {
+    if (this->outOfRange) return ;
+    
+    if (!this->isStart) {
+        this->isStart = true;
+        this->stream->write((char *)&dnpc, sizeof(dnpc));
+    } else {
+        word_t snpc = this->pc + 4;
+        if (snpc != dnpc) {
+            if (this->turnCount == ITRacerMaxTurn) {
+                this->stream->write((char *)&this->pc, sizeof(this->pc));
+                this->outOfRange = true;
+            } else {
+                this->stream->write((char *)&this->pc, sizeof(this->pc));
+                this->stream->write((char *)&dnpc, sizeof(dnpc));
+                this->turnCount ++;
+            }
+        }
+    }
+    this->pc = dnpc;
+}
+
+template <typename addr_t>
+void ITracerWriter<addr_t>::trace(const MemTracerEntry<addr_t> &dnpc) {
+    this->trace(dnpc.addr);
+}
+
+template <typename addr_t>
+void ITracerWriter<addr_t>::end() {
+    this->stream->write((char *)(&this->pc), sizeof(this->pc));
+    if (this->fstream.is_open()) this->fstream.close();
+}
+
+template <typename addr_t>
+ITracerReader<addr_t>::ITracerReader() : isEnd(false) {}
+
+template <typename addr_t>
+bool ITracerReader<addr_t>::open(const std::string &filename) {
+    this->fstream.open(filename, std::ios::in | std::ios::binary);
+    if (this->fstream.is_open()) {
+        this->stream = &this->fstream;
+    }
+    return this->fstream.is_open();
+}
+
+template <typename addr_t>
+void ITracerReader<addr_t>::open(std::istream &stream) {
+    this->stream = &stream;
+}
+
+template <typename addr_t>
+bool ITracerReader<addr_t>::close() {
+    if (this->fstream.is_open()) this->fstream.close();
+    return !this->fstream.is_open();
+}
+
+template <typename addr_t>
+void ITracerReader<addr_t>::read_turn() {
+    word_t pc;
+    this->stream->read((char *)&pc, sizeof(pc));
+    this->nextJumpPC = pc;
+    this->stream->read((char *)&pc, sizeof(pc));
+    if (this->stream->eof()) {
+        this->isEndTurn = true;
+    } else {
+        nextJumpDest = pc;
+    }
+}
+
+template <typename addr_t>
+addr_t ITracerReader<addr_t>::begin() {
+    this->stream->read((char *)&this->pc, sizeof(this->pc));
+    assert(!this->stream->fail());
+    this->read_turn();
+    return this->pc;
+}
+
+template <typename addr_t>
+addr_t ITracerReader<addr_t>::next() {
+    word_t npc = pc + 4;
+    if (this->pc == this->nextJumpPC) {
+        npc = this->nextJumpDest;
+        if (this->isEndTurn) {
+            this->isEndTurn = false;
+            this->isEnd = true;
+        } else {
+            this->read_turn();
+        }
+    }
+    this->pc = npc;
+    return npc;
+}
+
+template <typename addr_t>
+bool ITracerReader<addr_t>::is_end() const {
+    return this->isEnd;
+}
 
 // using ITracerPair = std::pair<word_t, word_t>;
 

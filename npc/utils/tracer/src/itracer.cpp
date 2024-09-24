@@ -2,11 +2,8 @@
 
 #include <iostream>
 
-ITracerWriter::ITracerWriter() {
-    this->isStart = false;
-    this->turnCount = 0;
-    this->outOfRange = false;
-}
+template <typename addr_t>
+ITracerWriter::ITracerWriter() : isStart(false), outOfRange(false), turnCount(0) {}
 
 bool ITracerWriter::open(const std::string &filename) {
     this->fstream.open(filename, std::ios::out | std::ios::binary);
@@ -14,6 +11,10 @@ bool ITracerWriter::open(const std::string &filename) {
         this->stream = &this->fstream;
     }
     return this->fstream.is_open();
+}
+
+void ITracerWriter::open(std::ostream &stream) {
+    this->stream = &stream;
 }
 
 bool ITracerWriter::close() {
@@ -36,17 +37,19 @@ void ITracerWriter::trace(word_t dnpc) {
             } else {
                 this->stream->write((char *)&this->pc, sizeof(this->pc));
                 this->stream->write((char *)&dnpc, sizeof(dnpc));
+                this->turnCount ++;
             }
         }
-        this->pc = dnpc;
-        this->turnCount ++;
     }
+    this->pc = dnpc;
 }
 
-void ITracerWriter::end(word_t epc) {
-    this->stream->write((char *)(&epc), sizeof(epc));
+void ITracerWriter::end() {
+    this->stream->write((char *)(&this->pc), sizeof(this->pc));
     if (this->fstream.is_open()) this->fstream.close();
 }
+
+ITracerReader::ITracerReader() : isEnd(false) {}
 
 bool ITracerReader::open(const std::string &filename) {
     this->fstream.open(filename, std::ios::in | std::ios::binary);
@@ -54,6 +57,10 @@ bool ITracerReader::open(const std::string &filename) {
         this->stream = &this->fstream;
     }
     return this->fstream.is_open();
+}
+
+void ITracerReader::open(std::istream &stream) {
+    this->stream = &stream;
 }
 
 bool ITracerReader::close() {
@@ -64,16 +71,18 @@ bool ITracerReader::close() {
 void ITracerReader::read_turn() {
     word_t pc;
     this->stream->read((char *)&pc, sizeof(pc));
+    this->nextJumpPC = pc;
+    this->stream->read((char *)&pc, sizeof(pc));
     if (this->stream->eof()) {
         this->isEndTurn = true;
     } else {
-        this->nextJumpPC = pc;
-        this->stream->read((char *)&this->nextJumpDest, sizeof(this->nextJumpDest));
+        nextJumpDest = pc;
     }
 }
 
 word_t ITracerReader::begin() {
     this->stream->read((char *)&this->pc, sizeof(this->pc));
+    assert(!this->stream->fail());
     this->read_turn();
     return this->pc;
 }
@@ -89,9 +98,8 @@ word_t ITracerReader::next() {
             this->read_turn();
         }
     }
-    word_t pc = this->pc;
     this->pc = npc;
-    return pc;
+    return npc;
 }
 
 bool ITracerReader::is_end() const {

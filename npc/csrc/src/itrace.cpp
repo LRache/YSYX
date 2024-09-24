@@ -26,7 +26,7 @@ void itrace::trace(word_t pc) {
 
 bool itrace::close_file() {
     if (!config::itrace) return true;
-    Log("close file %s", config::itraceOutputFileName.c_str());
+    // Log("close file %s", config::itraceOutputFileName.c_str());
     return writer.close();
 }
 

@@ -22,7 +22,7 @@ VTop top;
 std::chrono::time_point<std::chrono::system_clock> timerStart;
 static uint64_t timer = 0;
 
-#define IMG_NAME test_img_no_hazard_addi
+#define IMG_NAME test_img_jump0
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
 
@@ -59,7 +59,6 @@ void hdb::init(
     
     perf::init();
     Assert(itrace::open_file(), "Failed to open itrace file: %s.", config::itraceOutputFileName.c_str());
-    itrace::trace(INST_START);
 
     cpu.mstatus = 0x1800;
     Log("Init finished.");

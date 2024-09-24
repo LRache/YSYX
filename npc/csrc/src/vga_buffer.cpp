@@ -13,14 +13,14 @@ extern "C" void vga_buffer_write(addr_t addr, word_t data, int mask) {
             wmask |= 0xff << (i * 8);
         }
     }
-    addr = addr & (~0x3) - VGA_BASE;
+    addr = (addr & (~0x3)) - VGA_BASE;
     *(uint32_t *)(vgaBuffer + addr) &= ~wmask;
     *(uint32_t *)(vgaBuffer + addr) |= data & wmask;
 }
 
 extern "C" void vga_buffer_read(uint32_t x, uint32_t y, word_t *data) {
-    assert(x >= 0 && x < VGA_WIDTH);
-    assert(y >= 0 && y < VGA_HEIGHT);
+    assert(x < VGA_WIDTH);
+    assert(y < VGA_HEIGHT);
     uint32_t i = y * VGA_WIDTH + x;
     *data = ((uint32_t *)vgaBuffer)[i];
 }
