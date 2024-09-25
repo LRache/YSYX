@@ -38,6 +38,8 @@
 
 #define INST_START FLASH_BASE
 
+#define REAL_FREQ (829 * 1000000)
+
 #include <string>
 
 namespace config {

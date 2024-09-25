@@ -84,9 +84,11 @@ void hdb::step() {
 void hdb_statistic() {
     auto timerEnd = std::chrono::high_resolution_clock::now();
     timer += std::chrono::duration_cast<std::chrono::microseconds>(timerEnd - timerStart).count();
+    uint64_t realTimer = cpu.clockCount * 1000000 / REAL_FREQ;
 
     Log("Total count of instructions = %" PRIu64 " with %" PRIu64 " clocks, IPC=%.6lf", cpu.instCount, cpu.clockCount, (double)cpu.instCount / cpu.clockCount);
     Log("Total time spent = %'" PRIu64 " us(%s), frequency=%.3lfkHz", timer, us_to_text(timer).c_str(), (double)cpu.clockCount * 1000 / timer);
+    Log("Total time spent in reality = %'" PRIu64 " us(%s)", realTimer, us_to_text(realTimer).c_str());
     if (timer > 0) Log("Simulation frequency = %'" PRIu64 " clocks/s", cpu.clockCount * 1000000 / timer);
 }
 
