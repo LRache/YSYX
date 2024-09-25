@@ -30,6 +30,7 @@ BranchSimResult branch_sim(Predictor<addr_t> &predictor, TracerReader<MemTracerE
         }
         predictor.update(pc, s);
         pc = entry.addr;
+        std::cout << std::hex << pc << std::endl;
     }
     return result;
 }
