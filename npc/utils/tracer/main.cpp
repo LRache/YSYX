@@ -5,9 +5,9 @@
 
 int main(int argc, char **argv)
 {
-    struct option[] = {
-        {}
-    }
+    // struct option[] = {
+    //     {}
+    // }
     
     return 0;
 }
