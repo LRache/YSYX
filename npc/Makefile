@@ -105,4 +105,7 @@ all: npc
 npc: $(SIM_EXE)
 	$(call git_commit, "compile RTL")
 
+count:
+	find ./ssrc -name "*.scala" | xargs grep -v '^\s*$' | wc -l
+
 -include ../Makefile
