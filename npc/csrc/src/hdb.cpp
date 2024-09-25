@@ -22,7 +22,7 @@ VTop top;
 std::chrono::time_point<std::chrono::system_clock> timerStart;
 static uint64_t timer = 0;
 
-#define IMG_NAME test_img_no_hazard_addi
+#define IMG_NAME test_img_jump0
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
 
@@ -78,7 +78,7 @@ void hdb::step() {
     if (!(in_flash(cpu.pc) || in_sdram(cpu.pc))) {
         panic("Invalid PC = " FMT_WORD", lastPC = " FMT_WORD, cpu.pc, lastPC);
     }
-    Log("STEP " FMT_WORD, cpu.pc);
+    // Log("STEP " FMT_WORD, cpu.pc);
 }
 
 void hdb_statistic() {
@@ -125,7 +125,7 @@ void hdb::invalid_inst() {
 }
 
 void hdb::set_gpr(uint32_t addr, word_t data) {
-    Log("Set gpr x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
+    // Log("Set gpr x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
     if (addr != 0) cpu.gpr[addr] = data;
 }
 

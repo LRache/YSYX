@@ -26,14 +26,14 @@ module Dbg(
    
     always @(posedge clk) 
     begin
-        interface_update_done(done);
-        if (!reset) interface_update_pc(pc);
-        if (!reset) interface_update_inst(inst);
-        if (brk) interface_ebreak();
-        if (ivd) interface_ivd_inst();
+        if (!reset && done) interface_update_pc(pc);
+        if (!reset && done) interface_update_inst(inst);
+        if (brk && done) interface_ebreak();
+        if (ivd && done) interface_ivd_inst();
         if (gpr_wen) interface_update_gpr(gpr_waddr, gpr_wdata);
         if (csr_wen) interface_update_csr(csr_waddr, csr_wdata); 
         interface_update_reset(reset);
+        interface_update_done(done);
     end
 
     // always @(reset)

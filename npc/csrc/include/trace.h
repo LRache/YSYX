@@ -12,4 +12,10 @@ namespace itrace
     bool close_file();
 } // namespace itrace
 
+namespace ctrace
+{
+    
+} // namespace ctrace
+
+
 #endif

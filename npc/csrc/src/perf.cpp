@@ -182,7 +182,7 @@ void perf::lsu_state_update(bool ren, bool wen, bool waiting, addr_t addr) {
             if (lsu.ren) lsu.otherRead.pref_count(clockCount);
             else if (lsu.wen) lsu.otherWrite.pref_count(clockCount);
         }
-        Log(FMT_WORD " %" PRIu64, cpu.pc, cpu.clockCount);
+        // Log(FMT_WORD " %" PRIu64, cpu.pc, cpu.clockCount);
     }
 }
 
@@ -238,7 +238,10 @@ void perf::branch_predict_failed_update(bool failed) {
 
 void perf::branch_predict_success_update(bool success) {
     CHECK;
-    if (success && branchPredict.exuValid) branchPredict.success++;
+    if (success && branchPredict.exuValid) {
+        // Log(FMT_WORD, cpu.pc);
+        branchPredict.success++;
+    }
 }
 
 void perf::branch_predictor_statistic() {
@@ -249,15 +252,18 @@ void perf::branch_predictor_statistic() {
     << std::setw(10) << "Count" << " | "
     << std::setw( 8) << "Rate" << " | " << std::endl;
 
+    branchPredict.success --;
+    STATISTIC_OUTPUT_INIT
     double successRate = (double)branchPredict.success / (branchPredict.success + branchPredict.fail);
     std::cout 
     << std::setw( 7) << "success" << " | "
     << std::setw(10) << branchPredict.success << " | "
-    << std::setw(8) << successRate << std::endl;
+    << std::setw(8) << successRate * 100 << "%" << std::endl;
     std::cout 
     << std::setw( 7) << "fail" << " | "
     << std::setw(10) << branchPredict.fail << " | "
-    << std::setw(8) << (1 - successRate) << std::endl;
+    << std::setw(8) << (1 - successRate) * 100 << "%" << std::endl;
+    STATISTIC_OUTPUT_DEINIT
 }
 
 void perf::init() {
