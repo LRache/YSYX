@@ -106,6 +106,11 @@ npc: $(SIM_EXE)
 	$(call git_commit, "compile RTL")
 
 count:
-	find ./ssrc -name "*.scala" | xargs grep -v '^\s*$' | wc -l
+	@lines=$$(find ./ssrc -name '*.scala' | xargs cat | sed '/^\s*$$/d' | wc -l); \
+    echo "CPU:$$lines"
+	@lines=$$(find ./csrc -name '*.cpp' -or -name '*.h' -or -name '*.hpp' | xargs cat | sed '/^\s*$$/d' | wc -l); \
+    echo "HDB:$$lines"
+	@lines=$$(find ./utils -name '*.cpp' -or -name '*.h' -or -name '*.hpp' | xargs cat | sed '/^\s*$$/d' | wc -l); \
+    echo "UTILS:$$lines"
 
 -include ../Makefile
