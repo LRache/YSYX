@@ -24,9 +24,8 @@ image: $(IMAGE).elf
     # @$(OBJCOPY) -S --set-section-flags .bss=alloc,contents -O binary $(IMAGE).elf $(IMAGE).bin
 
 NPC_EXE=$(NPC_HOME)/build/VysyxSoCFull
-OUTPUT_DIR=$(NPC_HOME)/output/$(NAME)-$(ARCH)
 NPCFLAGS += --flash $(IMAGE).bin
+NPCFLAGS += $(FLAGS)
 
 .PHONY run: image
-	mkdir -p $(OUTPUT_DIR)
 	$(NPC_EXE) $(NPCFLAGS)
