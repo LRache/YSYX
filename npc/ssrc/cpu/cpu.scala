@@ -155,7 +155,7 @@ class HCPU(instStart : BigInt) extends Module {
         counter.io.exu_valid := exu.io.out.valid
         counter.io.icache <> icache.io.perf
         counter.io.lsu <> lsu.io.perf
-        counter.io.branch_predict_failed := predict_failed
+        counter.io.branch_predict_failed := predict_failed && lsu.io.in.ready
         counter.io.branch_predict_success := (!predict_failed) && lsu.io.in.ready
         counter.io.reset := reset
         counter.io.clk   := clock.asBool
