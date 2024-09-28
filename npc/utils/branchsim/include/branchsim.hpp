@@ -16,22 +16,21 @@ BranchSimResult branch_sim(Predictor<addr_t> &predictor, TracerReader<MemTracerE
     BranchSimResult result = {};
     auto entry = reader.begin();
     addr_t pc = entry.addr;
-    while (true) {
+    std::cout << std::hex;
+    while (!reader.is_end()) {
         addr_t pnpc = predictor.predict(pc);
         entry = reader.next();
-        if (reader.is_end()) {
-            break;
-        }
         bool s = pnpc == entry.addr;
         if (s) {
             result.success++;
         } else {
             result.fail++;
+            std::cout << pc << std::endl;
         }
         predictor.update(pc, s);
         pc = entry.addr;
-        std::cout << std::hex << pc << std::endl;
     }
+    std::cout << std::dec;
     return result;
 }
 

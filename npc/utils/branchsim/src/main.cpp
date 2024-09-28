@@ -47,6 +47,6 @@ int main(int argc, char **argv) {
     }
     NormalPredictor<word_t> p;
     auto r = branch_sim(p, reader);
-    std::cout << r.success << " " << r.fail << std::endl;
+    print_result(r, "Normal");
     return 0;
 }
