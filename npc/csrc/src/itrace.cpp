@@ -1,10 +1,6 @@
-#include <iostream>
-#include <iomanip>
-
 #include "trace.h"
 #include "config.h"
 #include "itracer.hpp"
-#include "debug.h"
 
 #ifdef ITRACE
 

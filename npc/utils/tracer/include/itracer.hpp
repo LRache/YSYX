@@ -5,7 +5,7 @@
 
 #include <fstream>
 
-#define ITRacerMaxTurn 4294967296L
+#define ITRacerMaxTurn 80530636800L // 300G
 
 template <typename addr_t>
 class ITracerWriter : public TracerWriter<MemTracerEntry<addr_t>> {

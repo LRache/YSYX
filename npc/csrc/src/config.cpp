@@ -10,6 +10,9 @@ bool config::itrace = false;
 std::string config::itraceOutputFileName;
 bool config::ictrace = false;
 std::string config::ictraceOutputFileName;
+bool config::dtrace = false;
+std::string config::dtraceOutputFileName;
+bool config::zip = false;
 
 bool config::loadRom = false;
 std::string config::romImgFileName;

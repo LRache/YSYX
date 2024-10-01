@@ -34,6 +34,7 @@ extern "C" void interface_update_csr(uint32_t addr, word_t data) {
 }
 
 extern "C" void interface_update_lsu_state(bool ren, bool wen, bool waiting, uint32_t addr) {
+    dtrace::lsu_state_update(wen, waiting, addr);
     perf::lsu_state_update(ren, wen, waiting, addr);
 }
 

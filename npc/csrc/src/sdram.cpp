@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include "config.h"
 #include "memory.h"
-#include "debug.h"
 
 #ifdef HAS_SDRAM
 

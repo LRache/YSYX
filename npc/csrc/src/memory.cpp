@@ -6,7 +6,7 @@
 #include "difftest.h"
 #include "hdb.h"
 #include "config.h"
-#include "utils.h"
+#include "utils.hpp"
 
 #ifdef HAS_MEM
 

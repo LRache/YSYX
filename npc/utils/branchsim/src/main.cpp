@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <iomanip>
+#include <vector>
 
 #include "itracer.hpp"
 #include "branchsim.hpp"
@@ -36,6 +37,8 @@ int main(int argc, char **argv) {
         std::cout << "Usage: ./branchsim <trace_file>" << std::endl;
         return 1;
     }
+
+    std::vector<std::string> fileList;
     
     std::string trace_file(argv[1]);
     std::cout << "Trace file: " << trace_file << std::endl;

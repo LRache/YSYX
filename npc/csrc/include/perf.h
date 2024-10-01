@@ -1,6 +1,8 @@
 #ifndef __PERF_H__
 #define __PERF_H__
 
+#include "common.h"
+
 namespace perf {
     void init();
     void statistic();

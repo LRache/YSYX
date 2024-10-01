@@ -2,32 +2,30 @@
 #define __HDB_H__
 
 #include <stdint.h>
-#include <string>
 
-#include "config.h"
 #include "common.h"
 #include "VysyxSoCFull/VysyxSoCFull.h"
 
 typedef struct
 {
-    uint32_t gpr[32];
-    uint32_t pc;
+    word_t gpr[32];
+    word_t pc;
     
-    uint32_t mcause;
-    uint32_t mepc;
-    uint32_t mscratch;
-    uint32_t mstatus;
-    uint32_t mtvec;
-    uint32_t satp;
+    word_t mcause;
+    word_t mepc;
+    word_t mscratch;
+    word_t mstatus;
+    word_t mtvec;
+    word_t satp;
     
     bool running;
     bool done;
-    uint32_t inst;
+    word_t inst;
     uint64_t clockCount;
     uint64_t instCount;
 } CPU;
 
-extern VTop top;
+extern VysyxSoCFull top;
 extern CPU cpu;
 
 namespace hdb

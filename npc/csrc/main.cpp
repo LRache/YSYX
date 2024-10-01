@@ -1,7 +1,5 @@
 #include <getopt.h>
-#include <string>
 #include <unistd.h>
-#include <iostream>
 
 #include "debug.h"
 #include "hdb.h"
@@ -19,6 +17,8 @@ void parse_args(int argc, char **argv) {
         {"nvboard"  , no_argument      , 0, 'n'},
         {"itrace"   , required_argument, 0, 'i'},
         {"ictrace"  , required_argument, 0, 'c'},
+        {"dtrace"   , required_argument, 0, 'd'},
+        {"zip"      , no_argument      , 0, 'z'},
         {"nodifftset", no_argument     , 0, 'o'},
         {0, 0, 0, 0}
     };
@@ -45,8 +45,15 @@ void parse_args(int argc, char **argv) {
                 config::ictrace = true;
                 config::ictraceOutputFileName = optarg;
                 break;
+            case 'd':
+                config::dtrace = true;
+                config::dtraceOutputFileName = optarg;
+                break;
             case 'o':
                 config::hasDifftest = false;
+                break;
+            case 'z':
+                config::zip = true;
                 break;
         }
     }

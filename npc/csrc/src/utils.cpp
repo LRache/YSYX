@@ -1,5 +1,8 @@
+#include <cstdarg>
+#include <cstdio>
 #include <string>
 #include <random>
+#include <iostream>
 
 static std::mt19937 generator;
 
@@ -48,4 +51,14 @@ std::string number_split(uint64_t number) {
         else result += ",";
     }
     return result;
+}
+
+void run_command(const std::string &command) {
+    std::cout << "Run: " << command << std::endl;
+    FILE *f = popen(command.c_str(), "r");
+    while (true) {
+        char c = getc(f);
+        if (feof(f)) break;
+        std::cout << c;
+    }
 }

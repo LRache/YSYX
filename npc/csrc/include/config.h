@@ -3,9 +3,14 @@
 
 #define HAS_NVBOARD
 #define DIFFTEST
-#define ITRACE
-#define ICTRACE
 #define PERF
+#define TRACE
+
+#ifdef TRACE
+    #define ITRACE
+    #define ICTRACE
+    #define DTRACE
+#endif
 
 // #define HAS_MEM
 #define MEM_BASE 0x80000000
@@ -52,6 +57,9 @@ namespace config {
     extern std::string itraceOutputFileName;
     extern bool ictrace;
     extern std::string ictraceOutputFileName;
+    extern bool dtrace;
+    extern std::string dtraceOutputFileName;
+    extern bool zip;
 
     extern bool loadRom;
     extern std::string romImgFileName;

@@ -1,5 +1,3 @@
-#include <iostream>
-#include <fstream>
 #include <chrono>
 
 #include "memory.h"
@@ -8,10 +6,9 @@
 #include "difftest.h"
 #include "test_img.h"
 #include "config.h"
-#include "nvboard.h"
 #include "perf.h"
 #include "trace.h"
-#include "utils.h"
+#include "utils.hpp"
 
 CPU cpu;
 uint32_t lastPC;
@@ -124,9 +121,9 @@ void hdb::set_gpr(uint32_t addr, word_t data) {
     if (addr != 0) cpu.gpr[addr] = data;
 }
 
+const char *name = "unknown";
 void hdb::set_csr(uint32_t addr, word_t data) {
     if (addr == 0) return ;
-    const char *name = "unknown";
     switch (addr)
     {
         case 2: cpu.satp     = data; name = "satp"; break;
