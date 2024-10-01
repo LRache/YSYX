@@ -1,5 +1,5 @@
 #ifndef __CACHE_H__
-#define __CAHCE_H__
+#define __CACHE_H__
 
 #include "tracer.hpp"
 #include <iostream>
@@ -31,7 +31,7 @@ public:
 
 template <typename T>
 static inline T set_high_bits(unsigned int count) {
-    const size_t bitsNum = sizeof(T) << 3;
+    constexpr size_t bitsNum = sizeof(T) << 3;
     return (~T(0)) << (bitsNum - count);
 }
 
@@ -44,12 +44,10 @@ Cache<addr_t>::Cache(unsigned int _e, unsigned int _s, unsigned int _b) : e(_e),
     this->tag = std::vector<std::vector<addr_t>>(S, std::vector<addr_t>(E, 0));
     this->valid = std::vector<std::vector<bool>>(S, std::vector<bool>(E, false));
 
-    size_t ADDR_LENGTH = sizeof(addr_t) << 3;
-    addr_t t = 1 << (ADDR_LENGTH - 1);
-    int tagLength = ADDR_LENGTH - s - b;
-    this->tagMask = set_high_bits<addr_t>(tagLength - 1);
+    constexpr size_t ADDR_LENGTH = sizeof(addr_t) << 3;
+    size_t tagLength = ADDR_LENGTH - s - b;
+    this->tagMask = set_high_bits<addr_t>(tagLength);
     this->indexMask = set_high_bits<addr_t>(ADDR_LENGTH - b) & (~this->tagMask);
-    // std::cout << tagLength << std::endl;
 }
 
 template <typename addr_t>

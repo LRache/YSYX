@@ -51,7 +51,6 @@ void perf::idu_ready_update(bool ready) {
 void perf::icache_mem_valid_update(bool valid) {
     CHECK;
     if (valid) {
-        // Log(FMT_WORD, icache.pc);
         uint64_t clockCount = cpu.clockCount - icache.start;
         icache.miss.pref_count(clockCount);
         if (in_flash(icache.pc)) icache.flash.pref_count(clockCount);

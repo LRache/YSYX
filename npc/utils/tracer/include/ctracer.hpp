@@ -5,5 +5,6 @@
 
 template <typename addr_t>
 using ICTracerWriter = ITracerWriter<addr_t>;
+using ICTracerReader = ITracerReader<addr_t>;
 
 #endif

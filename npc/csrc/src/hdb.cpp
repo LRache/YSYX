@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
-#include <queue>
 
 #include "memory.h"
 #include "debug.h"
@@ -30,22 +29,16 @@ static void exec_once() {
     top.clock = 0; top.eval();
     top.clock = 1; top.eval();
     cpu.clockCount ++;
-    // Log("Exec once");
     nvboard::update();
 }
 
-void hdb::init(
-    const std::string &memImgPath, 
-    const std::string &romImgPath, 
-    const std::string &flashImgPath
-) {
+void hdb::init() {
     difftest::init();
     nvboard::init();
 
     load_img_to_flash_from_mem(img, img_size);
-    load_img_to_mem_from_file(memImgPath);
-    load_img_to_rom_from_file(romImgPath);
-    load_img_to_flash_from_file(flashImgPath);
+    if (config::loadRom) load_img_to_rom_from_file(config::romImgFileName);
+    if (config::loadFlash) load_img_to_flash_from_file(config::flashImgFileName);
 
     cpu.running = true;
     cpu.instCount = 0;
@@ -58,7 +51,7 @@ void hdb::init(
     Log("Reset at clock=%" PRIu64, cpu.clockCount);
     
     perf::init();
-    Assert(itrace::open_file(), "Failed to open itrace file: %s.", config::itraceOutputFileName.c_str());
+    trace::open();
 
     cpu.mstatus = 0x1800;
     Log("Init finished.");
@@ -112,7 +105,7 @@ int hdb::run(uint64_t n) {
     } else {
         Log(ANSI_FG_RED "HIT BAD TRAP" ANSI_FG_BLUE " with code %d at pc=" FMT_WORD, r, cpu.pc);
     }
-    Assert(itrace::close_file(), "Failed to close trace file.");
+    trace::close();
     return r;
 }
 
@@ -150,9 +143,6 @@ void hdb::set_csr(uint32_t addr, word_t data) {
 void hdb::set_pc(word_t pc) {
     if (!cpu.running) return ;
     
-    // if (!(top.reset || in_flash(pc) || in_sdram(pc))) {
-    //     panic("Invalid PC = " FMT_WORD", lastPC = " FMT_WORD, pc, lastPC);
-    // }
     lastPC = cpu.pc;
     cpu.pc = pc;
     itrace::trace(pc);

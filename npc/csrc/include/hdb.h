@@ -32,11 +32,7 @@ extern CPU cpu;
 
 namespace hdb
 {
-    void init(
-        const std::string &memImgPath="", 
-        const std::string &romImgPath="", 
-        const std::string &flashImgPath=""
-        );
+    void init();
     void step();
     int run(uint64_t n = 0);
     void end();
@@ -48,8 +44,6 @@ namespace hdb
     void set_done(bool done);
     void set_gpr(uint32_t addr, word_t data);
     void set_csr(uint32_t addr, word_t data);
-    
-    extern std::string outputDir;
 } // namespace hdb
 
 namespace nvboard

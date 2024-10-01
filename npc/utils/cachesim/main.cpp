@@ -1,7 +1,10 @@
 #include <iostream>
 #include <iomanip>
 #include "itracer.hpp"
+#include "fifoCache.hpp"
 #include "sim.hpp"
+
+using word_t = uint32_t;
 
 void output_icache_sim(const SimResult &r, std::string name, int e, int s, int b) {
     std::cout << std::fixed << std::setprecision(6);
@@ -31,9 +34,9 @@ void output_icache_sim(const SimResult &r, std::string name, int e, int s, int b
 }
 
 void sim_file(const std::string &filename, int e, int s, int b) {
-    ITracerReader reader;
+    ITracerReader<word_t> reader;
     reader.open(filename);
-    FIFOCache cache(e, s, b);
+    FIFOCache<word_t> cache(e, s, b);
     SimResult r = sim(cache, reader);
     output_icache_sim(r, "FIFOCache", e, s, b);
     reader.close();
@@ -49,7 +52,7 @@ int main(int argc, char **argv) {
     //     }
     // }
     sim_file(argv[1], 2, 0, 4);
-    sim_file(argv[1], 3, 0, 2);
+    // sim_file(argv[1], 3, 0, 2);
     // ITracer t;
     // t.start_trace(0);
     // for (int i = 4; i < 23 * 4; i += 4) {

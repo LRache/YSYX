@@ -4,6 +4,13 @@
 #include <string>
 #include "common.h"
 
+namespace trace
+{
+    void open();
+    void close();
+} // namespace trace
+
+
 namespace itrace
 {
     bool open_file(const std::string &filename);
@@ -12,9 +19,15 @@ namespace itrace
     bool close_file();
 } // namespace itrace
 
-namespace ctrace
+namespace ictrace
 {
-    
+    bool open_file(const std::string &filename);
+    bool open_file();
+    bool close_file();
+    void idu_ready_update(bool ready);
+    void icache_hit(bool hit);
+    void icache_mem_valid(bool valid);
+    void icache_pc_update(word_t pc);
 } // namespace ctrace
 
 

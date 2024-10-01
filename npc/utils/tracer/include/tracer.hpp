@@ -14,6 +14,16 @@ struct MemTracerEntry
 {
     addr_t addr;
     MemType memType;
+    
+    MemTracerEntry() = default;
+    MemTracerEntry(const addr_t a) {
+        addr = a; 
+        memType = READ; 
+    };
+    MemTracerEntry(const addr_t a, MemType t) {
+        addr = a; 
+        memType = t; 
+    };
 };
 
 

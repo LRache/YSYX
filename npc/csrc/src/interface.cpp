@@ -1,6 +1,7 @@
 #include "common.h"
 #include "hdb.h"
 #include "perf.h"
+#include "trace.h"
 
 extern "C" void interface_update_reset(uint8_t reset) {}
 
@@ -37,6 +38,7 @@ extern "C" void interface_update_lsu_state(bool ren, bool wen, bool waiting, uin
 }
 
 extern "C" void interface_update_icache_mem_valid(bool valid) {
+    ictrace::icache_mem_valid(valid);
     perf::icache_mem_valid_update(valid);
 }
 
@@ -45,6 +47,7 @@ extern "C" void interface_update_icache_mem_start(bool start) {
 }
 
 extern "C" void interface_update_idu_ready(bool ready) {
+    ictrace::idu_ready_update(ready);
     perf::idu_ready_update(ready);
 }
 
@@ -53,10 +56,12 @@ extern "C" void interface_update_exu_valid(bool valid) {
 }
 
 extern "C" void interface_update_icache_hit(bool hit) {
+    ictrace::icache_hit(hit);
     perf::icache_is_hit_update(hit);
 }
 
 extern "C" void interface_update_icache_pc(word_t pc) {
+    ictrace::icache_pc_update(pc);
     perf::icache_pc_update(pc);
 }
 

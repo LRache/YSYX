@@ -45,16 +45,12 @@ CXXFLAGS += $(addprefix -DVTopHeader=, \"V$(TOP)/V$(TOP).h\")
 LDFLAGS += -dynamic-linker $(NEMU_SO)
 
 
-ifneq ($(mem),)
-NPCFLAGS += -m $(abspath $(mem))
-endif
 ifneq ($(rom),)
-NPCFLAGS += -r $(abspath $(rom))
+FLAGS += -r $(abspath $(rom))
 endif
 ifneq ($(flash),)
-NPCFLAGS += --flash $(abspath $(flash))
+FLAGS += --flash $(abspath $(flash))
 endif
-NPCFLAGS += -o $(OUTPUT_DIR)
 
 PRJ = playground
 
@@ -96,7 +92,7 @@ $(SIM_EXE): $(CSRCS) $(VSRCS) $(NVBOARD_ARCHIVE)
 
 .PHONY sim: $(SIM_EXE)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	cd $(SIM_DIR) && $(SIM_EXE) $(NPCFLAGS)
+	cd $(SIM_DIR) && $(SIM_EXE) $(FLAGS)
 
 run: sim
 

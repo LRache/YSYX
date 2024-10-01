@@ -4,6 +4,7 @@
 #define HAS_NVBOARD
 #define DIFFTEST
 #define ITRACE
+#define ICTRACE
 #define PERF
 
 // #define HAS_MEM
@@ -45,9 +46,17 @@
 namespace config {
     extern bool hasNVBoard;
     extern bool hasDifftest;
+    extern bool perf;
+    
     extern bool itrace;
     extern std::string itraceOutputFileName;
-    extern bool perf;
+    extern bool ictrace;
+    extern std::string ictraceOutputFileName;
+
+    extern bool loadRom;
+    extern std::string romImgFileName;
+    extern bool loadFlash;
+    extern std::string flashImgFileName;
 }
 
 #endif

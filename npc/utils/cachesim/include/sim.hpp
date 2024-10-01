@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __SIM_HPP__
+#define __SIM_HPP__
 
 #include "tracer.hpp"
 #include "cache.hpp"
@@ -26,3 +27,5 @@ SimResult sim(Cache<addr_t> &cache, TracerReader<MemTracerEntry<addr_t>> &reader
     }
     return result;
 }
+
+#endif
