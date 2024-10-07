@@ -3,6 +3,7 @@
 #include "trace.h"
 #include "dtracer.hpp"
 #include "tracer.hpp"
+#include "debug.h"
 
 #include <string>
 
@@ -33,14 +34,14 @@ void dtrace::trace(word_t addr, bool isWrite) {
 
 static bool isWrite;
 static bool isWaiting;
-static bool addr;
+static word_t addr;
 void dtrace::lsu_state_update(bool wen, bool waiting, addr_t a) {
     if (!config::dtrace) return;
     if (waiting) {
         isWaiting = true;
         isWrite = wen;
         addr = a;
-    } else {
+    } else if (isWaiting) {
         isWaiting = false;
         trace(addr, isWrite);
     }
