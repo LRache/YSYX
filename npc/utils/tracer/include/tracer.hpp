@@ -54,7 +54,7 @@ public:
     virtual bool close() { return false; }
     virtual Entry begin() { return {}; }
     virtual Entry next() { return {}; }
-    virtual bool is_end() { return false; }
+    virtual bool is_end() const { return false; } 
 };
 
 class MemTracerReader {

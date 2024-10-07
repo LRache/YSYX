@@ -4,11 +4,11 @@
 
 #include "itracer.hpp"
 #include "dtracer.hpp"
+#include "tracer.hpp"
 
 using word_t = uint32_t;
 
-void print_itrace(const std::string &filename) {
-    ITracerReader<word_t> reader;
+void print_mem_trace(TracerReader<MemTracerEntry<word_t>> &reader, const std::string &filename) {
     if (!reader.open(filename)) {
         std::cerr << "Error to open file " << filename << std::endl;
         return;
@@ -16,14 +16,19 @@ void print_itrace(const std::string &filename) {
     std::cout << "Trace file " << filename << std::endl;
     std::cout << std::hex;
     for (auto entry = reader.begin(); !reader.is_end(); entry = reader.next()) {
-        std::cout << "0x" << entry.addr << std::endl;
+        std::cout << (entry.memType == READ ? "READ " : "WRITE") << " 0x" << entry.addr << std::endl;
     }
     std::cout << std::dec;
 }
 
+void print_itrace(const std::string &filename) {
+    ITracerReader<word_t> reader;
+    print_mem_trace(reader, filename);
+}
+
 void print_dtrace(const std::string &filename) {
     DTracerReader<word_t> reader;
-    
+    print_mem_trace(reader, filename);
 }
 
 int main(int argc, char **argv)

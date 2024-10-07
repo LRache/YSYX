@@ -2,6 +2,7 @@
 #define __DTRACER_HPP__
 
 #include "tracer.hpp"
+#include <cassert>
 #include <istream>
 #include <ostream>
 #include <fstream>
@@ -33,7 +34,7 @@ public:
     bool close() override;
     MemTracerEntry<addr_t> begin() override;
     MemTracerEntry<addr_t> next() override;
-    bool is_end() override;
+    bool is_end() const override;
 };
 
 template <typename addr_t>
@@ -98,8 +99,11 @@ template <typename addr_t>
 MemTracerEntry<addr_t> DTracerReader<addr_t>::begin() {
     addr_t addr;
     stream->read((char *)&addr, sizeof(addr));
+    assert(!stream->fail());
     char t;
     stream->read((char *)&t, sizeof(t));
+    assert(!stream->fail());
+    read_next();
     return {addr, (MemType)t};
 }
 
@@ -111,7 +115,7 @@ MemTracerEntry<addr_t> DTracerReader<addr_t>::next() {
 }
 
 template <typename addr_t>
-bool DTracerReader<addr_t>::is_end() {
+bool DTracerReader<addr_t>::is_end() const {
     return isEnd;
 }
 

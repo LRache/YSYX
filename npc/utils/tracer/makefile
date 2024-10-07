@@ -3,6 +3,7 @@ CXX = g++
 INC_PATH += $(abspath ./include)
 INCFLAGS += $(addprefix -I, $(INC_PATH))
 CSRCS += $(abspath $(shell find ./src -name "*.cpp"))
+INCS  += $(abspath $(shell find ./include -name "*.hpp" -or -name "*.h"))
 MAINSRCS += $(abspath ./main.cpp)
 TESTSRCS += $(abspath $(shell find ./test -name "*.cpp"))
 CXXFLAGS += $(INCFLAGS)
@@ -11,7 +12,7 @@ BUILDDIR = ./build
 TARGET = $(BUILDDIR)/tracer
 TEST_TARGET = $(BUILDDIR)/test
 
-$(TARGET): $(CSRCS) $(MAINSRCS)
+$(TARGET): $(CSRCS) $(MAINSRCS) $(INCS)
 	mkdir -p ./build
 	$(CXX) $(CSRCS) $(MAINSRCS) $(CXXFLAGS) -o $(TARGET)
 

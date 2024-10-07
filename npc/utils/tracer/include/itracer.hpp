@@ -3,7 +3,9 @@
 
 #include "tracer.hpp"
 
+#include <cassert>
 #include <fstream>
+#include <iostream>
 
 #define ITRacerMaxTurn 80530636800L // 300G
 
@@ -110,11 +112,13 @@ ITracerReader<addr_t>::ITracerReader() : isEnd(false) {}
 
 template <typename addr_t>
 bool ITracerReader<addr_t>::open(const std::string &filename) {
-    this->fstream.open(filename, std::ios::in | std::ios::binary);
+    this->fstream.open(filename, std::ios::binary);
     if (this->fstream.is_open()) {
         this->stream = &this->fstream;
+        return true;
+    } else {
+        return false;
     }
-    return this->fstream.is_open();
 }
 
 template <typename addr_t>
