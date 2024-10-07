@@ -35,7 +35,7 @@ include $(NVBOARD_HOME)/scripts/nvboard.mk
 
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) 
-CXXFLAGS += -fexceptions -Werror -Wall -Wextra -Wno-unused-parameter
+CXXFLAGS += -fexceptions -Werror -Wall
 VINCFLAGS = $(addprefix -I, $(VINC_PATH))
 VERILATOR_FLAGS += $(VINCFLAGS)
 
@@ -71,7 +71,7 @@ reformat:
 checkformat:
 	mill -i __.checkFormat
 
-bsp:
+bsp: $(VERILATOR_CFLAGS) $(VERILATOR_FLAGS)
 	mill -i mill.bsp.BSP/install
 
 idea:
