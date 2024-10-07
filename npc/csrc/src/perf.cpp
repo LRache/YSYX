@@ -70,7 +70,6 @@ void perf::icache_mem_start_update(bool start) {
 void perf::icache_is_hit_update(bool isHit) {
     CHECK;
     if (isHit && icache.iduReady) {
-        // Log(FMT_WORD, icache.pc);
         icache.hit.pref_count(0);
     }
 }
@@ -181,7 +180,6 @@ void perf::lsu_state_update(bool ren, bool wen, bool waiting, addr_t addr) {
             if (lsu.ren) lsu.otherRead.pref_count(clockCount);
             else if (lsu.wen) lsu.otherWrite.pref_count(clockCount);
         }
-        // Log(FMT_WORD " %" PRIu64, cpu.pc, cpu.clockCount);
     }
 }
 
@@ -238,7 +236,6 @@ void perf::branch_predict_failed_update(bool failed) {
 void perf::branch_predict_success_update(bool success) {
     CHECK;
     if (success && branchPredict.exuValid) {
-        // Log(FMT_WORD, cpu.pc);
         branchPredict.success++;
     }
 }
