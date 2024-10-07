@@ -17,8 +17,6 @@ extern "C" void psram_read(addr_t addr, uint8_t *data, int count) {
     // Log("PSRAM read [" FMT_WORD "]=" FMT_WORD " (%d)", raddr + PSRAM_BASE, *data, count);
 }
 
-static int c = 0;
-
 extern "C" void psram_write(addr_t addr, uint8_t data, int count) {
     addr_t waddr = addr + count / 2;
     if (count % 2 == 0) {
@@ -27,8 +25,6 @@ extern "C" void psram_write(addr_t addr, uint8_t data, int count) {
         psram[waddr] = (psram[waddr] & 0b11110000) | (data & 0b00001111);
     }
     // Log("PSRAM write %02d [" FMT_WORD "]=" FMT_WORD " (%d)", c, addr, ((uint32_t *)psram)[addr / 4], count);
-    c ++;
-    c %= 8;
 }
 
 #else

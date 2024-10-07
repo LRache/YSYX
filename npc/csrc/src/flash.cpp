@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <fstream>
 #include <iostream>
 
@@ -51,7 +52,7 @@ void load_img_to_flash_from_file(const std::string &path) {
 }
 
 void load_img_to_flash_from_mem(const uint32_t *img, size_t length) {
-    for (int i = 0; i < length; i++) {
+    for (size_t i = 0; i < length; i++) {
         addr_t addr = FLASH_BASE + i * 4;
         set_flash(addr, img[i]);
         difftest::memcpy(addr, (uint32_t *)img + i, 4, difftest::TO_REF)

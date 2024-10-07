@@ -85,5 +85,5 @@ void paddr_write(paddr_t addr, int len, word_t data) {
   if (likely(in_psram(addr))) { host_write(psram + addr - PSRAM_BASE, len, data); return ;}
   if (likely(in_sdram(addr))) {host_write(sdram + addr - SDRAM_BASE, len, data); return ;}
   if (likely(in_uart(addr))) { set_difftest_skip(true); return ;}
-  out_of_bound(addr);
+  // out_of_bound(addr);
 }

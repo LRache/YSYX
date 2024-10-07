@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 #define NOP 0x00000013
 #define __EBREAK 0x00100073
 #define GOOD_TRAP 0x00000513, __EBREAK,

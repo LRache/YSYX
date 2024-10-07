@@ -3,6 +3,7 @@
 #include <getopt.h>
 
 #include "itracer.hpp"
+#include "dtracer.hpp"
 
 using word_t = uint32_t;
 
@@ -20,6 +21,11 @@ void print_itrace(const std::string &filename) {
     std::cout << std::dec;
 }
 
+void print_dtrace(const std::string &filename) {
+    DTracerReader<word_t> reader;
+    
+}
+
 int main(int argc, char **argv)
 {
     if (argc == 1) {
@@ -28,14 +34,16 @@ int main(int argc, char **argv)
     }
     const struct option options[] = {
         {"itrace", required_argument, 0, 'i'},
+        {"dtrace", required_argument, 0, 'd'},
         {0, 0, 0, 0},
     };
 
     char c;
-    while ((c = getopt_long(argc, argv, "i:", options, NULL)) != -1)
+    while ((c = getopt_long(argc, argv, "i:d:", options, NULL)) != -1)
     {
         switch (c) {
             case 'i': print_itrace(optarg); break;
+            case 'd': print_dtrace(optarg); break;
         }
     }
     

@@ -1,6 +1,7 @@
 #ifndef __TRACER_H__
 #define __TRACER_H__
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <string>
 #include <ostream>
@@ -53,7 +54,7 @@ public:
     virtual bool close() { return false; }
     virtual Entry begin() { return {}; }
     virtual Entry next() { return {}; }
-    virtual bool is_end() const = 0;
+    virtual bool is_end() { return false; }
 };
 
 class MemTracerReader {
