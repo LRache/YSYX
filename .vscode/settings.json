@@ -106,5 +106,9 @@
     "files.watcherExclude": {
         "**/target": true
     },
-    "makefile.configureOnOpen": false
+    "makefile.configureOnOpen": false,
+
+    "clangd.arguments": [
+        "-function-arg-placeholders=0"
+    ]
 }
