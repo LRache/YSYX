@@ -10,6 +10,8 @@ object Config {
     val HasSatp = false
     val HasFastAlu = true
     val JudgeExuRaw = false
+
+    val HasClint = true
     
     // ysyx
     val VendorID = 0x79737938

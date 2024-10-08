@@ -15,7 +15,8 @@ import cpu.wbu.WBU
 
 import bus.AXI4Arbiter
 import bus.AXI4IO
-import cpu.idu.Encode.count
+import bus.Clint
+import cpu.Config.HasClint
 
 
 class HCPU(instStart : BigInt) extends Module {
@@ -131,6 +132,16 @@ class HCPU(instStart : BigInt) extends Module {
     ifu.io.predict_failed := predict_failed
     idu.io.predict_failed := predict_failed
     ifu.io.dnpc := RegEnable(exu.io.dnpc, exu.io.out.valid)
+
+    // CLINT
+    if (HasClint) {
+        val clint = Module(new Clint)
+        clint.io.raddr := arbiter.io.sel.araddr(2)
+        val loadClint = arbiter.io.sel.araddr(31, 24) === 0x02.U
+        arbiter.io.sel.rvalid := Mux(loadClint, true.B, io.master.rvalid);
+        arbiter.io.sel.rdata := Mux(loadClint, clint.io.rdata, io.master.rdata)
+        io.master.arvalid := Mux(loadClint, false.B, arbiter.io.sel.arvalid)
+    }
 
     io.slave := DontCare
 
