@@ -19,7 +19,7 @@ void parse_args(int argc, char **argv) {
         {"ictrace"  , required_argument, 0, 'c'},
         {"dtrace"   , required_argument, 0, 'd'},
         {"zip"      , no_argument      , 0, 'z'},
-        {"nodifftset", no_argument     , 0, 'o'},
+        {"nodifftest", no_argument     , 0, 'o'},
         {0, 0, 0, 0}
     };
 
