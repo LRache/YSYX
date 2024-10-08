@@ -148,6 +148,9 @@ class HCPU(instStart : BigInt) extends Module {
         debugger.io.gpr.wen   := gpr.io.wen
         debugger.io.gpr.wdata := gpr.io.wdata
         debugger.io.csr := wbu.io.dbg.csr
+        debugger.io.branch_predict_failed := predict_failed && lsu.io.in.ready
+        debugger.io.branch_predict_success := (!predict_failed) && lsu.io.in.ready
+        debugger.io.exu_valid := exu.io.out.valid
 
         val counter = Module(new PerfCounter())
         counter.io.ifu_valid := ifu.io.out.valid
@@ -155,8 +158,6 @@ class HCPU(instStart : BigInt) extends Module {
         counter.io.exu_valid := exu.io.out.valid
         counter.io.icache <> icache.io.perf
         counter.io.lsu <> lsu.io.perf
-        counter.io.branch_predict_failed := predict_failed && lsu.io.in.ready
-        counter.io.branch_predict_success := (!predict_failed) && lsu.io.in.ready
         counter.io.reset := reset
         counter.io.clk   := clock.asBool
     }

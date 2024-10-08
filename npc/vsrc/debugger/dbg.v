@@ -13,7 +13,12 @@ module Dbg(
 
     input [31:0] csr_waddr,
     input [31:0] csr_wdata,
-    input csr_wen
+    input csr_wen,
+
+    input exu_valid,
+
+    input branch_predict_failed,
+    input branch_predict_success
 );
     import "DPI-C" function void interface_ebreak();
     import "DPI-C" function void interface_ivd_inst();
@@ -23,6 +28,10 @@ module Dbg(
     import "DPI-C" function void interface_update_pc(input int pc);
     import "DPI-C" function void interface_update_inst(input int inst);
     import "DPI-C" function void interface_update_done(input done);
+
+    import "DPI-C" function void interface_update_exu_valid(input valid);
+    import "DPI-C" function void interface_update_branch_predict_failed(input predict_failed);
+    import "DPI-C" function void interface_update_branch_predict_success(input predict_success);
    
     always @(posedge clk) 
     begin
@@ -34,27 +43,10 @@ module Dbg(
         if (csr_wen) interface_update_csr(csr_waddr, csr_wdata); 
         interface_update_reset(reset);
         interface_update_done(done);
+
+        if (!reset) interface_update_exu_valid(exu_valid);
+        if (!reset) interface_update_branch_predict_failed(branch_predict_failed);
+        if (!reset) interface_update_branch_predict_success(branch_predict_success);
     end
-
-    // always @(reset)
-    // begin
-    //     interface_update_reset(reset);
-    // end
-    
-    // always @(pc)
-    // begin
-    //     if (!reset) interface_update_pc(pc);
-    // end
-
-    // always @(inst)
-    // begin
-    //     interface_update_inst(inst);
-    // end
-
-    // always @(done)
-    // begin
-    //     interface_update_done(done);
-    // end
-
 endmodule //Dbg
 

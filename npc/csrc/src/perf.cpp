@@ -230,11 +230,13 @@ void perf::exu_valid_update(bool valid) {
 
 void perf::branch_predict_failed_update(bool failed) {
     CHECK;
+    if (!cpu.running) return ;
     if (failed) branchPredict.fail++;
 }
 
 void perf::branch_predict_success_update(bool success) {
     CHECK;
+    if (!cpu.running) return ;
     if (success && branchPredict.exuValid) {
         branchPredict.success++;
     }

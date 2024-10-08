@@ -14,10 +14,10 @@ module PerfCounter(
     input lsu_ren,
     input lsu_wen,
     input [31:0] lsu_addr,
-    input lsu_isWaiting,
+    input lsu_isWaiting
 
-    input branch_predict_failed,
-    input branch_predict_success
+    // input branch_predict_failed,
+    // input branch_predict_success
 );
 
     import "DPI-C" function void interface_update_lsu_state(input ren, input wen, input waiting, input int addr);
@@ -44,13 +44,13 @@ module PerfCounter(
         if (!reset) interface_update_icache_hit(icache_isHit);
     end
 
-    import "DPI-C" function void interface_update_exu_valid(input valid);
-    import "DPI-C" function void interface_update_branch_predict_failed(input predict_failed);
-    import "DPI-C" function void interface_update_branch_predict_success(input predict_success);
-    always @(posedge clk) begin
-        if (!reset) interface_update_exu_valid(exu_valid);
-        if (!reset) interface_update_branch_predict_failed(branch_predict_failed);
-        if (!reset) interface_update_branch_predict_success(branch_predict_success);
-    end
+    // import "DPI-C" function void interface_update_exu_valid(input valid);
+    // import "DPI-C" function void interface_update_branch_predict_failed(input predict_failed);
+    // import "DPI-C" function void interface_update_branch_predict_success(input predict_success);
+    // always @(posedge clk) begin
+    //     if (!reset) interface_update_exu_valid(exu_valid);
+    //     if (!reset) interface_update_branch_predict_failed(branch_predict_failed);
+    //     if (!reset) interface_update_branch_predict_success(branch_predict_success);
+    // end
     
 endmodule //PrefCounter

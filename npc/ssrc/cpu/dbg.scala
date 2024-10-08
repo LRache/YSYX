@@ -14,5 +14,10 @@ class Dbg extends BlackBox {
 
         val gpr = Flipped(new RegWIO(32))
         val csr = Flipped(new RegWIO(32))
+
+        val exu_valid = Input(Bool())
+
+        val branch_predict_failed = Input(Bool())
+        val branch_predict_success = Input(Bool())
     })
 }

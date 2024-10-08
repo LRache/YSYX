@@ -27,8 +27,5 @@ class PerfCounter extends BlackBox {
         
         val icache = Flipped(new ICachePerfCounter)
         val lsu = Flipped(new LSUPerfCounter)
-
-        val branch_predict_failed = Input(Bool())
-        val branch_predict_success = Input(Bool())
     })
 }
