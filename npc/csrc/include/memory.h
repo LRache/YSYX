@@ -65,4 +65,16 @@ static inline bool in_sdram(addr_t addr) {
     #endif
 }
 
+static inline bool in_vga(addr_t addr) {
+    #ifdef HAS_VGA
+    return addr - VGA_BASE < VGA_SIZE;
+    #else
+    return false;
+    #endif
+}
+
+static inline bool in_uart(addr_t addr) {
+    
+}
+
 #endif
