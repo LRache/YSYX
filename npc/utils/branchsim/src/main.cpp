@@ -54,6 +54,8 @@ void sim_file(const std::string &filename) {
         if (temp.is_failed()) {
             std::cerr << "Failed to decompress file" << std::endl;
             return;
+        } else {
+            std::cout << "Decompressed to " << temp.get_temp_filename() << std::endl;
         }
         sim_raw_file(temp.get_temp_filename());
     } else {
