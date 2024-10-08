@@ -20,6 +20,7 @@ BranchSimResult branch_sim(Predictor<addr_t> &predictor, TracerReader<MemTracerE
     while (!reader.is_end()) {
         addr_t pnpc = predictor.predict(pc);
         entry = reader.next();
+        if (reader.is_end()) break;
         bool s = pnpc == entry.addr;
         if (s) {
             result.success++;

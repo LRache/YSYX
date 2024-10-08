@@ -2,10 +2,12 @@
 #include <string>
 #include <iomanip>
 #include <vector>
+#include <string.h>
 
 #include "itracer.hpp"
 #include "branchsim.hpp"
 #include "normalPredictor.hpp"
+#include "tempDecompress.hpp"
 
 #define STATISTIC_OUTPUT_INIT std::cout << std::fixed << std::setprecision(2);
 #define STATISTIC_OUTPUT_DEINIT std::cout.unsetf(std::ios::fixed); std::cout.unsetf(std::ios::floatfield);
@@ -32,24 +34,50 @@ void print_result(const BranchSimResult &r, const std::string &name) {
     STATISTIC_OUTPUT_DEINIT
 };
 
-int main(int argc, char **argv) {
-    if (argc < 2) {
-        std::cout << "Usage: ./branchsim <trace_file>" << std::endl;
-        return 1;
-    }
+bool zipMode = false;
 
-    std::vector<std::string> fileList;
-    
-    std::string trace_file(argv[1]);
-    std::cout << "Trace file: " << trace_file << std::endl;
-    std::cout << "Starting simulation..." << std::endl;
+void sim_raw_file(const std::string &filename) {
+    std::cout << "Simulating " << filename << std::endl;
     ITracerReader<word_t> reader;
-    if (!reader.open(trace_file)) {
+    if (!reader.open(filename)) {
         std::cerr << "Failed to open trace file" << std::endl;
-        return 1;
+        return;
     }
     NormalPredictor<word_t> p;
     auto r = branch_sim(p, reader);
-    print_result(r, "Normal");
+    print_result(r, filename);
+}
+
+void sim_file(const std::string &filename) {
+    if (zipMode) {
+        TempDecompressFile temp(filename);
+        if (temp.is_failed()) {
+            std::cerr << "Failed to decompress file" << std::endl;
+            return;
+        }
+        sim_raw_file(temp.get_temp_filename());
+    } else {
+        sim_raw_file(filename);
+    }
+    
+}
+
+int main(int argc, char **argv) {
+    std::vector<std::string> fileList;
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--zip") == 0) {
+            zipMode = true;
+        } else {
+            fileList.push_back(argv[i]);
+        }
+    }
+    if (fileList.size() == 0) {
+        std::cout << "Usage: ./branchsim [--zip] <trace_file>" << std::endl;
+        return 1;
+    }
+
+    for (const auto &f : fileList) {
+        sim_file(f);
+    }
     return 0;
 }
