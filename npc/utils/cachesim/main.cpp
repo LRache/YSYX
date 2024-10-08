@@ -1,8 +1,14 @@
 #include <iostream>
 #include <iomanip>
+#include <string>
+#include <vector>
+#include <string.h>
+
 #include "itracer.hpp"
 #include "fifoCache.hpp"
+#include "lruCache.hpp"
 #include "sim.hpp"
+#include "tempDecompress.hpp"
 
 using word_t = uint32_t;
 
@@ -33,34 +39,58 @@ void output_icache_sim(const SimResult &r, std::string name, int e, int s, int b
     std::cout.unsetf(std::ios::floatfield);
 }
 
-void sim_file(const std::string &filename, int e, int s, int b) {
-    ITracerReader<word_t> reader;
-    reader.open(filename);
-    FIFOCache<word_t> cache(e, s, b);
-    SimResult r = sim(cache, reader);
+void sim_raw_file(const std::string &filename, int e, int s, int b) {
+    ITracerReader<word_t> reader0;
+    reader0.open(filename);
+    FIFOCache<word_t> fifo(e, s, b);
+    SimResult r;
+    r = sim(fifo, reader0);
     output_icache_sim(r, "FIFOCache", e, s, b);
-    reader.close();
+    reader0.close();
+    
+    ITracerReader<word_t> reader1;
+    reader1.open(filename);
+    LRUCache<word_t> lru(e, s, b);
+    r = sim(lru, reader1);
+    output_icache_sim(r, "LRUCache", e, s, b);
+    reader1.close();
+}
+
+bool zipMode = false;
+
+void sim_file(const std::string &filename) {
+    std::cout << "Simulating " << filename << std::endl;
+    for (int e = 0; e < 3; e++) {
+        for (int s = 0; s < 3; s++) {
+            if (zipMode) {
+                TempDecompressFile f(filename);
+                if (f.is_failed()) {
+                    std::cerr << "Failed to decompress file " << filename << std::endl;
+                    return;
+                }
+                sim_raw_file(f.get_temp_filename(), e, s, 4);
+            } else {
+                sim_raw_file(filename, e, s, 4);
+            }
+        }
+    }
 }
 
 int main(int argc, char **argv) {
-    // for (int i = 1; i < argc; i++) {
-    //     std::cout << "SIM for " << argv[i] << std::endl;
-    //     for (int j = 2; j < 6; j++) {
-    //         for (int k = 0; k < 3; k++) {
-    //             sim_file(argv[i], j, k, 4);
-    //         }
-    //     }
-    // }
-    sim_file(argv[1], 2, 0, 4);
-    // sim_file(argv[1], 3, 0, 2);
-    // ITracer t;
-    // t.start_trace(0);
-    // for (int i = 4; i < 23 * 4; i += 4) {
-    //     t.trace(i);
-    // }
-    // t.end_trace();
-    // FIFOCache c(2, 0, 4);
-    // auto r = sim(c, t);
-    // output_icache_sim(r, "", 0, 0, 0);
+    if (argc < 2) {
+        std::cout << "Usage: " << argv[0] << " [--zip] <filename>" << std::endl;
+        return 1;
+    }
+    std::vector<std::string> fileList;
+    for (int i = 1; i < argc; i++) {
+        if(strcmp(argv[i], "--zip") == 0) {
+            zipMode = true;
+        } else {
+            fileList.push_back(argv[i]);
+        }
+    }
+    for (const auto &filename : fileList) {
+        sim_file(filename);
+    }
     return 0;
 }

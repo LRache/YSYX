@@ -10,10 +10,12 @@ CXX = g++
 
 BUILD_DIR=$(abspath ./build)
 EXE=$(BUILD_DIR)/cachesim
-SRCS = $(abspath $(shell find ./ -name "*.cpp"))
+SRCS += $(abspath $(shell find ./ -name "*.cpp"))
+SRCS += $(abspath $(shell find ../temp-decompress/src -name "*.cpp"))
 
 INC_PATH += $(abspath ./include)
 INC_PATH += $(abspath ../tracer/include)
+INC_PATH += $(abspath ../temp-decompress/include)
 CXX_FLAGS += $(addprefix -I, $(INC_PATH))
 CXX_FLAGS += -Og
 

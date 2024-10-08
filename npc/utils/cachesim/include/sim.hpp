@@ -1,6 +1,8 @@
 #ifndef __SIM_HPP__
 #define __SIM_HPP__
 
+#include <iostream>
+
 #include "tracer.hpp"
 #include "cache.hpp"
 
