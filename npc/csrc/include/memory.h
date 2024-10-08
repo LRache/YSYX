@@ -74,7 +74,7 @@ static inline bool in_vga(addr_t addr) {
 }
 
 static inline bool in_uart(addr_t addr) {
-    
+    return false;
 }
 
 #endif
