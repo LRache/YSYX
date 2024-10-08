@@ -1,7 +1,6 @@
 #ifndef __TRACER_H__
 #define __TRACER_H__
 
-#include <stdbool.h>
 #include <stdint.h>
 #include <string>
 #include <ostream>
