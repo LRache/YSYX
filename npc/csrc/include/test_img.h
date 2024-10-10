@@ -99,6 +99,10 @@ static uint32_t test_img_jump1[] = {
 };
 
 static uint32_t test_img_mem1[] = {
+    0x020000b7, // lui x1, 0x02000
+    0x0000a103, // lw x2, 0(x1)
+    0x0040a183, // lw x3, 4(x1)
+    
     0xa0000537, // 00 lui x10, 0x0f000
     0x810285b7, // 04 lui x11, 0x01020
     0x30458593, // 08 addi x11, x11, 0x304
@@ -128,7 +132,7 @@ static uint32_t test_img_mem1[] = {
     0x00852303, // 60 lw x6, 8(x10)
     0x00551523, // 64 sh x5, 10(x10)
     0x00852303, // 68 lw x6, 8(x10)
-    
+
     GOOD_TRAP
 };
 
@@ -432,4 +436,14 @@ static uint32_t test_img_ivd_load[] = {
     0x500000b7, // lui x1, 0x50000
     0x0000a103, // lw x2, 0(x1)
     GOOD_TRAP
+};
+
+static uint32_t test_img_clint[] = {
+    0x00c000ef, // 00 jal x1, 12
+    GOOD_TRAP   // 04 08
+    0x020007b7, // 0c lui x15, 0x02000
+    0x0007a603, // 10 lw x12, 0(x1)
+    NOP,        // 14
+    NOP,        // 18
+    0x00008067, // 1c jalr x0, 0(x1)
 };
