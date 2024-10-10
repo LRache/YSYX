@@ -97,6 +97,7 @@ object Encode {
     add_tag("CSRRAddrSel", 2)
     add_tag("CSRRen",   1)
     add_tag("FenceI",   1)
+    add_tag("IsTrap",  1)
     
     // EXU
     add_tag("AluBSel",  1) // 
@@ -115,7 +116,7 @@ object Encode {
     // WBU
     add_tag("GPRWen",   1)
     add_tag("GPRWSel",  2)
-    add_tag("CSRWAddrSel", 2)
+    // add_tag("CSRWAddrSel", 2)
     add_tag("CSRWen",   1)
     add_tag("IsBrk",    1)
     add_tag("IsIvd",    1)
@@ -178,6 +179,7 @@ object Encode {
             case InstType.CI => ASel. CSR
             // case InstType.MR => ASel. CSR // pc = mepc
             case InstType.EC => ASel.  PC // mepc = pc, pc = mtvec
+            case InstType.IVD => ASel. PC
             case _ => ASel.DontCare // Don't Care
         }
         m += ("ASel" -> aSel)
@@ -196,6 +198,7 @@ object Encode {
             case InstType.CR => BSel.GPR1
             case InstType.CI => BSel. Imm
             case InstType.EC => BSel. CSR
+            case InstType.IVD => BSel.CSR
             case InstType.MR => BSel. CSR
             case _ => BSel.DontCare // Dont care
         }
@@ -228,6 +231,9 @@ object Encode {
 
         val fenceI = instType == InstType.FI
         m += ("FenceI" -> toInt(fenceI))
+
+        val isTrap = Seq(InstType.EC, InstType.IVD).contains(instType)
+        m += ("IsTrap" -> toInt(isTrap))
 
         val aluBSel = Seq(
             InstType.UL, // lui
@@ -298,19 +304,16 @@ object Encode {
         }
         m += ("GPRWSel" -> gprWSel)
 
-        val csrWAddrSel = instType match {
-            case InstType.EC => CSRAddrSel.EPC
-            case InstType.CR => CSRAddrSel.Ins
-            case InstType.CI => CSRAddrSel.Ins
-            case _ => CSRAddrSel.N
-        }
-        m += ("CSRWAddrSel" -> csrWAddrSel.id)
+        // val csrWAddrSel = instType match {
+        //     case InstType.EC => CSRAddrSel.EPC
+        //     case InstType.CR => CSRAddrSel.Ins
+        //     case InstType.CI => CSRAddrSel.Ins
+        //     case _ => CSRAddrSel.N
+        // }
+        // m += ("CSRWAddrSel" -> csrWAddrSel.id)
 
-        val csrWen = csrWAddrSel != CSRAddrSel.N
+        val csrWen = Seq(InstType.CR, InstType.CI).contains(instType)
         m += ("CSRWen" -> toInt(csrWen))
-
-        // val csrWSel = instType == InstType.EC
-        // m += ("CSRWSel" -> toInt(csrWSel))
 
         val isBrk = instType == InstType.EB
         m += ("IsBrk" -> toInt(isBrk))
@@ -342,9 +345,10 @@ class OP(bits : UInt) {
     val gprRen1 = Encode.get_tag("GPRRen1", bits).asBool
     val gprRen2 = Encode.get_tag("GPRRen2", bits).asBool
     val csrRAddrSel = Encode.get_tag("CSRRAddrSel", bits)
-    val csrWAddrSel = Encode.get_tag("CSRWAddrSel", bits)
+    // val csrWAddrSel = Encode.get_tag("CSRWAddrSel", bits)
     val csrRen = Encode.get_tag("CSRRen", bits).asBool
     val fenceI = Encode.get_tag("FenceI", bits).asBool
+    val isTrap = Encode.get_tag("IsTrap", bits).asBool
 
     // EXU
     val aluBSel = Encode.get_tag("AluBSel", bits).asBool
@@ -364,7 +368,6 @@ class OP(bits : UInt) {
     val gprWen = Encode.get_tag("GPRWen", bits).asBool
     val gprWSel = Encode.get_tag("GPRWSel", bits)
     val csrWen = Encode.get_tag("CSRWen", bits).asBool
-    // val csrWSel = Encode.get_tag("CSRWSel", bits).asBool
     val isBrk = Encode.get_tag("IsBrk", bits).asBool
     val isIvd = Encode.get_tag("IsIvd", bits).asBool
 }
@@ -454,12 +457,12 @@ object Decoder {
             SLTI    -> Encode.encode_ia(EXUTag.F),
             SLTIU   -> Encode.encode_iu(),
 
-            // LB      -> Encode.encode_load(),
-            // LH      -> Encode.encode_load(),
-            // LW      -> Encode.encode_load(),
-            // LBU     -> Encode.encode_load(),
-            // LHU     -> Encode.encode_load(),
-            LOAD    -> Encode.encode_load(),
+            LB      -> Encode.encode_load(),
+            LH      -> Encode.encode_load(),
+            LW      -> Encode.encode_load(),
+            LBU     -> Encode.encode_load(),
+            LHU     -> Encode.encode_load(),
+            // LOAD    -> Encode.encode_load(),
 
             // SB      -> Encode.encode_save(),
             // SH      -> Encode.encode_save(),
@@ -469,13 +472,13 @@ object Decoder {
             JALR    -> Encode.encode_jump(InstType.IJ),
             JAL     -> Encode.encode_jump(InstType. J),
 
-            // BEQ     -> Encode.encode_brch(),
-            // BNE     -> Encode.encode_brch(),
-            // BGE     -> Encode.encode_brch(),
-            // BGEU    -> Encode.encode_brch(),
-            // BLT     -> Encode.encode_brch(),
-            // BLTU    -> Encode.encode_brch(),
-            BRANCH  -> Encode.encode_brch(),
+            BEQ     -> Encode.encode_brch(),
+            BNE     -> Encode.encode_brch(),
+            BGE     -> Encode.encode_brch(),
+            BGEU    -> Encode.encode_brch(),
+            BLT     -> Encode.encode_brch(),
+            BLTU    -> Encode.encode_brch(),
+            // BRANCH  -> Encode.encode_brch(),
 
             CSRRW   -> Encode.encode_csrr(),
             CSRRS   -> Encode.encode_csrr(),

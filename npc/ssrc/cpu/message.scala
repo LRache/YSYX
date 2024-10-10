@@ -14,6 +14,12 @@ class RegRIO (addrLength: Int) extends Bundle {
     val rdata = Input (UInt(32.W))
 }
 
+class TrapMessage extends Bundle {
+    val is_trap = Output(Bool())
+    val is_interrupt = Output(Bool())
+    val cause   = Output(UInt(5.W))
+}
+
 class IFUMessage extends Bundle {
     val inst = Output(UInt(32.W))
     val pc   = Output(UInt(32.W))
@@ -45,12 +51,12 @@ class IDUMessage extends Bundle {
     
     // WBU
     val gpr_waddr  = Output(UInt(Config.GPRAddrLength.W))
-    // val gpr_wen    = Output(Bool())
     val gpr_ws     = Output(UInt(2.W))
 
     val csr_waddr  = Output(UInt(Config.CSRAddrLength.W))
     val csr_wen    = Output(Bool())
-    val cause_en   = Output(Bool())
+
+    val trap = new TrapMessage
 
     val is_brk     = Output(Bool())
     val is_ivd     = Output(Bool())
@@ -71,8 +77,6 @@ class EXUMessage extends Bundle {
     val mem_wdata = Output(UInt(32.W))
 
     val gpr_waddr  = Output(UInt(Config.GPRAddrLength.W))
-    // val gpr_wen    = Output(Bool())
-    // val gpr_ws     = Output(UInt(2.W))
 
     val is_brk     = Output(Bool())
     val is_ivd     = Output(Bool())
@@ -81,6 +85,7 @@ class EXUMessage extends Bundle {
         val pc   = Output(UInt(32.W))
         val inst = Output(UInt(32.W))
         val csr  = Output(new RegWIO(32))
+        val trap = new TrapMessage
     }
 }
 
@@ -89,7 +94,6 @@ class LSUMessage extends Bundle {
 
     // Passthrough        
     val gpr_waddr  = Output(UInt(Config.GPRAddrLength.W))
-    // val gpr_wen    = Output(Bool())
 
     val is_brk = Output(Bool())
     val is_ivd = Output(Bool())
@@ -97,6 +101,7 @@ class LSUMessage extends Bundle {
     val dbg = new Bundle {
         val pc   = Output(UInt(32.W))
         val inst = Output(UInt(32.W))
-        val csr  = Output(new RegWIO(32))
+        val csr  = new RegWIO(32)
+        val trap = new TrapMessage
     }
 }

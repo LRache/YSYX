@@ -54,7 +54,6 @@ class IDU extends Module {
         ((1 << length) - 1).U(length.W)
     }
 
-    // val imm_i  = Cat(Fill(20, io.in.bits.inst(31)), io.in.bits.inst(31, 20))
     val signExtend20 = Fill(20, io.in.bits.inst(31))
     val imm_i  = Cat(signExtend20, io.in.bits.inst(31, 20))
     val imm_iu = Cat(0.U(20.W), io.in.bits.inst(31, 20))
@@ -104,23 +103,26 @@ class IDU extends Module {
     // GPR
     io.out.bits.gpr_waddr := Mux(op.gprWen, inst(7 + Config.GPRAddrLength - 1, 7), 0.U)
     io.out.bits.gpr_ws := op.gprWSel
-    // io.out.bits.gpr_wen := true.B
     
     // CSR
-    io.out.bits.cause_en := false.B
-    io.out.bits.csr_wen := op.csrWen
-    io.out.bits.csr_waddr := MuxLookup(op.csrWAddrSel, 0.U(Config.CSRAddrLength.W))(Seq(
-        CSRAddrSel.VEC.id.U -> CSRAddr.MTVEC,
-        CSRAddrSel.EPC.id.U -> CSRAddr.MEPC,
-        CSRAddrSel.Ins.id.U -> CSRAddr.csr_addr_translate(inst(31, 20))
-    ))
+    io.out.bits.trap.is_trap := op.isTrap
+    io.out.bits.trap.is_interrupt := false.B
+    io.out.bits.trap.cause := Mux(op.isIvd, 2.U(5.W), 8.U(5.W))
+    
+    io.out.bits.csr_wen := op.csrWen && io.gpr_raddr1.orR
+    // io.out.bits.csr_waddr := MuxLookup(op.csrWAddrSel, 0.U(Config.CSRAddrLength.W))(Seq(
+    //     CSRAddrSel.VEC.id.U -> CSRAddr.MTVEC,
+    //     CSRAddrSel.EPC.id.U -> CSRAddr.MEPC,
+    //     CSRAddrSel.Ins.id.U -> CSRAddr.csr_addr_translate(inst(31, 20))
+    // ))
+    io.out.bits.csr_waddr := CSRAddr.csr_addr_translate(inst(31, 20))
     io.out.bits.dnpc_sel := op.dnpcSel
 
     // FENCE
     io.fence_i := op.fenceI && io.in.valid
 
     // TAG
-    io.out.bits.is_ivd := op.isIvd && !reset.asBool
+    io.out.bits.is_ivd := op.isIvd
     io.out.bits.is_brk := op.isBrk
 
     io. in.ready := io.out.ready && !io.raw

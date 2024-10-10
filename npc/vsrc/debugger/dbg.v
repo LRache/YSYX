@@ -15,6 +15,10 @@ module Dbg(
     input [31:0] csr_wdata,
     input csr_wen,
 
+    input [31:0] epc,
+    input [31:0] cause,
+    input is_trap,
+
     input exu_valid,
 
     input branch_predict_failed,
@@ -40,7 +44,9 @@ module Dbg(
         if (brk && done) interface_ebreak();
         if (ivd && done) interface_ivd_inst();
         if (gpr_wen) interface_update_gpr(gpr_waddr, gpr_wdata);
-        if (csr_wen) interface_update_csr(csr_waddr, csr_wdata); 
+        if (csr_wen) interface_update_csr(csr_waddr, csr_wdata);
+        if (is_trap) interface_update_csr(32'h7, cause);
+        if (is_trap) interface_update_csr(32'h6, epc);
         interface_update_reset(reset);
         interface_update_done(done);
 

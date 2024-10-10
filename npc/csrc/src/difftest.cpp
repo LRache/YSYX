@@ -8,6 +8,8 @@
 
 #ifdef DIFFTEST
 
+#define CHECK if (!config::hasDifftest) return ;
+
 uint32_t refRegs[DIFFTEST_COMMON_REG_COUNT];
 
 uint32_t difftestCount;
@@ -19,10 +21,12 @@ extern uint32_t lastPC;
 extern uint32_t lastInst;
 
 void difftest::memcpy(uint32_t addr, uint32_t *buf, size_t n, bool direction) {
+    CHECK
     nemu_difftest_memcpy(addr, buf, n, direction);
 }
 
 void difftest::init() {
+    CHECK
     nemu_difftest_init(0);
     uint32_t initRegs[DIFFTEST_COMMON_REG_COUNT];
     for (int i = 0; i < DIFFTEST_COMMON_REG_COUNT; i++) {
@@ -45,6 +49,7 @@ static void inline gpr_cmp(int i, uint32_t dut) {
 }
 
 void difftest::regs() {
+    CHECK
     nemu_difftest_regcpy(refRegs, DIFFTEST_TO_DUT);
     for (int i = 0; i < DIFFTEST_COMMON_REG_COUNT; i++) {
         gpr_cmp(i, cpu.gpr[i]);
@@ -57,6 +62,7 @@ void difftest::regs() {
     #name, refCSR[i], cpu.name, cpu.pc, cpu.inst);
 
 void difftest::csr() {
+    CHECK
     word_t refCSR[DIFFTEST_CSR_COUNT];
     nemu_difftest_csrcpy(refCSR, DIFFTEST_TO_DUT);
     csr_cmp(0, mcause);
@@ -68,11 +74,13 @@ void difftest::csr() {
 }
 
 void difftest::write_mem(uint32_t addr, int len) {
+    CHECK
     memAddr = addr;
     memLen = len;
 }
 
 void difftest::mem() {
+    CHECK
     if (memLen != 0)
     {
         uint32_t ref = 0;
@@ -87,6 +95,7 @@ void difftest::mem() {
 }
 
 void difftest::pc() {
+    CHECK
     if (skip) {
         nemu_difftest_pc(&cpu.pc, DIFFTEST_TO_REF);
         skip = false;
@@ -100,6 +109,7 @@ void difftest::pc() {
 }
 
 void difftest::step() {
+    CHECK
     // Log("Difftest at pc " FMT_WORD, cpu.pc);
     nemu_difftest_exec(1);
     bool nemu_skip;
@@ -125,6 +135,7 @@ void difftest::set_skip() {
 }
 
 void difftest::end() {
+    CHECK
     Log(ANSI_FG_GREEN "Difftest PASS. "  ANSI_FG_BLUE "count=%d", difftestCount);
     // nemu_difftest_statistic();
 }

@@ -17,6 +17,7 @@ import cpu.Config
 import bus.AXI4Arbiter
 import bus.AXI4IO
 import bus.Clint
+import cpu.reg.CSRAddr
 
 class HCPU(instStart : BigInt) extends Module {
     val io = IO(new Bundle {
@@ -27,10 +28,8 @@ class HCPU(instStart : BigInt) extends Module {
     
     val gpr = Module(new GPR(Config.GPRAddrLength))
     val csr = Module(new CSR)
-    csr.io.cause_en := false.B
-    csr.io.cause := 0.U
 
-    val icache = Module(new ICache(2, 0))
+    val icache = Module(new ICache(1, 0))
     
     val arbiter = Module(new AXI4Arbiter)
     arbiter.io.sel <> io.master
@@ -54,6 +53,8 @@ class HCPU(instStart : BigInt) extends Module {
 
     // EXU
     csr.io.w <> exu.io.csr
+    csr.io.trap := exu.io.trap
+    csr.io.epc := exu.io.epc
 
     // IFU
     icache.io.mem <> arbiter.io.icache
@@ -120,11 +121,25 @@ class HCPU(instStart : BigInt) extends Module {
 
     val exuRawCSRCon = raw_con(
         exu.io.out.valid,
-        exuGPRWaddr,
+        true.B,
         exu.io.csr.wen
     )
     val exuRawCSR = is_raw(idu.io.csr_raddr, idu.io.csr_ren, exu.io.csr.waddr, exuRawCSRCon)
-    idu.io.csr_rdata := Mux(exuRawCSR, exu.io.csr.wdata, csr.io.rdata)
+    val exuRawTrap = exu.io.out.valid && exu.io.trap.is_trap && idu.io.csr_ren &&
+     (idu.io.csr_raddr === CSRAddr.MCAUSE || idu.io.csr_raddr === CSRAddr.MEPC)
+    idu.io.csr_rdata := Mux(
+        exuRawCSR, 
+        exu.io.csr.wdata, 
+        Mux(
+            exuRawTrap, 
+            Mux(
+                idu.io.csr_raddr === CSRAddr.MCAUSE, 
+                exu.io.trap.cause, 
+                exu.io.epc
+            ), 
+            csr.io.rdata
+        )
+    )
 
     // Branch predict
     val predict_failed = (exu.io.jmp && exu.io.out.valid) || idu.io.fence_i
@@ -160,6 +175,11 @@ class HCPU(instStart : BigInt) extends Module {
         debugger.io.gpr.wen   := gpr.io.wen
         debugger.io.gpr.wdata := gpr.io.wdata
         debugger.io.csr := wbu.io.dbg.csr
+        
+        debugger.io.is_trap := wbu.io.dbg.is_trap
+        debugger.io.cause := wbu.io.dbg.cause
+        debugger.io.epc := wbu.io.dbg.pc
+        
         debugger.io.branch_predict_failed := predict_failed && lsu.io.in.ready
         debugger.io.branch_predict_success := (!predict_failed) && lsu.io.in.ready
         debugger.io.exu_valid := exu.io.out.valid

@@ -14,6 +14,10 @@ class Dbg extends BlackBox {
 
         val gpr = Flipped(new RegWIO(32))
         val csr = Flipped(new RegWIO(32))
+        
+        val is_trap = Input(Bool())
+        val epc = Input(UInt(32.W))
+        val cause = Input(UInt(32.W))
 
         val exu_valid = Input(Bool())
 

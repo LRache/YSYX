@@ -57,16 +57,6 @@ static uint32_t test_img_branch[] {
     0x00000793, // 1c addi x15, x0, 0 (will be skipped if bne is taken)
     0x00f00793, // 20 addi x15, x0, 15 (will be executed if bne is not taken)
 
-    // 0x01a69863, // 24 blt  x13, x26, 16 (offset = 4 instructions)
-    // 0x00200793, // 28 addi x15, x0, 2 (will be skipped if blt is taken)
-    // 0x00000793, // 2c addi x15, x0, 0 (will be skipped if blt is taken)
-    // 0x00f00793, // 30 addi x15, x0, 15 (will be executed if blt is not taken)
-
-    // 0x01a6d863, // 34 bge  x13, x26, 16 (offset = 4 instructions)
-    // 0x00300793, // 38 addi x15, x0, 3 (will be skipped if bge is taken)
-    // 0x00000793, // 3c addi x15, x0, 0 (will be skipped if bge is taken)
-    // 0x00f00793, // 40 addi x15, x0, 15 (will be executed if bge is not taken)
-
     GOOD_TRAP
 };
 
@@ -240,7 +230,7 @@ static uint32_t test_img_ecall[] = {
     0x00000073, // 10 ecall
     0x00000000, // 14
     0x30200073, // mret
-    0x34201673, // csrrw x12, mcause, x0
+    0x34201673, // 18 csrrw x12, mcause, x0
 
     GOOD_TRAP
 };
@@ -427,8 +417,10 @@ static uint32_t test_img_control_hazard4[] = {
 };
 
 static uint32_t test_img_temp[] = {
-    0xa00000b7, // lui x1, 0xa0000
-    0x4000a223, // sw x0, 0x404(x1)
+    0x00100093, // li x1, 1
+    0x00008113, // addi x2, x1, 1
+    0x0020d463, // bge x1, x2, 8
+    0x00000000, // ivd
     GOOD_TRAP
 };
 

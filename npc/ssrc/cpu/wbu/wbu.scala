@@ -23,22 +23,16 @@ class WBU extends Module {
             val pc   = Output(UInt(32.W))
             val inst = Output(UInt(32.W))
             val csr  = new RegWIO(32)
+            val is_trap = Output(Bool())
+            val cause = Output(UInt(32.W))
         }
     })
     io.gpr_waddr := io.in.bits.gpr_waddr
-    // io.gpr_waddr := Mux(io.in.valid, io.in.bits.gpr_waddr, 0.U)
     io.gpr_wdata := io.in.bits.gpr_wdata
-    // io.gpr_wen := io.in.bits.gpr_wen && io.in.valid
-
-    // io.gpr_wen := io.in.valid
 
     io.in.ready := true.B
     
     // DEBUG
-    // io.dbg.brk  := RegEnable(io.in.bits.is_brk, io.in.valid)
-    // io.dbg.ivd  := RegEnable(io.in.bits.is_ivd, io.in.valid)
-    // io.dbg.pc   := RegEnable(io.in.bits.dbg.pc, io.in.valid)
-    // io.dbg.inst := RegEnable(io.in.bits.dbg.inst, io.in.valid)
     io.dbg.brk  := io.in.bits.is_brk
     io.dbg.ivd  := io.in.bits.is_ivd
     io.dbg.pc   := io.in.bits.dbg.pc
@@ -46,5 +40,7 @@ class WBU extends Module {
     io.dbg.csr.waddr := io.in.bits.dbg.csr.waddr
     io.dbg.csr.wdata := io.in.bits.dbg.csr.wdata
     io.dbg.csr.wen   := io.in.bits.dbg.csr.wen && io.in.valid
+    io.dbg.is_trap := io.in.bits.dbg.trap.is_trap
+    io.dbg.cause   := Cat(io.in.bits.dbg.trap.is_interrupt, 0.U(26.W), io.in.bits.dbg.trap.cause)
     io.dbg.done := io.in.valid
 }

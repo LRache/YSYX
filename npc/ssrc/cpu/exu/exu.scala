@@ -9,7 +9,7 @@ import cpu.EXUMessage
 import cpu.Config
 import cpu.RegWIO
 import cpu.reg.GPRWSel
-import org.apache.commons.io.input.BOMInputStream
+import cpu.TrapMessage
 
 class EXU extends Module {
     val io = IO(new Bundle {
@@ -18,6 +18,10 @@ class EXU extends Module {
 
         // CSR
         val csr = new RegWIO(Config.CSRAddrLength)
+        
+        // Trap
+        val trap = new TrapMessage
+        val epc = Output(UInt(32.W))
 
         // Data Hazard
         val gprWSel = Output(Bool())
@@ -42,7 +46,6 @@ class EXU extends Module {
     alu.io.tag   := io.in.bits.exu_tag
     val alu_result = Mux(io.in.bits.alu_bsel, rs2, alu.io.res)
 
-    // io.out.bits.exu_result := alu_result
     io.out.bits.rs := MuxLookup(io.in.bits.gpr_ws, 0.U)(Seq (
         GPRWSel.SNPC.U -> rs3,
         GPRWSel. CSR.U -> rs1,
@@ -51,10 +54,14 @@ class EXU extends Module {
     ))
     io.gprWSel := io.in.bits.gpr_ws === GPRWSel.MEM.U
     
-    val jmp = (io.in.bits.is_branch && alu.io.cmp) || io.in.bits.is_jmp
+    val jmp = (io.in.bits.is_branch && alu.io.cmp) || io.in.bits.is_jmp || io.in.bits.trap.is_trap
     io.jmp := jmp
     io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_result)
-
+    
+    // Trap
+    io.trap := io.in.bits.trap
+    io.epc := rs1
+    
     // CSR
     io.csr.waddr := io.in.bits.csr_waddr
     io.csr.wdata := alu.io.csr
@@ -67,8 +74,6 @@ class EXU extends Module {
     io.out.bits.mem_wdata:= rs4
         
     io.out.bits.gpr_waddr  := io.in.bits.gpr_waddr
-    // io.out.bits.gpr_wen    := io.in.bits.gpr_wen
-    // io.out.bits.gpr_ws     := io.in.bits.gpr_ws
 
     io.out.bits.is_brk := io.in.bits.is_brk
     io.out.bits.is_ivd := io.in.bits.is_ivd
@@ -82,4 +87,5 @@ class EXU extends Module {
     io.out.bits.dbg.csr.waddr := io.csr.waddr
     io.out.bits.dbg.csr.wdata := io.csr.wdata
     io.out.bits.dbg.csr.wen   := io.csr.wen
+    io.out.bits.dbg.trap := io.in.bits.trap
 }
