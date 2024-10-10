@@ -39,6 +39,7 @@ class LSU extends Module {
         s_idle -> Mux(memEnable, s_wait_mem_ready, s_idle),
         s_wait_mem_ready -> Mux(memReady, s_wait_mem_valid, s_wait_mem_ready),
         s_wait_mem_valid -> Mux(memValid, s_idle,           s_wait_mem_valid),
+        s_valid -> s_idle
     ))
 
     // COMMON
@@ -118,12 +119,11 @@ class LSU extends Module {
     
     val mem_rdata = Cat(mem_rdata_3, mem_rdata_2, mem_rdata_1, mem_rdata_0)
     val gpr_wdata = Mux(io.in.bits.mem_ren, mem_rdata, io.in.bits.rs)
-    // val gpr_wdata = Mux(io.in.bits.gpr_ws === GPRWSel.MEM.U, mem_rdata, io.in.bits.rs)
     io.out.bits.gpr_wdata := gpr_wdata
 
     val done = (state === s_wait_mem_valid && memValid)
     val nothingToDo = state === s_idle && !(memRen || memWen)
-    io.in.ready  := (nothingToDo || done) && io.out.ready
+    io.in.ready  := (nothingToDo || done)
     io.out.valid := (nothingToDo || done) && io.in.valid
     
     // Unused
@@ -137,7 +137,6 @@ class LSU extends Module {
 
     // Passthrough        
     io.out.bits.gpr_waddr  := io.in.bits.gpr_waddr
-    // io.out.bits.gpr_wen    := io.in.bits.gpr_wen
 
     io.out.bits.is_brk := io.in.bits.is_brk
     io.out.bits.is_ivd := io.in.bits.is_ivd

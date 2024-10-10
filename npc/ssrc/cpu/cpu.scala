@@ -12,12 +12,11 @@ import cpu.idu.IDU
 import cpu.exu.EXU
 import cpu.lsu.LSU
 import cpu.wbu.WBU
+import cpu.Config
 
 import bus.AXI4Arbiter
 import bus.AXI4IO
 import bus.Clint
-import cpu.Config.HasClint
-
 
 class HCPU(instStart : BigInt) extends Module {
     val io = IO(new Bundle {
@@ -134,12 +133,14 @@ class HCPU(instStart : BigInt) extends Module {
     ifu.io.dnpc := RegEnable(exu.io.dnpc, exu.io.out.valid)
 
     // CLINT
-    if (HasClint) {
+    if (Config.HasClint) {
         val clint = Module(new Clint)
         clint.io.raddr := arbiter.io.sel.araddr(2)
         val loadClint = arbiter.io.sel.araddr(31, 24) === 0x02.U
-        arbiter.io.sel.rvalid := Mux(loadClint, true.B, io.master.rvalid);
-        arbiter.io.sel.rdata := Mux(loadClint, clint.io.rdata, io.master.rdata)
+        arbiter.io.sel.arready := Mux(loadClint, true.B, io.master.arready)
+        arbiter.io.sel.rvalid  := Mux(loadClint, true.B, io.master.rvalid)
+        arbiter.io.sel.rdata   := Mux(loadClint, clint.io.rdata, io.master.rdata)
+        arbiter.io.sel.rlast   := Mux(loadClint, true.B, io.master.rlast)
         io.master.arvalid := Mux(loadClint, false.B, arbiter.io.sel.arvalid)
     }
 

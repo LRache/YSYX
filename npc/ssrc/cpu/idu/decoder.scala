@@ -9,6 +9,8 @@ import chisel3.util.experimental.decode._
 import cpu.exu.CmpSel
 import cpu.lsu.MemType
 import cpu.reg.GPRWSel
+import scala.collection.mutable.ArrayBuffer
+import cpu.Config
 
 object InstType extends Enumeration {
     type InstType = Value
@@ -396,10 +398,12 @@ object Decoder {
     val LW      = BitPat("b????????????_?????_010_?????_000_0011")
     val LBU     = BitPat("b????????????_?????_100_?????_000_0011")
     val LHU     = BitPat("b????????????_?????_101_?????_000_0011")
+    val LOAD    = BitPat("b?????????????????_???_?????_000_0011")
 
     val SB      = BitPat("b???????_?????_?????_000_?????_010_0011")
     val SH      = BitPat("b???????_?????_?????_001_?????_010_0011")
     val SW      = BitPat("b???????_?????_?????_010_?????_010_0011")
+    val SAVE    = BitPat("b?????????????????_???_?????_010_0011")
 
     val JAL     = BitPat("b????????????????????_?????_110_1111")
 
@@ -409,6 +413,7 @@ object Decoder {
     val BLT     = BitPat("b???????_?????_?????_100_?????_110_0011")
     val BLTU    = BitPat("b???????_?????_?????_110_?????_110_0011")
     val BNE     = BitPat("b???????_?????_?????_001_?????_110_0011")
+    val BRANCH  = BitPat("b???????_?????_?????_???_?????_110_0011")
 
     val AUIPC   = BitPat("b?????????????????????_?????_001_0111")
     val LUI     = BitPat("b?????????????????????_?????_011_0111")
@@ -449,25 +454,28 @@ object Decoder {
             SLTI    -> Encode.encode_ia(EXUTag.F),
             SLTIU   -> Encode.encode_iu(),
 
-            LB      -> Encode.encode_load(),
-            LH      -> Encode.encode_load(),
-            LW      -> Encode.encode_load(),
-            LBU     -> Encode.encode_load(),
-            LHU     -> Encode.encode_load(),
+            // LB      -> Encode.encode_load(),
+            // LH      -> Encode.encode_load(),
+            // LW      -> Encode.encode_load(),
+            // LBU     -> Encode.encode_load(),
+            // LHU     -> Encode.encode_load(),
+            LOAD    -> Encode.encode_load(),
 
-            SB      -> Encode.encode_save(),
-            SH      -> Encode.encode_save(),
-            SW      -> Encode.encode_save(),
+            // SB      -> Encode.encode_save(),
+            // SH      -> Encode.encode_save(),
+            // SW      -> Encode.encode_save(),
+            SAVE    -> Encode.encode_save(),
 
             JALR    -> Encode.encode_jump(InstType.IJ),
             JAL     -> Encode.encode_jump(InstType. J),
 
-            BEQ     -> Encode.encode_brch(),
-            BNE     -> Encode.encode_brch(),
-            BGE     -> Encode.encode_brch(),
-            BGEU    -> Encode.encode_brch(),
-            BLT     -> Encode.encode_brch(),
-            BLTU    -> Encode.encode_brch(),
+            // BEQ     -> Encode.encode_brch(),
+            // BNE     -> Encode.encode_brch(),
+            // BGE     -> Encode.encode_brch(),
+            // BGEU    -> Encode.encode_brch(),
+            // BLT     -> Encode.encode_brch(),
+            // BLTU    -> Encode.encode_brch(),
+            BRANCH  -> Encode.encode_brch(),
 
             CSRRW   -> Encode.encode_csrr(),
             CSRRS   -> Encode.encode_csrr(),
@@ -475,6 +483,7 @@ object Decoder {
             CSRRWI  -> Encode.encode_csri(),
             CSRRSI  -> Encode.encode_csri(),
             CSRRCI  -> Encode.encode_csri(),
+            // CSRR     -> Encode.encode_csrr(),
 
             AUIPC   -> Encode.encode(InstType.UA, EXUTag.DontCare),
             LUI     -> Encode.encode(InstType.UL, EXUTag.DontCare),
