@@ -52,7 +52,7 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 }
 
 static void nemu_intr(Decode *s) {
-  vaddr_t dnpc = isa_raise_intr(0, s->pc);
+  vaddr_t dnpc = isa_raise_intr(8, s->pc);
   s->dnpc = dnpc;
   nemu_state.state = NEMU_RUNNING;
 }
