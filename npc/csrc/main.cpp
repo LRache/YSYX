@@ -20,6 +20,7 @@ void parse_args(int argc, char **argv) {
         {"dtrace"   , required_argument, 0, 'd'},
         {"zip"      , no_argument      , 0, 'z'},
         {"nodifftest", no_argument     , 0, 'o'},
+        {"allowIllegalInstruction", no_argument, 0, 'a'},
         {0, 0, 0, 0}
     };
 
@@ -54,6 +55,9 @@ void parse_args(int argc, char **argv) {
                 break;
             case 'z':
                 config::zip = true;
+                break;
+            case 'a':
+                config::allowIllegalInstruction = true;
                 break;
         }
     }

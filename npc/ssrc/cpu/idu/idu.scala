@@ -77,6 +77,7 @@ class IDU extends Module {
         ASel.  PC.U -> pc,
         ASel.GPR1.U -> io.gpr_rdata1,
         ASel. CSR.U -> io.csr_rdata,
+        ASel.ZERO.U -> 0.U
     ))
     val rs2 = MuxLookup(op.bSel, 0.U(32.W))(Seq(
         BSel.GPR1.U -> io.gpr_rdata1,
@@ -90,7 +91,6 @@ class IDU extends Module {
     io.out.bits.rs4 := Mux(op.dSel, imm, io.gpr_rdata2)
 
     io.out.bits.exu_tag := op.exuTag
-    io.out.bits.alu_bsel := op.aluBSel
     io.out.bits.alu_add := op.aluAdd
     io.out.bits.is_branch := op.isBranch
     io.out.bits.is_jmp := op.isJmp
@@ -105,16 +105,11 @@ class IDU extends Module {
     io.out.bits.gpr_ws := op.gprWSel
     
     // CSR
-    io.out.bits.trap.is_trap := op.isTrap
+    io.out.bits.trap.is_trap := op.isIvd || op.isTrap
     io.out.bits.trap.is_interrupt := false.B
     io.out.bits.trap.cause := Mux(op.isIvd, 2.U(5.W), 8.U(5.W))
     
     io.out.bits.csr_wen := op.csrWen && io.gpr_raddr1.orR
-    // io.out.bits.csr_waddr := MuxLookup(op.csrWAddrSel, 0.U(Config.CSRAddrLength.W))(Seq(
-    //     CSRAddrSel.VEC.id.U -> CSRAddr.MTVEC,
-    //     CSRAddrSel.EPC.id.U -> CSRAddr.MEPC,
-    //     CSRAddrSel.Ins.id.U -> CSRAddr.csr_addr_translate(inst(31, 20))
-    // ))
     io.out.bits.csr_waddr := CSRAddr.csr_addr_translate(inst(31, 20))
     io.out.bits.dnpc_sel := op.dnpcSel
 

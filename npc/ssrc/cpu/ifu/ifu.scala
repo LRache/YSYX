@@ -32,7 +32,7 @@ class IFU(instStart : BigInt) extends Module {
     val npc = Mux(state === s_skip_once, dnpc, snpc)
     pc := Mux(io.out.ready && io.cache.valid, npc, pc)
     val inst = io.cache.rdata
-    
+
     io.out.bits.pc   := pc
     io.out.bits.snpc := snpc
     io.out.bits.inst := inst

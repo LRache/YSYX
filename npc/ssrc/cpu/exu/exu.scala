@@ -44,7 +44,7 @@ class EXU extends Module {
     alu.io.func3 := func3
     alu.io.addT  := io.in.bits.alu_add
     alu.io.tag   := io.in.bits.exu_tag
-    val alu_result = Mux(io.in.bits.alu_bsel, rs2, alu.io.res)
+    val alu_result = alu.io.res
 
     io.out.bits.rs := MuxLookup(io.in.bits.gpr_ws, 0.U)(Seq (
         GPRWSel.SNPC.U -> rs3,

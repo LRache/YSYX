@@ -48,7 +48,7 @@
 
 #define INST_START FLASH_BASE
 
-#define REAL_FREQ (829 * 1000000)
+#define REAL_FREQ ((uint64_t)(703.024 * 1000000))
 
 #include <string>
 
@@ -69,6 +69,8 @@ namespace config {
     extern std::string romImgFileName;
     extern bool loadFlash;
     extern std::string flashImgFileName;
+
+    extern bool allowIllegalInstruction;
 }
 
 #endif

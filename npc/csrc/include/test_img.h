@@ -10,6 +10,11 @@ static uint32_t test_img_ebreak[] = {
     __EBREAK
 };
 
+static uint32_t test_img_illegal_inst[] = {
+    0,
+    __EBREAK
+};
+
 static uint32_t test_img_athrimatic[] =  {
     0x00a00093, // 00 addi x1, x0, 10
     0x00008133, // 04 add x2, x1, x0

@@ -18,3 +18,5 @@ bool config::loadRom = false;
 std::string config::romImgFileName;
 bool config::loadFlash = false;
 std::string config::flashImgFileName;
+
+bool config::allowIllegalInstruction = false;

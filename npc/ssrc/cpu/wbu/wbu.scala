@@ -14,7 +14,6 @@ class WBU extends Module {
 
         val gpr_waddr = Output(UInt(5.W))
         val gpr_wdata = Output(UInt(32.W))
-        // val gpr_wen   = Output(Bool())
 
         val dbg = new Bundle {
             val brk  = Output(Bool())
@@ -40,7 +39,7 @@ class WBU extends Module {
     io.dbg.csr.waddr := io.in.bits.dbg.csr.waddr
     io.dbg.csr.wdata := io.in.bits.dbg.csr.wdata
     io.dbg.csr.wen   := io.in.bits.dbg.csr.wen && io.in.valid
-    io.dbg.is_trap := io.in.bits.dbg.trap.is_trap
+    io.dbg.is_trap := io.in.bits.dbg.trap.is_trap && io.in.valid
     io.dbg.cause   := Cat(io.in.bits.dbg.trap.is_interrupt, 0.U(26.W), io.in.bits.dbg.trap.cause)
     io.dbg.done := io.in.valid
 }

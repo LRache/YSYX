@@ -11,6 +11,7 @@ import cpu.lsu.MemType
 import cpu.reg.GPRWSel
 import scala.collection.mutable.ArrayBuffer
 import cpu.Config
+import cpu.idu.CSRAddrSel.Ins
 
 object InstType extends Enumeration {
     type InstType = Value
@@ -50,8 +51,7 @@ object ASel {
     val PC   = 0
     val GPR1 = 1
     val CSR  = 2
-    
-    val DontCare = 0
+    val ZERO = 3
 }
 
 object BSel {
@@ -100,7 +100,6 @@ object Encode {
     add_tag("IsTrap",  1)
     
     // EXU
-    add_tag("AluBSel",  1) // 
     add_tag("AluAdd",   1) // for load, save, jal, jalr
     add_tag("EXUTag",   1) // for sub or unsigned
 
@@ -116,7 +115,6 @@ object Encode {
     // WBU
     add_tag("GPRWen",   1)
     add_tag("GPRWSel",  2)
-    // add_tag("CSRWAddrSel", 2)
     add_tag("CSRWen",   1)
     add_tag("IsBrk",    1)
     add_tag("IsIvd",    1)
@@ -177,10 +175,9 @@ object Encode {
             case InstType.UA => ASel.  PC
             case InstType.CR => ASel. CSR
             case InstType.CI => ASel. CSR
-            // case InstType.MR => ASel. CSR // pc = mepc
             case InstType.EC => ASel.  PC // mepc = pc, pc = mtvec
             case InstType.IVD => ASel. PC
-            case _ => ASel.DontCare // Don't Care
+            case _ => ASel.ZERO // Don't Care
         }
         m += ("ASel" -> aSel)
 
@@ -220,8 +217,10 @@ object Encode {
         val csrRen = aSel == ASel.CSR || bSel == BSel.CSR
         m += ("CSRRen" -> toInt(csrRen))
 
-        val csrRRAddrSel = instType match {
-            case InstType.EC => CSRAddrSel.VEC
+        val isTrap = Seq(InstType.EC, InstType.IVD).contains(instType)
+        m += ("IsTrap" -> toInt(isTrap))
+
+        val csrRRAddrSel = if(isTrap) CSRAddrSel.VEC else instType match {
             case InstType.MR => CSRAddrSel.EPC
             case InstType.CR => CSRAddrSel.Ins
             case InstType.CI => CSRAddrSel.Ins
@@ -232,37 +231,26 @@ object Encode {
         val fenceI = instType == InstType.FI
         m += ("FenceI" -> toInt(fenceI))
 
-        val isTrap = Seq(InstType.EC, InstType.IVD).contains(instType)
-        m += ("IsTrap" -> toInt(isTrap))
-
-        val aluBSel = Seq(
-            InstType.UL, // lui
-            InstType.MR  // mret
-        ).contains(instType)
-        m += ("AluBSel" -> toInt(aluBSel))
-
         val aluAdd = Seq(
             InstType. L, // load
             InstType. S, // save
             InstType.UA, // auipc
             InstType. B, // branch
-            InstType. J  // jal
+            InstType. J, // jal
+            InstType.UL, // lui
+            InstType.MR  // mret
         ).contains(instType)
         m += ("AluAdd" -> toInt(aluAdd))
 
         m += ("EXUTag" -> toInt(exuTag == EXUTag.T))
 
-        val dnpcSel = Seq(
-            InstType.EC,
-            InstType.MR
-        ).contains(instType)
+        val dnpcSel = instType == InstType.MR || isTrap
         m += ("DNPCSel" -> toInt(dnpcSel))
 
         val isJmp = Seq(
             InstType. J,
             InstType.IJ,
-            InstType.MR,
-            InstType.EC
+            InstType.MR
         ).contains(instType)
         m += ("IsJmp" -> toInt(isJmp))
 
@@ -304,14 +292,6 @@ object Encode {
         }
         m += ("GPRWSel" -> gprWSel)
 
-        // val csrWAddrSel = instType match {
-        //     case InstType.EC => CSRAddrSel.EPC
-        //     case InstType.CR => CSRAddrSel.Ins
-        //     case InstType.CI => CSRAddrSel.Ins
-        //     case _ => CSRAddrSel.N
-        // }
-        // m += ("CSRWAddrSel" -> csrWAddrSel.id)
-
         val csrWen = Seq(InstType.CR, InstType.CI).contains(instType)
         m += ("CSRWen" -> toInt(csrWen))
 
@@ -351,7 +331,7 @@ class OP(bits : UInt) {
     val isTrap = Encode.get_tag("IsTrap", bits).asBool
 
     // EXU
-    val aluBSel = Encode.get_tag("AluBSel", bits).asBool
+    // val aluBSel = Encode.get_tag("AluBSel", bits).asBool
     val aluAdd = Encode.get_tag("AluAdd", bits).asBool
     val exuTag = Encode.get_tag("EXUTag", bits).asBool
 
@@ -464,10 +444,10 @@ object Decoder {
             LHU     -> Encode.encode_load(),
             // LOAD    -> Encode.encode_load(),
 
-            // SB      -> Encode.encode_save(),
-            // SH      -> Encode.encode_save(),
-            // SW      -> Encode.encode_save(),
-            SAVE    -> Encode.encode_save(),
+            SB      -> Encode.encode_save(),
+            SH      -> Encode.encode_save(),
+            SW      -> Encode.encode_save(),
+            // SAVE    -> Encode.encode_save(),
 
             JALR    -> Encode.encode_jump(InstType.IJ),
             JAL     -> Encode.encode_jump(InstType. J),

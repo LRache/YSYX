@@ -112,6 +112,7 @@ void hdb::ebreak() {
 }
 
 void hdb::invalid_inst() {
+    if (config::allowIllegalInstruction) return ;
     cpu.running = false;
     panic("Invalid Inst at pc=" FMT_WORD " (inst=" FMT_WORD ") clock=%lu", cpu.pc, cpu.inst, cpu.clockCount);
 }
