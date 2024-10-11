@@ -42,6 +42,9 @@
 #define SDRAM_SIZE 0x2000000
 #define SDRAM_BASE 0xa0000000
 
+#define CLINT_BASE 0x02000000
+#define CLINT_SIZE 0x10000
+
 enum MEM_OP_TYPE {
   MEM_READ, MEM_WRITE, MEM_EXCUTE
 };
@@ -91,6 +94,10 @@ static inline bool in_psram(paddr_t addr) {
 
 static inline bool in_sdram(paddr_t addr) {
   return addr - SDRAM_BASE < SDRAM_SIZE;
+}
+
+static inline bool in_clint(paddr_t addr) {
+  return addr - CLINT_BASE < CLINT_SIZE;
 }
 
 word_t paddr_read(paddr_t addr, int len);

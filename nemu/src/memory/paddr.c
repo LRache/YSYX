@@ -13,6 +13,7 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "macro.h"
 #include <memory/host.h>
 #include <memory/paddr.h>
 #include <device/mmio.h>
@@ -71,7 +72,8 @@ word_t paddr_read(paddr_t addr, int len) {
   if (likely(in_flash(addr))) return host_read(flash + addr - FLASH_BASE, len);
   if (likely(in_psram(addr))) return host_read(psram + addr - PSRAM_BASE, len);
   if (likely(in_sdram(addr))) return host_read(sdram + addr - SDRAM_BASE, len);
-  if (likely(in_uart(addr))) {set_difftest_skip(true); return 0;}
+  if (likely(in_uart(addr)))  {set_difftest_skip(true); return 0;}
+  if (likely(in_clint(addr))) {set_difftest_skip(true); return 0;}
   out_of_bound(addr);
   return 0;
 }
