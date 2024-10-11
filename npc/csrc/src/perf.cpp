@@ -218,8 +218,8 @@ void perf::lsu_statistic() {
 
 struct BranchPredict
 {
-    uint32_t success = 0;
-    uint32_t fail = 0;
+    uint64_t success = 0;
+    uint64_t fail = 0;
     bool exuValid = false;
 } branchPredict;
 
