@@ -1,4 +1,5 @@
 #include <chrono>
+#include <cstdint>
 
 #include "memory.h"
 #include "debug.h"
@@ -11,14 +12,13 @@
 #include "utils.hpp"
 
 CPU cpu;
-uint32_t lastPC;
-uint32_t lastInst;
+static uint64_t lastUpdatePCClock = 0;
 
 VTop top;
-std::chrono::time_point<std::chrono::system_clock> timerStart;
+static std::chrono::time_point<std::chrono::system_clock> timerStart;
 static uint64_t timer = 0;
 
-#define IMG_NAME test_img_ecall
+#define IMG_NAME test_img_temp
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
 
@@ -27,6 +27,12 @@ static void exec_once() {
     top.clock = 1; top.eval();
     cpu.clockCount ++;
     nvboard::update();
+}
+
+static void check_step_timeout() {
+    if (cpu.clockCount - lastUpdatePCClock > 100000) {
+        panic("Timeout at pc=" FMT_WORD " inst=" FMT_WORD, cpu.pc, cpu.inst);
+    }
 }
 
 void hdb::init() {
@@ -62,13 +68,13 @@ void hdb::step() {
     exec_once();
     while (!cpu.done && cpu.running) {
         exec_once();
+        check_step_timeout();
     }
     if (cpu.running) difftest::step();
     cpu.instCount++;
     if (!(in_flash(cpu.pc) || in_sdram(cpu.pc))) {
-        panic("Invalid PC = " FMT_WORD", lastPC = " FMT_WORD, cpu.pc, lastPC);
+        panic("Invalid PC = " FMT_WORD", lastPC = " FMT_WORD, cpu.pc, cpu.lastPC);
     }
-    // Log("STEP " FMT_WORD, cpu.pc);
 }
 
 void hdb_statistic() {
@@ -142,14 +148,15 @@ void hdb::set_csr(uint32_t addr, word_t data) {
 void hdb::set_pc(word_t pc) {
     if (!cpu.running) return ;
     
-    lastPC = cpu.pc;
+    cpu.lastPC = cpu.pc;
     cpu.pc = pc;
     itrace::trace(pc);
+    lastUpdatePCClock = cpu.clockCount;
     // Log("Exec to pc=" FMT_WORD " at clock=%lu", pc, cpu.clockCount);
 }
 
 void hdb::set_inst(word_t inst) {
-    lastInst = cpu.inst;
+    cpu.lastInst = cpu.inst;
     cpu.inst = inst;
     // Log(FMT_WORD, inst);
 }
