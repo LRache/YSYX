@@ -5,10 +5,8 @@
 #define CLINT_HIGH *(volatile uint32_t *)(CLINT_BASE + 0x4)
 
 int main() {
-    // printf("Hello World!\n");
-    // CLINT_LOW;
-    // printf("%d\n", CLINT_LOW);
-    // printf("%u\n", CLINT_HIGH);
-    CLINT_LOW;
+    printf("Hello World!\n");
+    printf("%u\n", CLINT_LOW );
+    printf("%u\n", CLINT_HIGH);
     return 0;
 }
