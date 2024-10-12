@@ -24,8 +24,8 @@ class APBDelayerChisel extends Module {
   val io = IO(new APBDelayerIO)
 
   if (Config.hasDelay) {
-    val rs = 829
-    val s = 100
+    val rs = 7
+    val s = 1
     
     io.out.pwrite := io.in.pwrite
     io.out.paddr := io.in.paddr
@@ -46,7 +46,7 @@ class APBDelayerChisel extends Module {
     state := MuxLookup(state, s_wait_enable) (Seq (
       s_wait_enable -> Mux(io.in.penable, s_wait_ready, s_wait_enable),
       s_wait_ready  -> Mux(io.out.pready, s_delay, s_wait_ready),
-      s_delay       -> Mux(counter - 200.U < s.U, s_ready, s_delay),
+      s_delay       -> Mux(counter - (2*s).U < s.U, s_ready, s_delay),
       s_ready       -> s_wait_enable,
     ))
 
