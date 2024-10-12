@@ -1,4 +1,10 @@
 #include <am.h>
+#include <stdint.h>
+
+#define CLINT_BASE 0x02000000
+#define CLINT_LOW  *(volatile uint32_t *)(CLINT_BASE + 0)
+#define CLINT_HIGH *(volatile uint32_t *)(CLINT_BASE + 4)
+#define FREQUENCY  700
 
 void __am_timer_init() {
 }
@@ -8,7 +14,13 @@ void __am_timer_config(AM_TIMER_CONFIG_T *cfg) {
 }
 
 void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime) {
-    uptime->us = 0;
+    uint32_t low  = CLINT_LOW;
+    uint32_t high = CLINT_HIGH;
+    if (low == 0) {
+        low  = CLINT_LOW;
+        high = CLINT_HIGH;
+    }
+    uptime->us = (((uint64_t)high << 32) | low) / FREQUENCY;
 }
 
 void __am_timer_rtc(AM_TIMER_RTC_T *rtc) {
