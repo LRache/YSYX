@@ -17,8 +17,6 @@ uint32_t memAddr = 0;
 int memLen = 0;
 
 bool skip = false;
-extern uint32_t lastPC;
-extern uint32_t lastInst;
 
 void difftest::memcpy(uint32_t addr, uint32_t *buf, size_t n, bool direction) {
     CHECK
@@ -103,7 +101,7 @@ void difftest::pc() {
         uint32_t refPC;
         nemu_difftest_pc(&refPC, DIFFTEST_TO_DUT);
         if (refPC != cpu.pc) {
-            panic("Difftest FAILED.\ndut.pc=" FMT_WORD ", ref.pc=" FMT_WORD "\nlastPC=" FMT_WORD "(inst=" FMT_WORD ")", cpu.pc, refPC, lastPC, lastInst);
+            panic("Difftest FAILED.\ndut.pc=" FMT_WORD ", ref.pc=" FMT_WORD "\nlastPC=" FMT_WORD "(inst=" FMT_WORD ")", cpu.pc, refPC, cpu.lastPC, cpu.lastInst);
         }
     }
 }
