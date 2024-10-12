@@ -121,7 +121,7 @@ static int decode_exec(Decode *s) {
 
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10)));
   #ifdef TARGET_SHARE
-  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, NEMUINTR(s->pc, 8));
+  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, NEMUINTR(s->pc, 11));
   #else
   INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, NEMUINTR(s->pc, 0));
   #endif

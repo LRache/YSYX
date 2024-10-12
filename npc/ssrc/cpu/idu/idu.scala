@@ -107,7 +107,7 @@ class IDU extends Module {
     // CSR
     io.out.bits.trap.is_trap := op.isIvd || op.isTrap
     io.out.bits.trap.is_interrupt := false.B
-    io.out.bits.trap.cause := Mux(op.isIvd, 2.U(5.W), 8.U(5.W))
+    io.out.bits.trap.cause := Mux(op.isIvd, 2.U(5.W), 11.U(5.W))
     
     io.out.bits.csr_wen := op.csrWen && io.gpr_raddr1.orR
     io.out.bits.csr_waddr := CSRAddr.csr_addr_translate(inst(31, 20))
