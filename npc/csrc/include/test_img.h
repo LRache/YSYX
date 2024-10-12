@@ -253,13 +253,14 @@ static uint32_t test_img_psram[] = {
 
 static uint32_t test_img_sdram[] = {
     0xa00000b7, // 00 lui x1, 0xa0000
-    0xa20001b7, // 04 lui x3, 0xa2000
-    0xffc18193, // 08 addi x3, x3, -4
+    // 0xa20001b7, // 04 lui x3, 0xa2000
+    // 0xffc18193, // 08 addi x3, x3, -4
     0x12345137, // 0c lui x2, 0x12345
     0x67810113, // 10 addi x2, x2, 0x678
-    0x0021a023, // 14 sw x2, 0(x3)
+    0x0020a023, // 14 sw x2, 0(x1)
+    // 0x0020a023, // 14 sw x2, 0(x1)
     // 0x0021a023, // 18 sw x2, 0(x3)
-    0x0100a203, // 1c lw x4, 0x10(x1)
+    0x0000a183, // 1c lw x2, 0(x1)
 
     GOOD_TRAP
 };
@@ -422,10 +423,8 @@ static uint32_t test_img_control_hazard4[] = {
 };
 
 static uint32_t test_img_temp[] = {
-    0x00100093, // li x1, 1
-    0x00008113, // addi x2, x1, 1
-    0x0020d463, // bge x1, x2, 8
-    0x00000000, // ivd
+    0xa00000b7, // 00 lui x1, 0xa0000
+    0x00008067, // 04 jalr x0, 0(x1)
     GOOD_TRAP
 };
 
