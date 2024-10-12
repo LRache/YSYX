@@ -18,11 +18,16 @@ typedef struct
     word_t mtvec;
     word_t satp;
     
+    // count
+    uint64_t clockCount;
+    uint64_t instCount;
+
+    // Debug
     bool running;
     bool done;
     word_t inst;
-    uint64_t clockCount;
-    uint64_t instCount;
+    word_t lastInst;
+    word_t lastPC;
 } CPU;
 
 extern VysyxSoCFull top;
