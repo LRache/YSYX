@@ -165,10 +165,11 @@ void perf::lsu_state_update(bool ren, bool wen, bool waiting, addr_t addr) {
     } else if (lsu.isWaiting) {
         lsu.isWaiting = false;
         uint64_t clockCount = cpu.clockCount - lsu.start;
-        if (clockCount > 5000) {
-            if (lsu.ren) lsu.unexpRead.pref_count(clockCount);
-            else if (lsu.wen) lsu.unexpWrite.pref_count(clockCount);
-        } else if (in_flash(lsu.addr)) {
+        // if (clockCount > 5000) {
+        //     if (lsu.ren) lsu.unexpRead.pref_count(clockCount);
+        //     else if (lsu.wen) lsu.unexpWrite.pref_count(clockCount);
+        // } else 
+        if (in_flash(lsu.addr)) {
             if (lsu.ren) lsu.flashRead.pref_count(clockCount);
         } else if (in_sram(lsu.addr)) {
             if (lsu.ren) lsu.sramRead.pref_count(clockCount);
