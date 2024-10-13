@@ -325,13 +325,11 @@ class OP(bits : UInt) {
     val gprRen1 = Encode.get_tag("GPRRen1", bits).asBool
     val gprRen2 = Encode.get_tag("GPRRen2", bits).asBool
     val csrRAddrSel = Encode.get_tag("CSRRAddrSel", bits)
-    // val csrWAddrSel = Encode.get_tag("CSRWAddrSel", bits)
     val csrRen = Encode.get_tag("CSRRen", bits).asBool
     val fenceI = Encode.get_tag("FenceI", bits).asBool
     val isTrap = Encode.get_tag("IsTrap", bits).asBool
 
     // EXU
-    // val aluBSel = Encode.get_tag("AluBSel", bits).asBool
     val aluAdd = Encode.get_tag("AluAdd", bits).asBool
     val exuTag = Encode.get_tag("EXUTag", bits).asBool
 
@@ -410,9 +408,9 @@ object Decoder {
     val CSRRSI  = BitPat("b????????????_?????_110_?????_111_0011")
     val CSRRCI  = BitPat("b????????????_?????_111_?????_111_0011")
     
-    val EBREAK  = BitPat("b0000000000010000000000000_1110011")
-    val ECALL   = BitPat("b0000000000000000000000000_1110011")
-    val MRET    = BitPat("b0011000000100000000000000_1110011")
+    val EBREAK  = BitPat("b00000000000100000000_00000_111_0011")
+    val ECALL   = BitPat("b00000000000000000000_00000_111_0011")
+    val MRET    = BitPat("b00110000001000000000_00000_111_0011")
 
     val truthTable = TruthTable(
         Map(      
@@ -437,28 +435,28 @@ object Decoder {
             SLTI    -> Encode.encode_ia(EXUTag.F),
             SLTIU   -> Encode.encode_iu(),
 
-            LB      -> Encode.encode_load(),
-            LH      -> Encode.encode_load(),
-            LW      -> Encode.encode_load(),
-            LBU     -> Encode.encode_load(),
-            LHU     -> Encode.encode_load(),
-            // LOAD    -> Encode.encode_load(),
+            // LB      -> Encode.encode_load(),
+            // LH      -> Encode.encode_load(),
+            // LW      -> Encode.encode_load(),
+            // LBU     -> Encode.encode_load(),
+            // LHU     -> Encode.encode_load(),
+            LOAD    -> Encode.encode_load(),
 
-            SB      -> Encode.encode_save(),
-            SH      -> Encode.encode_save(),
-            SW      -> Encode.encode_save(),
-            // SAVE    -> Encode.encode_save(),
+            // SB      -> Encode.encode_save(),
+            // SH      -> Encode.encode_save(),
+            // SW      -> Encode.encode_save(),
+            SAVE    -> Encode.encode_save(),
 
             JALR    -> Encode.encode_jump(InstType.IJ),
             JAL     -> Encode.encode_jump(InstType. J),
 
-            BEQ     -> Encode.encode_brch(),
-            BNE     -> Encode.encode_brch(),
-            BGE     -> Encode.encode_brch(),
-            BGEU    -> Encode.encode_brch(),
-            BLT     -> Encode.encode_brch(),
-            BLTU    -> Encode.encode_brch(),
-            // BRANCH  -> Encode.encode_brch(),
+            // BEQ     -> Encode.encode_brch(),
+            // BNE     -> Encode.encode_brch(),
+            // BGE     -> Encode.encode_brch(),
+            // BGEU    -> Encode.encode_brch(),
+            // BLT     -> Encode.encode_brch(),
+            // BLTU    -> Encode.encode_brch(),
+            BRANCH  -> Encode.encode_brch(),
 
             CSRRW   -> Encode.encode_csrr(),
             CSRRS   -> Encode.encode_csrr(),

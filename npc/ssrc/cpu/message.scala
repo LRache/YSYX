@@ -17,13 +17,13 @@ class RegRIO (addrLength: Int) extends Bundle {
 class TrapMessage extends Bundle {
     val is_trap = Output(Bool())
     val is_interrupt = Output(Bool())
-    val cause   = Output(UInt(5.W))
+    val cause   = Output(UInt(4.W))
 }
 
 class IFUMessage extends Bundle {
     val inst = Output(UInt(32.W))
     val pc   = Output(UInt(32.W))
-    val snpc = Output(UInt(32.W))
+    // val snpc = Output(UInt(32.W))
 
     val dbg = new Bundle {
         val pc   = Output(UInt(32.W))

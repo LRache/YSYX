@@ -40,6 +40,6 @@ class WBU extends Module {
     io.dbg.csr.wdata := io.in.bits.dbg.csr.wdata
     io.dbg.csr.wen   := io.in.bits.dbg.csr.wen && io.in.valid
     io.dbg.is_trap := io.in.bits.dbg.trap.is_trap && io.in.valid
-    io.dbg.cause   := Cat(io.in.bits.dbg.trap.is_interrupt, 0.U(26.W), io.in.bits.dbg.trap.cause)
+    io.dbg.cause   := Cat(io.in.bits.dbg.trap.is_interrupt, 0.U(27.W), io.in.bits.dbg.trap.cause)
     io.dbg.done := io.in.valid
 }

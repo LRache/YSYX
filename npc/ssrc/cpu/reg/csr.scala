@@ -57,14 +57,13 @@ class CSR extends Module {
         val rdata   = Output(UInt(32.W))
 
         val trap = Flipped(new TrapMessage)
-        val epc = Input(UInt(32.W))
     })
 
     def gen_csr(addr : UInt, name : String) : UInt = {
         RegEnable(io.w.wdata, Config.CSRInitValue(name).U(32.W), io.w.wen && io.w.waddr === addr)
     }
 
-    val cause = Cat(io.trap.is_interrupt, 0.U(26.W), io.trap.cause)
+    val cause = Cat(io.trap.is_interrupt, 0.U(27.W), io.trap.cause)
     val mcause = RegInit(0.U(32.W))
     mcause := Mux(
         io.trap.is_trap, 
@@ -75,18 +74,13 @@ class CSR extends Module {
         )
     )
 
-    val mepc = RegInit(0.U(32.W))
-    mepc := Mux(
-        io.trap.is_trap, 
-        io.epc, 
-        Mux(
-            io.w.waddr === CSRAddr.MEPC && io.w.wen, 
-            io.w.wdata, 
-            mepc
-        )
+    // val mepc = RegInit(0.U(32.W))
+    // mepc := Mux(io.trap.is_trap || (io.w.waddr === CSRAddr.MEPC && io.w.wen), io.w.wdata, mepc)
+    val mepc = RegEnable(
+        io.w.wdata, Config.CSRInitValue("mepc").U(32.W), 
+        io.trap.is_trap || (io.w.wen && io.w.waddr === CSRAddr.MEPC)
     )
 
-    // val mepc    = gen_csr(CSRAddr.MEPC,     "mepc"      )
     val mstatus = gen_csr(CSRAddr.MSTATUS,  "mstatus"   )
     val mtvec   = gen_csr(CSRAddr.MTVEC,    "mtvec"     )
     

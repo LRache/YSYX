@@ -21,50 +21,56 @@ class EXU extends Module {
         
         // Trap
         val trap = new TrapMessage
-        val epc = Output(UInt(32.W))
 
         // Data Hazard
         val gprWSel = Output(Bool())
 
         // Control Hazard
         val jmp = Output(Bool())
-        val dnpc = Output(UInt(32.W))
+        val dnpc = Output(UInt(30.W))
     })
     val func3 = io.in.bits.func3
     val rs1 = io.in.bits.rs1
     val rs2 = io.in.bits.rs2
     val rs3 = io.in.bits.rs3
     val rs4 = io.in.bits.rs4
- 
-    val alu = Module(new Alu())
-    alu.io.a := rs1
-    alu.io.b := rs2
-    alu.io.c := rs3
-    alu.io.d := rs4
-    alu.io.func3 := func3
-    alu.io.addT  := io.in.bits.alu_add
-    alu.io.tag   := io.in.bits.exu_tag
-    val alu_result = alu.io.res
 
-    io.out.bits.rs := MuxLookup(io.in.bits.gpr_ws, 0.U)(Seq (
+    val alu_res = Wire(UInt(32.W))
+    val alu_cmp = Wire(Bool())
+    val alu_csr = Wire(UInt(32.W))
+
+    AluInline(
+        a = io.in.bits.rs1, 
+        b = io.in.bits.rs2, 
+        c = io.in.bits.rs3, 
+        d = io.in.bits.rs4, 
+        func3 = io.in.bits.func3, 
+        addT  = io.in.bits.alu_add, 
+        tag   = io.in.bits.exu_tag, 
+        res   = alu_res, 
+        cmp   = alu_cmp, 
+        csr   = alu_csr
+    )
+
+    val gpr_ws = io.in.bits.gpr_ws
+    io.out.bits.rs := MuxLookup(gpr_ws, 0.U)(Seq (
         GPRWSel.SNPC.U -> rs3,
         GPRWSel. CSR.U -> rs1,
-        GPRWSel. EXU.U -> alu_result,
-        GPRWSel. MEM.U -> alu_result,
+        GPRWSel. EXU.U -> alu_res,
+        GPRWSel. MEM.U -> alu_res,
     ))
-    io.gprWSel := io.in.bits.gpr_ws === GPRWSel.MEM.U
+    io.gprWSel := io.in.bits.mem_ren
     
-    val jmp = (io.in.bits.is_branch && alu.io.cmp) || io.in.bits.is_jmp || io.in.bits.trap.is_trap
+    val jmp = (io.in.bits.is_branch && alu_cmp) || io.in.bits.is_jmp || io.in.bits.trap.is_trap
     io.jmp := jmp
-    io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_result)
+    io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_res)(31, 2)
     
     // Trap
     io.trap := io.in.bits.trap
-    io.epc := rs1
     
     // CSR
     io.csr.waddr := io.in.bits.csr_waddr
-    io.csr.wdata := alu.io.csr
+    io.csr.wdata := Mux(io.in.bits.trap.is_trap, rs1, alu_csr)
     io.csr.wen   := io.in.bits.csr_wen && io.in.valid
 
     // Passthrough
