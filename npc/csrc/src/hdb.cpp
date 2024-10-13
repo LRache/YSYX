@@ -13,12 +13,13 @@
 
 CPU cpu;
 static uint64_t lastUpdatePCClock = 0;
+static bool pcOn = false;
 
 VTop top;
 static std::chrono::time_point<std::chrono::system_clock> timerStart;
 static uint64_t timer = 0;
 
-#define IMG_NAME test_img_temp
+#define IMG_NAME test_img_upper
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
 
@@ -30,7 +31,7 @@ static void exec_once() {
 }
 
 static void check_step_timeout() {
-    if (cpu.clockCount - lastUpdatePCClock > 100000) {
+    if (cpu.clockCount - lastUpdatePCClock > 100000 && pcOn) {
         panic("Timeout at pc=" FMT_WORD " inst=" FMT_WORD, cpu.pc, cpu.inst);
     }
 }
@@ -152,6 +153,7 @@ void hdb::set_pc(word_t pc) {
     cpu.pc = pc;
     itrace::trace(pc);
     lastUpdatePCClock = cpu.clockCount;
+    pcOn = true;
     // Log("Exec to pc=" FMT_WORD " at clock=%lu", pc, cpu.clockCount);
 }
 
