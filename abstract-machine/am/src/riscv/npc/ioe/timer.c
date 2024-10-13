@@ -4,13 +4,13 @@
 #define CLINT_BASE 0x02000000
 #define CLINT_LOW  *(volatile uint32_t *)(CLINT_BASE + 0)
 #define CLINT_HIGH *(volatile uint32_t *)(CLINT_BASE + 4)
-#define FREQUENCY  700
+#define FREQUENCY  850
 
 void __am_timer_init() {
 }
 
 void __am_timer_config(AM_TIMER_CONFIG_T *cfg) { 
-    cfg->present = true; cfg->has_rtc = true; 
+    cfg->present = true; cfg->has_rtc = false; 
 }
 
 void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime) {
