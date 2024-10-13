@@ -84,12 +84,12 @@ static uint32_t test_img_jump0[] = {
 };
 
 static uint32_t test_img_jump1[] = {
-    0x00f00513, // addi x10, x0, 15
-    0x01b00593, // addi x11, x0, 27
-    0x00b50633, // add  x12, x10, x11
-    0x00f52693, // addi x13, x10, 15
-    0x02000793, // addi x15, x0, 32
-    0xff5ff0ef, // jal ra, -12
+    0x00f00513, // 00 addi x10, x0, 15
+    0x01b00593, // 04 addi x11, x0, 27
+    0x00b50633, // 08 add  x12, x10, x11
+    0x00f52693, // 0c addi x13, x10, 15
+    0x02000793, // 10 addi x15, x0, 32
+    0xff5ff0ef, // 14 jal ra, -12
     GOOD_TRAP
 };
 

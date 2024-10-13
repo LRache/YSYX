@@ -38,7 +38,8 @@ class ICache (e: Int, s: Int) extends Module {
     val offset = io.io.raddr(b - 1 - 2, 2 - 2)
     val memRAddr = Cat(io.io.raddr(31 - 2, b - 2), 0.U(b.W))
 
-    val cache     = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(VecInit(Seq.fill(4)(0.U(32.W))))))))
+    val cache     = Reg(Vec(S, Vec(E, Vec(4, UInt(32.W)))))
+    // val cache     = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(VecInit(Seq.fill(4)(0.U(32.W))))))))
     val metaTag   = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((t).W))))))
     val metaValid = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(false.B)))))
     val hitGroup  = cache(groupIndex)

@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-// #define __RTTHREAD__
+#define __RTTHREAD__
 
 static inline void __memcpy(char *__dst, char *__src, uint32_t size) {
     if (__dst == __src) return;
