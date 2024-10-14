@@ -40,7 +40,8 @@ class ICache (e: Int, s: Int) extends Module {
 
     val cache     = Reg(Vec(S, Vec(E, Vec(4, UInt(32.W)))))
     // val cache     = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(VecInit(Seq.fill(4)(0.U(32.W))))))))
-    val metaTag   = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((t).W))))))
+    // val metaTag   = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(0.U((t).W))))))
+    val metaTag   = Reg(Vec(S, Vec(E, UInt(t.W))))
     val metaValid = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(false.B)))))
     val hitGroup  = cache(groupIndex)
     
