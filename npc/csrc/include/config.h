@@ -48,7 +48,7 @@
 
 #define INST_START FLASH_BASE
 
-#define REAL_FREQ ((uint64_t)(703.024 * 1000000))
+#define REAL_FREQ ((uint64_t)(856.498 * 1000000))
 
 #include <string>
 
