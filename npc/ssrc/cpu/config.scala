@@ -9,7 +9,7 @@ object Config {
     val HasMscratch = false
     val HasSatp = false
     val HasFastAlu = true
-    val JudgeExuRaw = false
+    val JudgeExuRaw = true
 
     val HasClint = true
     
