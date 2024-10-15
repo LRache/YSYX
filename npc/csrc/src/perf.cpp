@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <ostream>
 
 #include "hdb.h"
 #include "debug.h"
@@ -11,8 +12,8 @@
 
 #define CHECK if (!config::perf) return ;
 
-#define STATISTIC_OUTPUT_INIT std::cout << std::fixed << std::setprecision(2);
-#define STATISTIC_OUTPUT_DEINIT std::cout.unsetf(std::ios::fixed); std::cout.unsetf(std::ios::floatfield);
+#define STATISTIC_OUTPUT_INIT stream << std::fixed << std::setprecision(2);
+#define STATISTIC_OUTPUT_DEINIT stream.unsetf(std::ios::fixed); stream.unsetf(std::ios::floatfield);
 
 struct Counter {
     uint64_t count;
@@ -79,8 +80,8 @@ void perf::icache_pc_update(word_t pc) {
     icache.pc = pc;
 }
 
-static inline void print_icache_statistic(const std::string &name, const Counter &c) {
-    std::cout 
+static inline void print_icache_statistic(std::ostream &stream, const std::string &name, const Counter &c) {
+    stream
     << std::setw( 6) << name << " | "
     << std::setw(12) << c.clockCount << " | " 
     << std::setw(10) << c.count << " | " 
@@ -88,10 +89,10 @@ static inline void print_icache_statistic(const std::string &name, const Counter
     << std::setw( 5) << (double)c.clockCount / cpu.clockCount * 100 << "%" << std::endl;
 }
 
-void perf::icache_statistic() {
+void perf::icache_statistic(std::ostream &stream) {
     CHECK;
-    std::cout << "Performance Statistic of ICache" << std::endl;
-    std::cout << std::setw(5) << "" << " | " 
+    stream << "Performance Statistic of ICache" << std::endl;
+    stream << std::setw(5) << "" << " | " 
     << std::setw(10) << "Count" << " | " 
     << std::setw( 7) << " " << " | " 
     << std::endl;
@@ -99,41 +100,41 @@ void perf::icache_statistic() {
     uint64_t total = icache.hit.count + icache.miss.count;
     uint64_t totalClk = icache.hit.clockCount + icache.miss.clockCount;
     STATISTIC_OUTPUT_INIT;
-    std::cout 
+    stream 
     << std::setw( 5) << "hit" << " | "
     << std::setw(10) << icache.hit.count << " | "
     << std::setw( 6) << (double)icache.hit.count / total * 100 << "% | " 
     << std::endl;
 
-    std::cout 
+    stream
     << std::setw( 5) << "miss" << " | "
     << std::setw(10) << icache.miss.count << " | "
     << std::setw( 6) << (double)icache.miss.count / total * 100 << "% | "
     << std::endl;
 
-    std::cout 
+    stream 
     << std::setw( 5) << "Total" << " | "
     << std::setw(10) << total << " | " 
     << std::setw( 7) << "" << " | "
     << std::setw(12) << totalClk << " | "
     << std::endl;
 
-    std::cout << std::endl;
+    stream << std::endl;
 
-    std::cout 
+    stream
     << std::setw( 6) << "Source" << " | "
     << std::setw(12) << "Clock" << " | " 
     << std::setw(10) << "Count" << " | " 
     << std::setw( 8) << "Average" << " | " << std::endl;
 
-    print_icache_statistic("flash", icache.flash);
-    print_icache_statistic("sdram", icache.sdram);
-    print_icache_statistic("other", icache.other);
+    print_icache_statistic(stream, "flash", icache.flash);
+    print_icache_statistic(stream, "sdram", icache.sdram);
+    print_icache_statistic(stream, "other", icache.other);
 
     STATISTIC_OUTPUT_DEINIT;
 
     double amat = totalClk + (1 - (double) icache.miss.clockCount / totalClk) * icache.miss.clockCount;
-    std::cout << "AMAT=" << std::fixed << amat << std::endl;
+    stream << "AMAT=" << std::fixed << amat << std::endl;
 }
 
 static struct {
@@ -184,8 +185,8 @@ void perf::lsu_state_update(bool ren, bool wen, bool waiting, addr_t addr) {
     }
 }
 
-static void print_lsu_statistic(const char *name, const Counter &c, bool is_read) {
-    std::cout
+static void print_lsu_statistic(std::ostream &stream, const char *name, const Counter &c, bool is_read) {
+    stream
     << std::setw( 6) << name << " | " 
     << (is_read ? " read" : "write") << " | "
     << std::setw(12) << c.clockCount << " | " 
@@ -194,10 +195,10 @@ static void print_lsu_statistic(const char *name, const Counter &c, bool is_read
     << std::setw( 5) << (double)c.clockCount / cpu.clockCount * 100 << "%" << std::endl;
 }
 
-void perf::lsu_statistic() {
+void perf::lsu_statistic(std::ostream &stream) {
     CHECK;
-    std::cout << "Performance Statistic of LSU" << std::endl;
-    std::cout
+    stream << "Performance Statistic of LSU" << std::endl;
+    stream
     << std::setw( 6) << "Source" << " | "
     << " Type" << " | "
     << std::setw(12) << "Clock" << " | " 
@@ -205,15 +206,15 @@ void perf::lsu_statistic() {
     << std::setw( 8) << "Average" << std::endl;
 
     STATISTIC_OUTPUT_INIT;
-    print_lsu_statistic("flash", lsu.flashRead, true);
-    print_lsu_statistic("sram", lsu.sramRead, true);
-    print_lsu_statistic("sram", lsu.sramWrite, false);
-    print_lsu_statistic("sdram", lsu.sdramRead, true);
-    print_lsu_statistic("sdram", lsu.sdramWrite, false);
-    print_lsu_statistic("other", lsu.otherRead, true);
-    print_lsu_statistic("other", lsu.otherWrite, false);
-    print_lsu_statistic("unexp", lsu.unexpRead, true);
-    print_lsu_statistic("unexp", lsu.unexpWrite, false);
+    print_lsu_statistic(stream, "flash", lsu.flashRead, true);
+    print_lsu_statistic(stream, "sram", lsu.sramRead, true);
+    print_lsu_statistic(stream, "sram", lsu.sramWrite, false);
+    print_lsu_statistic(stream, "sdram", lsu.sdramRead, true);
+    print_lsu_statistic(stream, "sdram", lsu.sdramWrite, false);
+    print_lsu_statistic(stream, "other", lsu.otherRead, true);
+    print_lsu_statistic(stream, "other", lsu.otherWrite, false);
+    print_lsu_statistic(stream, "unexp", lsu.unexpRead, true);
+    print_lsu_statistic(stream, "unexp", lsu.unexpWrite, false);
     STATISTIC_OUTPUT_DEINIT;
 }
 
@@ -243,10 +244,10 @@ void perf::branch_predict_success_update(bool success) {
     }
 }
 
-void perf::branch_predictor_statistic() {
+void perf::branch_predictor_statistic(std::ostream &stream) {
     CHECK;
-    std::cout << "Performance Statistic of Branch Predictor" << std::endl;
-    std::cout 
+    stream << "Performance Statistic of Branch Predictor" << std::endl;
+    stream 
     << std::setw( 7) << " " << " | "
     << std::setw(10) << "Count" << " | "
     << std::setw( 8) << "Rate" << " | " << std::endl;
@@ -254,14 +255,14 @@ void perf::branch_predictor_statistic() {
     branchPredict.success --;
     STATISTIC_OUTPUT_INIT
     double successRate = (double)branchPredict.success / (branchPredict.success + branchPredict.fail);
-    std::cout 
+    stream
     << std::setw( 7) << "success" << " | "
     << std::setw(10) << branchPredict.success << " | "
     << std::setw(8) << successRate * 100 << "%" << std::endl;
-    std::cout 
+    stream
     << std::setw( 7) << "fail" << " | "
     << std::setw(10) << branchPredict.fail << " | "
-    << std::setw(8) << (1 - successRate) * 100 << "%" << std::endl;
+    << std::setw( 8) << (1 - successRate) * 100 << "%" << std::endl;
     STATISTIC_OUTPUT_DEINIT
 }
 
@@ -271,13 +272,13 @@ void perf::init() {
     lsu.start = cpu.clockCount;
 }
 
-void perf::statistic() {
+void perf::statistic(std::ostream &stream) {
     CHECK;
-    icache_statistic();
-    std::cout << std::endl;
-    lsu_statistic();
-    std::cout << std::endl;
-    branch_predictor_statistic();
+    icache_statistic(stream);
+    stream << std::endl;
+    lsu_statistic(stream);
+    stream << std::endl;
+    branch_predictor_statistic(stream);
 }
 
 #else

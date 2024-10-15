@@ -6,6 +6,9 @@ bool config::hasNVBoard  = false;
 bool config::hasDifftest = true;
 bool config::perf = true;
 
+bool config::statistic = false;
+std::string config::statisticOutputFileName;
+
 bool config::itrace = false;
 std::string config::itraceOutputFileName;
 bool config::ictrace = false;

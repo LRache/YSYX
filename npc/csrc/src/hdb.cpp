@@ -1,5 +1,8 @@
 #include <chrono>
 #include <cstdint>
+#include <fstream>
+#include <iostream>
+#include <ostream>
 
 #include "memory.h"
 #include "debug.h"
@@ -22,6 +25,8 @@ static uint64_t timer = 0;
 #define IMG_NAME test_img_upper
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
+
+std::ofstream statisticFile;
 
 static void exec_once() {
     top.clock = 0; top.eval();
@@ -56,6 +61,10 @@ void hdb::init() {
     
     perf::init();
     trace::open();
+    if (config::statistic) {
+        statisticFile.open(config::statisticOutputFileName);
+        if (!statisticFile.is_open()) panic("Cannot open file %s", config::statisticOutputFileName.c_str());
+    }
 
     cpu.mstatus = 0x1800;
     Log("Init finished.");
@@ -87,11 +96,18 @@ void hdb_statistic() {
     Log("Total time spent = %'" PRIu64 " us(%s), frequency=%.3lfkHz", timer, us_to_text(timer).c_str(), (double)cpu.clockCount * 1000 / timer);
     Log("Total time spent in reality = %'" PRIu64 " us(%s)", realTimer, us_to_text(realTimer).c_str());
     if (timer > 0) Log("Simulation frequency = %'" PRIu64 " clocks/s", cpu.clockCount * 1000000 / timer);
+
+    if (config::statistic) {
+        statisticFile << std::endl;
+        statisticFile << "Total count of instructions = " << cpu.instCount << " with " << cpu.clockCount << " clocks, IPC=" << (double)cpu.instCount / cpu.clockCount << std::endl;
+        statisticFile << "Total time spent in reality =" << realTimer << " us(" << us_to_text(realTimer) << ")" << std::endl;
+    }
 }
 
 void hdb::end() {
     difftest::end();
-    perf::statistic();
+    perf::statistic(std::cout);
+    if (config::statistic) perf::statistic(statisticFile);
     hdb_statistic();
 }
 

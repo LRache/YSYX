@@ -18,6 +18,7 @@ void parse_args(int argc, char **argv) {
         {"itrace"   , required_argument, 0, 'i'},
         {"ictrace"  , required_argument, 0, 'c'},
         {"dtrace"   , required_argument, 0, 'd'},
+        {"stat"     , required_argument, 0, 's'},
         {"zip"      , no_argument      , 0, 'z'},
         {"nodifftest", no_argument     , 0, 'o'},
         {"allowIllegalInstruction", no_argument, 0, 'a'},
@@ -58,6 +59,10 @@ void parse_args(int argc, char **argv) {
                 break;
             case 'a':
                 config::allowIllegalInstruction = true;
+                break;
+            case 's':
+                config::statistic = true;
+                config::statisticOutputFileName = optarg;
                 break;
         }
     }

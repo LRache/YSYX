@@ -56,6 +56,9 @@ namespace config {
     extern bool hasNVBoard;
     extern bool hasDifftest;
     extern bool perf;
+
+    extern bool statistic;
+    extern std::string statisticOutputFileName;
     
     extern bool itrace;
     extern std::string itraceOutputFileName;

@@ -2,13 +2,14 @@
 #define __PERF_H__
 
 #include "common.h"
+#include <ostream>
 
 namespace perf {
     void init();
-    void statistic();
-    void lsu_statistic();
-    void icache_statistic();
-    void branch_predictor_statistic();
+    void statistic(std::ostream &stream);
+    void lsu_statistic(std::ostream &stream);
+    void icache_statistic(std::ostream &stream);
+    void branch_predictor_statistic(std::ostream &stream);
 
     void lsu_state_update(bool ren, bool wen, bool waiting, addr_t addr);
     
