@@ -23,13 +23,12 @@ class axi4_delayer extends BlackBox {
 class AXI4DelayerChisel extends Module {
     val io = IO(new AXI4DelayerIO)
     if (Config.hasDelay) {
-        val s = 1
-        val rs = 7
+        val s = 100
+        val rs = (Config.r * s).toInt
 
         val s_wait_slave :: s_wait_master :: s_save_data :: s_delay :: s_valid :: Nil = Enum(5)
         val rstate = RegInit(s_wait_slave)
         val wstate = RegInit(s_wait_slave)
-
         val rCounter = RegInit(0.U(32.W))
         val wCounter = RegInit(0.U(32.W))
         

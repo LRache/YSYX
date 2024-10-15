@@ -24,8 +24,8 @@ class APBDelayerChisel extends Module {
   val io = IO(new APBDelayerIO)
 
   if (Config.hasDelay) {
-    val rs = 7
-    val s = 1
+    val s = 100
+    val rs = (Config.r * s).toInt
     
     io.out.pwrite := io.in.pwrite
     io.out.paddr := io.in.paddr
