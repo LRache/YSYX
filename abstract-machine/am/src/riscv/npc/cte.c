@@ -11,13 +11,13 @@ Context* __am_irq_handle(Context *c) {
   // __am_get_cur_as(c);
   if (user_handler) {
     Event ev = {0};
-    switch (c->gpr[15]) {
-      case IRQ_YIELD: 
-        ev.event = EVENT_YIELD;     break;
+    switch (c->mcause) {
+      case IRQ_SYSCALL:
+        ev.event = c->gpr[15] == -1 ? EVENT_YIELD : EVENT_SYSCALL; break;
       case IRQ_TIMER: 
         ev.event = EVENT_IRQ_TIMER; break;
       default: 
-        ev.event = EVENT_SYSCALL;   break;
+        assert(0);
     }
     c->mepc += 4;
     c = user_handler(ev, c);

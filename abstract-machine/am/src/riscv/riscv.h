@@ -31,7 +31,7 @@ enum { MODE_U, MODE_S, MODE_M = 3 };
 #define MSTATUS_UXL  0
 #endif
 
-#define IRQ_YIELD 0xffffffff
 #define IRQ_TIMER 0x80000007 
+#define IRQ_SYSCALL 0x0000000b
 
 #endif
