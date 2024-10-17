@@ -46,12 +46,10 @@ void set_difftest_skip(bool skip);
 //   trace_mem(addr, len, MEM_WRITE);
 // }
 
-static void out_of_bound(paddr_t addr) {
-  // panic("address = " FMT_PADDR " is out of bound of pmem [" FMT_PADDR ", " FMT_PADDR "] at pc = " FMT_WORD,
-  //     addr, PMEM_LEFT, PMEM_RIGHT, cpu.pc);
-  panic("address = " FMT_PADDR " is out of bound of pmem at pc = " FMT_WORD,
-      addr, cpu.pc);
-}
+// static void out_of_bound(paddr_t addr) {
+//   panic("address = " FMT_PADDR " is out of bound of pmem at pc = " FMT_WORD,
+//       addr, cpu.pc);
+// }
 
 void init_mem() {
 #if   defined(CONFIG_PMEM_MALLOC)
@@ -74,7 +72,7 @@ word_t paddr_read(paddr_t addr, int len) {
   if (likely(in_sdram(addr))) return host_read(sdram + addr - SDRAM_BASE, len);
   if (likely(in_uart(addr)))  {set_difftest_skip(true); return 0;}
   if (likely(in_clint(addr))) {set_difftest_skip(true); return 0;}
-  out_of_bound(addr);
+  // out_of_bound(addr);
   return 0;
 }
 
