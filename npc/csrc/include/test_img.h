@@ -423,8 +423,22 @@ static uint32_t test_img_control_hazard4[] = {
 };
 
 static uint32_t test_img_temp[] = {
-    0xa00000b7, // 00 lui x1, 0xa0000
-    0x00008067, // 04 jalr x0, 0(x1)
+    0x70000717, // 00 auipc a4, 0x70000
+    0xfe070713, // 04 addi a4, a4, -32
+    0x00000797, // 08 auipc a5, 0x0
+    0x03878793, // 0c addi a5, a5, 56
+    0x02f70663, // 10 beq a4, a5, 3000005c
+    0x0bc00613, // 14 li a2, 188
+    0x00265613, // 18 srli a2, a2, 0x2
+    0x02060063, // 1c beqz a2, 3000005c
+    0x00261613, // 20 slli a2, a2, 0x2
+    0x00c78633, // 24 add a2, a5, a2
+    0x0007a683, // 28 lw a3, 0(a5)
+    0x00478793, // 2c addi a5, a5, 4
+    0x00470713, // 30 addi a4, a4, 4
+    0xfed72e23, // 34 sw a3, -4(a4)
+    0xfec798e3, // 38 bne a5, a2, 30000048
+
     GOOD_TRAP
 };
 
@@ -442,4 +456,15 @@ static uint32_t test_img_clint[] = {
     NOP,        // 14
     NOP,        // 18
     0x00008067, // 1c jalr x0, 0(x1)
+};
+
+static uint32_t test_img_btb[] = {
+    0x00400093, // 00 addi x1, x0, 4
+    0x00000113, // 04 addi x2, x0, 0
+    0x00110113, // 08 addi x2, x2, 1
+    NOP,        // 0c
+    NOP,        // 10
+    NOP,        // 14
+    0xfe2098e3, // 18 bne  x1, x2, -16
+    GOOD_TRAP
 };

@@ -43,10 +43,8 @@ __attribute__((section(".bootloader"))) void _bootloader() {
     #ifdef __RTTHREAD__
     __memcpy(_data_extra_start, _data_extra_load_start, (uint32_t)_data_extra_size);
     #endif
-    // _trm_init();
 }
 
 __attribute__((section(".entry"))) void _entry_bootloader() {
     __memcpy(_bootloader_start, _bootloader_load_start, (uint32_t)_bootloader_size);
-    // _bootloader();
 }

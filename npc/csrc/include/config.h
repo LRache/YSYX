@@ -5,6 +5,7 @@
 #define DIFFTEST
 #define PERF
 #define TRACE
+// #define CHECK_STEP_TIMEOUT
 
 #ifdef TRACE
     #define ITRACE

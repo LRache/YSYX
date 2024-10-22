@@ -23,7 +23,8 @@ class TrapMessage extends Bundle {
 class IFUMessage extends Bundle {
     val inst = Output(UInt(32.W))
     val pc   = Output(UInt(32.W))
-    // val snpc = Output(UInt(32.W))
+    val snpc = Output(UInt(32.W))
+    val predict_jmp = Output(Bool())
 
     val dbg = new Bundle {
         val pc   = Output(UInt(32.W))
@@ -43,6 +44,9 @@ class IDUMessage extends Bundle {
     val is_branch = Output(Bool())
     val is_jmp   = Output(Bool())
     val dnpc_sel = Output(Bool())
+    
+    val predictor_pc = Output(UInt(32.W))
+    val predict_jmp = Output(Bool())
 
     // LSU
     val mem_wen    = Output(Bool())

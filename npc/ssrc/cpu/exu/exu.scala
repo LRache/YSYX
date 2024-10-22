@@ -27,7 +27,10 @@ class EXU extends Module {
 
         // Control Hazard
         val jmp = Output(Bool())
+        val predict_jmp = Output(Bool())
+        val is_branch = Output(Bool())
         val dnpc = Output(UInt(30.W))
+        val predictor_pc = Output(UInt(30.W))
     })
     val func3 = io.in.bits.func3
     val rs1 = io.in.bits.rs1
@@ -63,7 +66,10 @@ class EXU extends Module {
     
     val jmp = (io.in.bits.is_branch && alu_cmp) || io.in.bits.is_jmp || io.in.bits.trap.is_trap
     io.jmp := jmp
+    io.predict_jmp := io.in.bits.predict_jmp
+    io.is_branch := io.in.bits.is_branch
     io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_res)(31, 2)
+    io.predictor_pc := io.in.bits.predictor_pc(31, 2)
     
     // Trap
     io.trap := io.in.bits.trap

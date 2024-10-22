@@ -151,11 +151,14 @@ class HCPU(instStart : BigInt) extends Module {
 
     // Branch predict
     // val predict_failed = (exu.io.jmp && exu.io.out.valid) || idu.io.fence_i
-    val predict_failed = (exu.io.jmp && exu.io.out.valid) || icache.io.fence
-    ifu.io.predict_failed := predict_failed
+    val predict_failed = ((exu.io.jmp ^ exu.io.predict_jmp) && exu.io.out.valid) || icache.io.fence
     idu.predict_failed := predict_failed
     // idu.io.predict_failed := predict_failed
+    ifu.io.predict_failed := predict_failed
     ifu.io.dnpc := RegEnable(exu.io.dnpc, exu.io.out.valid)
+    ifu.io.is_branch := RegEnable(exu.io.is_branch, exu.io.out.valid)
+    ifu.io.is_jmp := RegEnable(exu.io.jmp, exu.io.out.valid)
+    ifu.io.predictor_pc := RegEnable(exu.io.predictor_pc, exu.io.out.valid)
 
     // CLINT
     if (Config.HasClint) {

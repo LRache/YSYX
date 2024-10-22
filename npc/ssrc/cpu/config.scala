@@ -12,6 +12,7 @@ object Config {
     val JudgeExuRaw = true
 
     val HasClint = true
+    val HasBTB = true
     
     // ysyx
     val VendorID = 0x79737938
@@ -19,7 +20,6 @@ object Config {
     
     // GPR
     val GPRAddrLength = 4
-    val GPRInitValue = Seq.fill((1 << GPRAddrLength) - 1)(0)
     
     // CSR
     val CSRAddrLength = 3

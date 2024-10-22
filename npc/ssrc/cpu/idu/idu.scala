@@ -48,9 +48,15 @@ object IDUInline {
         predict_failed: Bool
     ): Unit = {
         val pc   = in.bits.pc
-        val snpc = pc + 4.U(32.W)
+        val snpc = Wire(UInt(32.W))
         val inst = in.bits.inst
         val op = Decoder.decode(inst)
+
+        if (Config.HasBTB) {
+            snpc := pc + 4.U(32.W)
+        } else {
+            snpc := in.bits.snpc
+        }
         
         // EXU
         out.bits.func3 := inst(14, 12)
@@ -107,6 +113,10 @@ object IDUInline {
         out.bits.alu_add := op.aluAdd
         out.bits.is_branch := op.isBranch
         out.bits.is_jmp := op.isJmp
+        
+        out.bits.predictor_pc := in.bits.pc
+        out.bits.predict_jmp := in.bits.predict_jmp
+        out.bits.is_branch := op.isBranch
 
         // LSU
         out.bits.mem_wen := op.memWen
