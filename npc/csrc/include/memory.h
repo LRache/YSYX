@@ -77,4 +77,8 @@ static inline bool in_uart(addr_t addr) {
     return addr - UART_BASE < UART_SIZE;
 }
 
+namespace memory {
+    void check_valid_addr(addr_t addr);
+}
+
 #endif

@@ -12,7 +12,7 @@ object Config {
     val JudgeExuRaw = true
 
     val HasClint = true
-    val HasBTB = true
+    val HasBTB = false
     
     // ysyx
     val VendorID = 0x79737938

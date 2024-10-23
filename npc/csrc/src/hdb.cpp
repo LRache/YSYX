@@ -170,7 +170,7 @@ void hdb::set_pc(word_t pc) {
     itrace::trace(pc);
     lastUpdatePCClock = cpu.clockCount;
     pcOn = true;
-    Log("Exec to pc=" FMT_WORD " at clock=%lu", pc, cpu.clockCount);
+    // Log("Exec to pc=" FMT_WORD " at clock=%lu", pc, cpu.clockCount);
 }
 
 void hdb::set_inst(word_t inst) {

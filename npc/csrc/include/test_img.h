@@ -75,8 +75,6 @@ static uint32_t test_img_upper[] = {
 };
 
 static uint32_t test_img_jump0[] = {
-    // 0x008000ef, // jal x1, 8
-    // 0x00000000, // invalid
     0x00000517, // auipc x10, 0
     0x00c500e7, // jalr x1, 12(x10)
     0x00000000, // invalid
@@ -422,8 +420,8 @@ static uint32_t test_img_control_hazard4[] = {
     GOOD_TRAP
 };
 
-static uint32_t test_img_temp[] = {
-    0x70000717, // 00 auipc a4, 0x70000
+static uint32_t test_img_bootloader[] = {
+    0x70001717, // 00 auipc a4, 0x70001
     0xfe070713, // 04 addi a4, a4, -32
     0x00000797, // 08 auipc a5, 0x0
     0x03878793, // 0c addi a5, a5, 56
@@ -437,9 +435,19 @@ static uint32_t test_img_temp[] = {
     0x00478793, // 2c addi a5, a5, 4
     0x00470713, // 30 addi a4, a4, 4
     0xfed72e23, // 34 sw a3, -4(a4)
-    0xfec798e3, // 38 bne a5, a2, 30000048
+    0xfec798e3, // 38 bne a5, a2, 0x28 (-16)
+    GOOD_TRAP   // 3c 40
+};
 
-    GOOD_TRAP
+static uint32_t test_img_temp[] = {
+    0x00000793, // 00 li a5, 0
+    0x00800613, // 04 li a2, 8
+    0x00478793, // 08 addi a5, a5, 4
+    NOP,        // 0c
+    
+    NOP,        // 10
+    0xfec79ae3, // 14 bne a5, a2, 0x28 (-12)
+    GOOD_TRAP   // 18 1c
 };
 
 static uint32_t test_img_ivd_load[] = {
@@ -459,12 +467,9 @@ static uint32_t test_img_clint[] = {
 };
 
 static uint32_t test_img_btb[] = {
-    0x00400093, // 00 addi x1, x0, 4
+    0x00200093, // 00 addi x1, x0, 2
     0x00000113, // 04 addi x2, x0, 0
     0x00110113, // 08 addi x2, x2, 1
-    NOP,        // 0c
-    NOP,        // 10
-    NOP,        // 14
-    0xfe2098e3, // 18 bne  x1, x2, -16
+    0xfe209ee3, // 18 bne  x1, x2, -4
     GOOD_TRAP
 };

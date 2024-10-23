@@ -173,7 +173,7 @@ class HCPU(instStart : BigInt) extends Module {
         arbiterSel.rvalid  := Mux(loadClint, true.B, io.master.rvalid)
         arbiterSel.rdata   := Mux(loadClint, clintRData, io.master.rdata)
         arbiterSel.rlast   := Mux(loadClint, true.B, io.master.rlast)
-        io.master.arvalid := Mux(loadClint, false.B, arbiterSel.arvalid)
+        io.master.arvalid  := Mux(loadClint, false.B, arbiterSel.arvalid)
     }
 
     io.slave := DontCare
