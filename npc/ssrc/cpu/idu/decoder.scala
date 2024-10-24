@@ -176,6 +176,7 @@ object Encode {
             case InstType.CR => ASel. CSR
             case InstType.CI => ASel. CSR
             case InstType.EC => ASel.  PC // mepc = pc, pc = mtvec
+            case InstType.FI => ASel.  PC
             case InstType.IVD => ASel. PC
             case _ => ASel.ZERO // Don't Care
         }

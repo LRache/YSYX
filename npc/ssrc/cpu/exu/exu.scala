@@ -91,7 +91,7 @@ class EXU extends Module {
     io.out.bits.is_ivd := io.in.bits.is_ivd
 
     io. in.ready := io.out.ready
-    io.out.valid := io.in.valid
+    io.out.valid := io. in.valid
 
     // DEBUG
     io.out.bits.dbg.pc := io.in.bits.dbg.pc

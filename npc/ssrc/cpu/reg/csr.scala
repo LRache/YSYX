@@ -4,7 +4,6 @@ import chisel3._
 import chisel3.util._
 import chisel3.util.experimental.decode._
 
-import cpu.Config.CSRAddrLength
 import cpu.Config
 import chisel3.util.RegEnable
 import cpu.RegWIO
@@ -17,14 +16,14 @@ object CSRWSel extends Enumeration {
 }
 
 object CSRAddr {
-    val MVENDORID   = 0x0.U(CSRAddrLength.W)
-    val MARCHID     = 0x1.U(CSRAddrLength.W)
-    val SATP        = 0x2.U(CSRAddrLength.W)
-    val MSTATUS     = 0x3.U(CSRAddrLength.W)
-    val MTVEC       = 0x4.U(CSRAddrLength.W)
-    val MSCRATCH    = 0x5.U(CSRAddrLength.W)
-    val MEPC        = 0x6.U(CSRAddrLength.W)
-    val MCAUSE      = 0x7.U(CSRAddrLength.W)
+    val MVENDORID   = 0x0.U(Config.CSRAddrLength.W)
+    val MARCHID     = 0x1.U(Config.CSRAddrLength.W)
+    val SATP        = 0x2.U(Config.CSRAddrLength.W)
+    val MSTATUS     = 0x3.U(Config.CSRAddrLength.W)
+    val MTVEC       = 0x4.U(Config.CSRAddrLength.W)
+    val MSCRATCH    = 0x5.U(Config.CSRAddrLength.W)
+    val MEPC        = 0x6.U(Config.CSRAddrLength.W)
+    val MCAUSE      = 0x7.U(Config.CSRAddrLength.W)
 
     def csr_addr_translate(origin: UInt): UInt = {
         val table = ArrayBuffer(
@@ -52,15 +51,19 @@ class CSRDebugger extends BlackBox {
 
 class CSR extends Module {
     val io = IO(new Bundle {
-        val w       = Flipped(new RegWIO(CSRAddrLength))
-        val raddr   = Input (UInt(CSRAddrLength.W))
+        val w       = Flipped(new RegWIO(Config.CSRAddrLength))
+        val raddr   = Input (UInt(Config.CSRAddrLength.W))
         val rdata   = Output(UInt(32.W))
 
         val trap = Flipped(new TrapMessage)
     })
 
-    def gen_csr(addr : UInt, name : String) : UInt = {
-        RegEnable(io.w.wdata, Config.CSRInitValue(name).U(32.W), io.w.wen && io.w.waddr === addr)
+    def gen_csr(addr : UInt, name : String, init: Boolean) : UInt = {
+        if (init) {
+            return RegEnable(io.w.wdata, Config.CSRInitValue(name).U(32.W), io.w.wen && io.w.waddr === addr)
+        } else {
+            return RegEnable(io.w.wdata, io.w.wen && io.w.waddr === addr)
+        }
     }
 
     val cause = Cat(io.trap.is_interrupt, 0.U(27.W), io.trap.cause)
@@ -74,20 +77,18 @@ class CSR extends Module {
         )
     )
 
-    // val mepc = RegInit(0.U(32.W))
-    // mepc := Mux(io.trap.is_trap || (io.w.waddr === CSRAddr.MEPC && io.w.wen), io.w.wdata, mepc)
     val mepc = RegEnable(
-        io.w.wdata, Config.CSRInitValue("mepc").U(32.W), 
+        io.w.wdata, 
         io.trap.is_trap || (io.w.wen && io.w.waddr === CSRAddr.MEPC)
     )
 
-    val mstatus = gen_csr(CSRAddr.MSTATUS,  "mstatus"   )
-    val mtvec   = gen_csr(CSRAddr.MTVEC,    "mtvec"     )
+    val mstatus = gen_csr(CSRAddr.MSTATUS,  "mstatus", true)
+    val mtvec   = gen_csr(CSRAddr.MTVEC,    "mtvec"  , false)
     
     val mscratch= Wire(UInt(32.W))
     val satp    = Wire(UInt(32.W))
-    if (Config.HasMscratch) { mscratch := gen_csr(CSRAddr.MSCRATCH, "mscratch"  ) } else { mscratch := 0.U }
-    if (Config.HasSatp    ) { satp     := gen_csr(CSRAddr.SATP    , "satp"      ) } else { satp     := 0.U }
+    if (Config.HasMscratch) { mscratch := gen_csr(CSRAddr.MSCRATCH, "mscratch", false) } else { mscratch := 0.U }
+    if (Config.HasSatp    ) { satp     := gen_csr(CSRAddr.SATP    , "satp"    , false) } else { satp     := 0.U }
 
     val table = ArrayBuffer(
         CSRAddr.MVENDORID -> Config.VendorID.U(32.W),
