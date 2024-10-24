@@ -18,13 +18,13 @@ typedef struct
     word_t mtvec;
     word_t satp;
     
-    // count
+    bool reset;
     uint64_t clockCount;
-    uint64_t instCount;
 
     // Debug
     bool running;
     bool done;
+    uint64_t instCount;
     word_t inst;
     word_t lastInst;
     word_t lastPC;
@@ -44,6 +44,7 @@ namespace hdb
     void invalid_inst();
     void set_pc(word_t pc);
     void set_inst(word_t inst);
+    void set_reset(bool reset);
     void set_done(bool done);
     void set_gpr(uint32_t addr, word_t data);
     void set_csr(uint32_t addr, word_t data);

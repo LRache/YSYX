@@ -25,7 +25,7 @@ static inline uint32_t reserve(uint32_t d) {
 extern "C" void flash_read(addr_t addr, word_t *data) {
     word_t rdata = *(word_t *)(flash + (addr & ~0x3));
     *data = reserve(rdata);
-    // Log("Read flash [" FMT_WORD "]=" FMT_WORD, FLASH_BASE + addr, d);
+    // Log("Read flash [" FMT_WORD "]=" FMT_WORD, FLASH_BASE + addr, *data);
 }
 
 void set_flash(addr_t addr, word_t data) {

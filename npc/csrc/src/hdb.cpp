@@ -22,7 +22,7 @@ VTop top;
 static std::chrono::time_point<std::chrono::system_clock> timerStart;
 static uint64_t timer = 0;
 
-#define IMG_NAME test_img_temp
+#define IMG_NAME test_img_btb
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
 
@@ -50,14 +50,15 @@ void hdb::init() {
     if (config::loadFlash) load_img_to_flash_from_file(config::flashImgFileName);
 
     cpu.running = true;
+    cpu.reset = false;
     cpu.instCount = 0;
-    timer = 0;
     cpu.clockCount = 0;
+    timer = 0;
 
     top.reset = 1;
     for (int i = 0; i < 16; i++) exec_once();
     top.reset = 0;
-    Log("Reset at clock=%" PRIu64, cpu.clockCount);
+    Log("Reset top at clock=%" PRIu64, cpu.clockCount);
     
     perf::init();
     trace::open();
@@ -157,7 +158,7 @@ void hdb::set_csr(uint32_t addr, word_t data) {
         case 5: cpu.mscratch = data; name = "mscratch"; break;
         case 6: cpu.mepc     = data; name = "mepc"; break;
         case 7: cpu.mcause   = data; name = "mcause"; break;
-        default: panic("Invalid CSR: %d at pc=0x%08x(inst=0x%08x)", addr, cpu.pc, cpu.inst);
+        default: panic("Invalid CSR: %d at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, cpu.pc, cpu.inst);
     }
     // Log("Set csr %d[%s]=" FMT_WORD " at pc=" FMT_WORD, addr, name, data, cpu.pc);
 }
@@ -177,6 +178,17 @@ void hdb::set_inst(word_t inst) {
     cpu.lastInst = cpu.inst;
     cpu.inst = inst;
     // Log(FMT_WORD, inst);
+}
+
+void hdb::set_reset(bool reset) {
+    if (cpu.reset != reset) {
+        if (reset) {
+            Log("RESET CPU at clock=%" PRIu64, cpu.clockCount);
+        } else {
+            Log("UNRESET CPU at clock=%" PRIu64, cpu.clockCount);
+        }
+    }
+    cpu.reset = reset;
 }
 
 void hdb::set_done(bool done) {

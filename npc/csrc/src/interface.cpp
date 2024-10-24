@@ -3,7 +3,9 @@
 #include "perf.h"
 #include "trace.h"
 
-extern "C" void interface_update_reset(uint8_t reset) {}
+extern "C" void interface_update_reset(uint8_t reset) {
+    hdb::set_reset(reset != 0);
+}
 
 extern "C" void interface_ebreak() {
     hdb::ebreak();

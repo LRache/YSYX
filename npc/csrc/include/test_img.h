@@ -470,6 +470,6 @@ static uint32_t test_img_btb[] = {
     0x00200093, // 00 addi x1, x0, 2
     0x00000113, // 04 addi x2, x0, 0
     0x00110113, // 08 addi x2, x2, 1
-    0xfe209ee3, // 18 bne  x1, x2, -4
+    0xfe209ee3, // 0c bne  x1, x2, -4
     GOOD_TRAP
 };
