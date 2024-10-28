@@ -9,7 +9,7 @@ object Config {
   def hasChipLink: Boolean = false
   def sdramUseAXI: Boolean = true
   def hasDelay: Boolean = false
-  def r: Float = 8.5f
+  def r: Float = 8.5
 }
 
 class ysyxSoCTop extends Module {
@@ -23,6 +23,14 @@ class ysyxSoCTop extends Module {
 }
 
 object Elaborate extends App {
-  val firtoolOptions = Array("--disable-annotation-unknown")
+  // val firtoolOptions = Array("--disable-annotation-unknown")
+  val firtoolOptions = Array("--lowering-options=" + List(
+        // make yosys happy
+        // see https://github.com/llvm/circt/blob/main/docs/VerilogGeneration.md
+        "disallowLocalVariables",
+        "disallowPackedArrays",
+        "locationInfoStyle=wrapInAtSquareBracket"
+    ).reduce(_ + "," + _),
+    "--disable-annotation-unknown")
   circt.stage.ChiselStage.emitSystemVerilogFile(new ysyxSoCTop, args, firtoolOptions)
 }
