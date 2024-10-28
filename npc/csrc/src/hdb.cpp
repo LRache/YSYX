@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <ostream>
+#include <iomanip>
 
 #include "memory.h"
 #include "debug.h"
@@ -100,7 +101,7 @@ void hdb_statistic() {
 
     if (config::statistic) {
         statisticFile << std::endl;
-        statisticFile << "Total count of instructions = " << cpu.instCount << " with " << cpu.clockCount << " clocks, IPC=" << (double)cpu.instCount / cpu.clockCount << std::endl;
+        statisticFile << "Total count of instructions = " << cpu.instCount << " with " << cpu.clockCount << " clocks, IPC=" << std::fixed << std::setprecision(10) <<(double)cpu.instCount / cpu.clockCount << std::endl;
         statisticFile << "Total time spent in reality =" << realTimer << " us(" << us_to_text(realTimer) << ")" << std::endl;
     }
 }
