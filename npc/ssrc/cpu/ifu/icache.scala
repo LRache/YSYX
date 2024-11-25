@@ -9,7 +9,7 @@ import bus.AXI4IO
 import cpu.ICachePerfCounter
 
 class ICacheIO extends Bundle {
-    val raddr = Input (UInt(30.W))
+    val raddr = Input (UInt(32.W))
     val rdata = Output(UInt(32.W))
     val ready = Input (Bool())
     val valid = Output(Bool())
@@ -35,8 +35,8 @@ class ICache (e: Int, s: Int) extends Module {
     } else {
         groupIndex := io.io.raddr(s + b - 1 - 2, b - 2)
     }
-    val offset = io.io.raddr(b - 1 - 2, 2 - 2)
-    val memRAddr = Cat(io.io.raddr(31 - 2, b - 2), 0.U(b.W))
+    val offset = io.io.raddr(b - 1, 2)
+    val memRAddr = Cat(io.io.raddr(31, b), 0.U(b.W))
 
     val cache     = Reg(Vec(S, Vec(E, Vec(4, UInt(32.W)))))
     // val cache     = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(VecInit(Seq.fill(4)(0.U(32.W))))))))

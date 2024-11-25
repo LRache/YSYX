@@ -14,17 +14,17 @@ class IFU(instStart : BigInt) extends Module {
         val cache   = Flipped(new ICacheIO)
 
         // Branch predict
-        val dnpc = Input(UInt(30.W))
+        val dnpc = Input(UInt(32.W))
         val predict_failed = Input(Bool())
         val is_branch = Input(Bool())
         val is_jmp    = Input(Bool())
         val is_fence  = Input(Bool())
-        val predictor_pc = Input(UInt(30.W))
+        val predictor_pc = Input(UInt(32.W))
     })
-    val pc   = RegInit(instStart.U(32.W)(31, 2))
-    val snpc = pc + 1.U(30.W)
+    val pc   = RegInit(instStart.U(32.W))
+    val snpc = pc + 4.U(32.W)
     val dnpc = io.dnpc
-    val npc  = Wire(UInt(30.W))
+    val npc  = Wire(UInt(32.W))
 
     val s_fetch :: s_skip_once :: Nil = Enum(2)
     val state = RegInit(s_fetch)
@@ -39,7 +39,7 @@ class IFU(instStart : BigInt) extends Module {
         val btbNPC   = RegEnable(dnpc,            io.is_branch)
         val predictJmp = btbValid && pc === btbPC
         val pnpc = Mux(predictJmp, btbNPC, snpc)
-        npc := Mux(state === s_skip_once, Mux(io.is_jmp && !io.is_fence, dnpc, io.predictor_pc + 1.U(30.W)), pnpc)
+        npc := Mux(state === s_skip_once, Mux(io.is_jmp && !io.is_fence, dnpc, io.predictor_pc + 4.U(32.W)), pnpc)
         io.out.bits.predict_jmp := predictJmp
     } else {
         npc := Mux(state === s_skip_once, dnpc, snpc)
@@ -52,11 +52,11 @@ class IFU(instStart : BigInt) extends Module {
     pc := Mux(io.out.ready && io.cache.valid, npc, pc)
     val inst = io.cache.rdata
 
-    io.out.bits.pc   := Cat(pc,   0.U(2.W))
-    io.out.bits.snpc := Cat(snpc, 0.U(2.W))
+    io.out.bits.pc   := pc
+    io.out.bits.snpc := snpc
     io.out.bits.inst := inst
     
     io.out.valid := io.cache.valid && state === s_fetch && !io.predict_failed
-    io.out.bits.dbg.pc   := Cat(pc, 0.U(2.W))
+    io.out.bits.dbg.pc   := pc
     io.out.bits.dbg.inst := inst
 }
