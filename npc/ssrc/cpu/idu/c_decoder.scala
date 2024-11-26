@@ -5,16 +5,15 @@ import scala.collection.mutable.Map
 import chisel3._
 import chisel3.util._
 import chisel3.util.experimental.decode._
-import cpu.idu.Func3
 
 object CInstType extends Enumeration {
     type CInstType = Value
-    val SL, SS, RL, RS, J, JAL, JR, JALR, B, LI, LUI, IAU, IAS, ADD16, ADD4, R, A, EB, IVD = Value
+    val SL, SS, RL, RS, J, JAL, JR, JALR, B, LI, LUI, IAU, IAS, I16, I4, R, A, EB, IVD = Value
 }
 
 object CImmType extends Enumeration {
     type CImmType = Value
-    val SL, SS, RLS, JI, B, LI, LUI, I16, I4, IA = Value
+    val SL, SS, RLS, JI, B, LI, UI, AU, AS, I16, I4 = Value
 }
 
 import CInstType.CInstType
@@ -74,6 +73,74 @@ object CExtensionEncode {
 
     def encode(instType: CInstType, exuTag: EXUTag, func3: Int) : BitPat = {
         val m: Map[String, Int] = Map()
+
+        val immType = instType match {
+            case CInstType. SL => CImmType. SL;
+            case CInstType. SS => CImmType. SS;
+            case CInstType. RL => CImmType.RLS;
+            case CInstType. RS => CImmType.RLS;
+            case CInstType.  J => CImmType. JI;
+            case CInstType.  B => CImmType.  B;
+            case CInstType. LI => CImmType. LI;
+            case CInstType.LUI => CImmType. UI;
+            case CInstType.IAU => CImmType. AU;
+            case CInstType.IAS => CImmType. AS;
+            case CInstType.I16 => CImmType.I16;
+            case CInstType.I4  => CImmType. I4;
+            case _             => CImmType.  B; //Dont Care
+        }
+        m += ("ImmType" -> immType.id)
+
+        val aSel = instType match {
+            case CInstType.  SL => ASel.GPR1;
+            case CInstType.  SS => ASel.GPR1;
+            case CInstType.  RL => ASel.GPR1;
+            case CInstType.  RS => ASel.GPR1;
+            case CInstType.   J => ASel.  PC;
+            case CInstType. JAL => ASel.  PC;
+            case CInstType.  JR => ASel.GPR1;
+            case CInstType.JALR => ASel.GPR1;
+            case CInstType.   B => ASel.  PC;
+            case CInstType.  LI => ASel.ZERO;
+            case CInstType. LUI => ASel.ZERO;
+            case CInstType. IAU => ASel.GPR1;
+            case CInstType. IAS => ASel.GPR1;
+            case CInstType. I16 => ASel.GPR1;
+            case CInstType.  I4 => ASel.GPR1;
+            case CInstType.   R => ASel.GPR1;
+            case CInstType.   A => ASel.GPR1;
+            case _              => ASel.ZERO; // Dont Care
+        }
+        m += ("ASel" -> aSel)
+
+        val bSel = instType match {
+            case CInstType.  SL => BSel.Imm;
+            case CInstType.  SS => BSel.Imm;
+            case CInstType.  RL => BSel.Imm;
+            case CInstType.  RS => BSel.Imm;
+            case CInstType.   J => BSel.Imm;
+            case CInstType. JAL => BSel.Imm;
+            case CInstType.  JR => BSel.Imm;
+            case CInstType.JALR => BSel.Imm;
+            case CInstType.   B => BSel.Imm;
+            case CInstType.  LI => BSel.Imm;
+            case CInstType. LUI => BSel.Imm;
+            case CInstType. IAU => BSel.Imm;
+            case CInstType. IAS => BSel.Imm;
+            case CInstType. I16 => BSel.Imm;
+            case CInstType.  I4 => BSel.Imm;
+            case CInstType.   R => BSel.GPR2;
+            case CInstType.   A => BSel.GPR2;
+            case _              => BSel.DontCare; // DontCare
+        }
+        m += ("BSel" -> bSel)
+
+        val cSel = Seq(
+            CInstType.JAL,
+            CInstType.JALR
+        ).contains(instType)
+
+        val dSel = 0
         
         val isIvd = toInt(instType == CInstType.IVD)
         m += ("IsIvd" -> isIvd)
@@ -140,9 +207,9 @@ object CExtensionDecoder {
             LI      -> encode(CInstType.LI , EXUTag.DontCare, Func3.ADD),
             LUI     -> encode(CInstType.LUI, EXUTag.DontCare, Func3.ADD),
 
-            ADDI     -> encode(CInstType.IAU  , EXUTag.T,        Func3.ADD),
-            ADDI16SP -> encode(CInstType.ADD16, EXUTag.DontCare, Func3.ADD),
-            ADDI4SPN -> encode(CInstType.ADD4 , EXUTag.DontCare, Func3.ADD),
+            ADDI     -> encode(CInstType.IAU, EXUTag.T,        Func3.ADD),
+            ADDI16SP -> encode(CInstType.I16, EXUTag.DontCare, Func3.ADD),
+            ADDI4SPN -> encode(CInstType.I4 , EXUTag.DontCare, Func3.ADD),
             
             SLLI    -> encode(CInstType.IAU, EXUTag.DontCare, Func3.SLL),
             SRLI    -> encode(CInstType.IAU, EXUTag.F       , Func3.SR ),
