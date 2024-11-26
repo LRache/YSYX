@@ -5,6 +5,7 @@ import scala.collection.mutable.Map
 import chisel3._
 import chisel3.util._
 import chisel3.util.experimental.decode._
+import cpu.reg.GPRWSel
 
 object CInstType extends Enumeration {
     type CInstType = Value
@@ -14,6 +15,33 @@ object CInstType extends Enumeration {
 object CImmType extends Enumeration {
     type CImmType = Value
     val SL, SS, RLS, JI, B, LI, UI, AU, AS, I16, I4 = Value
+}
+
+object CGPRRaddr1Sel extends {
+    val INST1 = 0;
+    val INST2 = 1;
+    val X2    = 2;
+    val SP    = 2;
+    val DontCare = 0;
+}
+
+object CGPRRaddr2Sel extends Enumeration {
+    val INST1 = 0;
+    val INST2 = 1;
+    val X0    = 2;
+    val ZERO  = 2;
+    val DontCare = 0;
+}
+
+object CGPRWaddrSel extends Enumeration {
+    val INST1 = 0;
+    val INST2 = 1;
+    val INST3 = 2;
+    val X1    = 3;
+    val RA    = 3;
+    val X2    = 4;
+    val SP    = 4;
+    val DontCare = 0;
 }
 
 import CInstType.CInstType
@@ -42,14 +70,14 @@ object CExtensionEncode {
     add_tag("ASel",     2)
     add_tag("BSel",     2)
     add_tag("CSel",     1)
-    add_tag("DSel",     1)
     add_tag("GPRRen1",  1)
     add_tag("GPRRen2",  1)
     add_tag("GPRRaddr1",2)
-    add_tag("GPRRaddr2",1)
-    add_tag("GPRWaddr", 2)
+    add_tag("GPRRaddr2",2)
+    add_tag("GPRWaddr", 3)
     
     // EXU
+    add_tag("Func3",    1)
     add_tag("AluAdd",   1) // for load, save, jal, jalr
     add_tag("EXUTag",   1) // for sub or unsigned
 
@@ -139,9 +167,133 @@ object CExtensionEncode {
             CInstType.JAL,
             CInstType.JALR
         ).contains(instType)
+        m += ("CSel" -> toInt(cSel))
 
-        val dSel = 0
+        val gprRen1 = aSel == ASel.GPR1 || instType == CInstType.B
+        m += ("GPRRen1" -> toInt(gprRen1))
+
+        val gprRen2 = bSel == BSel.GPR2 || Seq(CInstType.SS, CInstType.RS).contains(instType)
+        m += ("GPRRen2" -> toInt(gprRen2))
+
+        val gprRaddr1Sel = instType match {
+            case CInstType.  SL => CGPRRaddr1Sel.SP;
+            case CInstType.  SS => CGPRRaddr1Sel.SP; 
+            case CInstType.  RL => CGPRRaddr1Sel.INST2;
+            case CInstType.  RS => CGPRRaddr1Sel.INST2;
+            case CInstType.  JR => CGPRRaddr1Sel.INST1;
+            case CInstType.JALR => CGPRRaddr1Sel.INST1;
+            case CInstType.   B => CGPRRaddr1Sel.INST1;
+            case CInstType. IAU => CGPRRaddr1Sel.INST1;
+            case CInstType. I16 => CGPRRaddr1Sel.SP;
+            case CInstType.  I4 => CGPRRaddr1Sel.SP;
+            case CInstType. IAS => CGPRRaddr1Sel.INST2;
+            case CInstType.   R => CGPRRaddr1Sel.INST1;
+            case CInstType.   A => CGPRRaddr1Sel.INST2;
+            case _              => CGPRRaddr1Sel.DontCare;
+        }
+        m += ("GPRRaddr1" -> gprRaddr1Sel)
+
+        val gprRaddr2Sel = instType match {
+            case CInstType.  SS => CGPRRaddr2Sel.INST1;
+            case CInstType.  RS => CGPRRaddr2Sel.INST2;
+            case CInstType.  JR => CGPRRaddr2Sel.INST1;
+            case CInstType.JALR => CGPRRaddr2Sel.INST1;
+            case CInstType.   B => CGPRRaddr2Sel.ZERO;
+            case CInstType.   R => CGPRRaddr2Sel.INST1;
+            case CInstType.   A => CGPRRaddr2Sel.INST1;
+            case _              => CGPRRaddr2Sel.DontCare; 
+        }
+        m += ("GPRaddr2" -> gprRaddr2Sel)
+
+        val gprWaddrSel = instType match {
+            case CInstType.  SL => CGPRWaddrSel.INST1;
+            case CInstType.  RL => CGPRWaddrSel.INST1;
+            case CInstType. JAL => CGPRWaddrSel.RA;
+            case CInstType.JALR => CGPRWaddrSel.RA;
+            case CInstType.  LI => CGPRWaddrSel.INST1;
+            case CInstType. LUI => CGPRWaddrSel.INST1;
+            case CInstType. IAU => CGPRWaddrSel.INST1;
+            case CInstType. I16 => CGPRWaddrSel.SP;
+            case CInstType.  I4 => CGPRWaddrSel.INST2;
+            case CInstType. IAS => CGPRWaddrSel.INST3;
+            case CInstType.   R => CGPRWaddrSel.INST1;
+            case CInstType.   A => CGPRWaddrSel.INST3;
+            case _              => CGPRWaddrSel.DontCare; 
+        }
+        m += ("GPRWaddr" -> gprWaddrSel)
+
+        m += ("Func3" -> func3)
+
+        val aluAdd = Seq(
+            CInstType.SL,
+            CInstType.SS,
+            CInstType.RL,
+            CInstType.RS,
+            CInstType. B,
+        ).contains(instType)
+        m += ("AluAdd" -> toInt(aluAdd))
+
+        m += ("EXUTag" -> toInt(exuTag == EXUTag.T))
+
+        val isJmp = Seq(
+            CInstType.J,
+            CInstType.JR,
+            CInstType.JAL,
+            CInstType.JALR,
+        ).contains(instType)
+        m += ("IsJmp" -> toInt(isJmp))
+
+        val isBranch = instType == CInstType.B
+        m += ("IsBranch" -> toInt(isBranch))
+
+        val memRen = Seq(
+            CInstType.SL,
+            CInstType.RL 
+        ).contains(instType)
+        m += ("MemRen" -> toInt(memRen))
+
+        val memWen = Seq(
+            CInstType.SS,
+            CInstType.RS
+        ).contains(instType)
+        m += ("MemWen" -> toInt(memWen))
         
+        val gprWen = Seq(
+            CInstType.SL,
+            CInstType.RL,
+            CInstType.JAL,
+            CInstType.JALR,
+            CInstType.LI,
+            CInstType.LUI,
+            CInstType.IAU,
+            CInstType.IAU,
+            CInstType.I16,
+            CInstType.I4,
+            CInstType.R,
+            CInstType.A
+        ).contains(instType)
+        m += ("GPRWen" -> toInt(gprWen))
+
+        val gprWSel = instType match {
+            case CInstType.  SL => GPRWSel.MEM;
+            case CInstType.  RL => GPRWSel.MEM;
+            case CInstType. JAL => GPRWSel.SNPC;
+            case CInstType.JALR => GPRWSel.SNPC;
+            case CInstType.  LI => GPRWSel.EXU;
+            case CInstType. LUI => GPRWSel.EXU;
+            case CInstType. IAU => GPRWSel.EXU;
+            case CInstType. IAS => GPRWSel.EXU;
+            case CInstType. I16 => GPRWSel.EXU;
+            case CInstType.  I4 => GPRWSel.EXU;
+            case CInstType.   R => GPRWSel.EXU;
+            case CInstType.   A => GPRWSel.EXU;
+            case _              => GPRWSel.EXU; // Dont care
+        }
+        m += ("GPRWSel" -> gprWSel)
+
+        val isBrk = toInt(instType == CInstType.EB)
+        m += ("IsBrk" -> isBrk)
+
         val isIvd = toInt(instType == CInstType.IVD)
         m += ("IsIvd" -> isIvd)
         
@@ -212,8 +364,8 @@ object CExtensionDecoder {
             ADDI4SPN -> encode(CInstType.I4 , EXUTag.DontCare, Func3.ADD),
             
             SLLI    -> encode(CInstType.IAU, EXUTag.DontCare, Func3.SLL),
-            SRLI    -> encode(CInstType.IAU, EXUTag.F       , Func3.SR ),
-            SRAI    -> encode(CInstType.IAU, EXUTag.T       , Func3.SR ),
+            SRLI    -> encode(CInstType.IAS, EXUTag.F       , Func3.SR ),
+            SRAI    -> encode(CInstType.IAS, EXUTag.T       , Func3.SR ),
             ANDI    -> encode(CInstType.IAS, EXUTag.DontCare, Func3.AND),
 
             MV      -> encode(CInstType.R, EXUTag.DontCare, Func3.ADD),

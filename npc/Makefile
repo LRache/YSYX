@@ -3,7 +3,7 @@ VERILATOR_CFLAGS += -MMD --build -cc -O3 --trace-fst
 VERILATOR_FLAGS += --timescale "1ns/1ns" --no-timing --autoflush --threads 2
 
 TOP=ysyxSoCFull
-mainModule=cpu.exu.EXU
+mainModule=cpu.CPU
 
 UTILS = tracer
 
