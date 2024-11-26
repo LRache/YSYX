@@ -1,4 +1,4 @@
-DESIGN ?= HCPU
+DESIGN ?= EXU
 SDC_FILE ?= $(abspath ../npc/sdc/hcpu.sdc)
 RTL_FILES += $(abspath $(shell find "$(NPC_HOME)/vsrc/cpu" -name "*.v"))
 RTL_FILES += $(abspath ../npc/build/HCPU.v)

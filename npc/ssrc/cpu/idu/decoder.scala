@@ -11,7 +11,41 @@ import cpu.lsu.MemType
 import cpu.reg.GPRWSel
 import scala.collection.mutable.ArrayBuffer
 import cpu.Config
-import cpu.idu.CSRAddrSel.Ins
+
+object Func3 {
+    val ADD  = 0
+    val SLL  = 1
+    val SLT  = 2
+    val SLTU = 3
+    val XOR  = 4
+    val SR   = 5
+    val OR   = 6
+    val AND  = 7
+
+    val BS = 0
+    val HS = 1
+    val W  = 2
+    val BU = 4
+    val HU = 5
+
+    val EQ  = 0
+    val NE  = 1
+    val LT  = 4
+    val GE  = 5
+    val LTU = 6
+    val GEU = 7
+}
+
+object Func3UInt {
+    val ADD  = Func3. ADD.U
+    val SLL  = Func3. SLL.U
+    val SLT  = Func3. SLT.U
+    val SLTU = Func3.SLTU.U
+    val XOR  = Func3. XOR.U
+    val SR   = Func3.  SR.U
+    val OR   = Func3.  OR.U
+    val AND  = Func3. AND.U
+}
 
 object InstType extends Enumeration {
     type InstType = Value

@@ -5,10 +5,11 @@ import scala.collection.mutable.Map
 import chisel3._
 import chisel3.util._
 import chisel3.util.experimental.decode._
+import cpu.idu.Func3
 
 object CInstType extends Enumeration {
     type CInstType = Value
-    val SL, SS, RL, RS, J, JAL, JR, JALR, B, LI, LUI, RAU, ADD16, ADD4, RA, IVD = Value
+    val SL, SS, RL, RS, J, JAL, JR, JALR, B, LI, LUI, IAU, IAS, ADD16, ADD4, R, A, EB, IVD = Value
 }
 
 object CImmType extends Enumeration {
@@ -71,7 +72,7 @@ object CExtensionEncode {
 
     def toInt(boolValue: Boolean): Int = if(boolValue) 1 else 0
 
-    def encode(instType: CInstType, exuTag: EXUTag) : BitPat = {
+    def encode(instType: CInstType, exuTag: EXUTag, func3: Int) : BitPat = {
         val m: Map[String, Int] = Map()
         
         val isIvd = toInt(instType == CInstType.IVD)
@@ -118,31 +119,46 @@ object CExtensionDecoder {
     val OR   = BitPat("b100_0_11_???_10_???_01")
     val AND  = BitPat("b100_0_11_???_11_???_01")
 
+    // debug
+    val BREAK = BitPat("b1001000000000010")
+
     val truthTable = TruthTable(
         Map(
-            LWSP    -> encode(CInstType. SL, EXUTag.DontCare),
-            SWSP    -> encode(CInstType. SS, EXUTag.DontCare),
-            LW      -> encode(CInstType. RL, EXUTag.DontCare),
-            SW      -> encode(CInstType. RS, EXUTag.DontCare),
+            LWSP    -> encode(CInstType. SL, EXUTag.DontCare, Func3.W),
+            SWSP    -> encode(CInstType. SS, EXUTag.DontCare, Func3.W),
+            LW      -> encode(CInstType. RL, EXUTag.DontCare, Func3.W),
+            SW      -> encode(CInstType. RS, EXUTag.DontCare, Func3.W),
 
-            J       -> encode(CInstType.J   , EXUTag.DontCare),
-            JR      -> encode(CInstType.JR  , EXUTag.DontCare),
-            JAL     -> encode(CInstType.JAL , EXUTag.DontCare),
-            JALR    -> encode(CInstType.JALR, EXUTag.DontCare),
+            J       -> encode(CInstType.J   , EXUTag.DontCare, Func3.ADD),
+            JR      -> encode(CInstType.JR  , EXUTag.DontCare, Func3.ADD),
+            JAL     -> encode(CInstType.JAL , EXUTag.DontCare, Func3.ADD),
+            JALR    -> encode(CInstType.JALR, EXUTag.DontCare, Func3.ADD),
             
-            BEQZ    -> encode(CInstType.B, EXUTag.DontCare),
-            BNEZ    -> encode(CInstType.B, EXUTag.DontCare),
+            BEQZ    -> encode(CInstType.B, EXUTag.DontCare, Func3.EQ),
+            BNEZ    -> encode(CInstType.B, EXUTag.DontCare, Func3.NE),
 
-            LI      -> encode(CInstType.LI , EXUTag.DontCare),
-            LUI     -> encode(CInstType.LUI, EXUTag.DontCare),
+            LI      -> encode(CInstType.LI , EXUTag.DontCare, Func3.ADD),
+            LUI     -> encode(CInstType.LUI, EXUTag.DontCare, Func3.ADD),
 
-            ADDI    -> encode(CInstType.RAU, EXUTag.T),
-            ADDI16SP -> encode(CInstType.ADD16, EXUTag.DontCare),
-            ADDI4SPN -> encode(CInstType.ADD4, EXUTag.DontCare),
+            ADDI     -> encode(CInstType.IAU  , EXUTag.T,        Func3.ADD),
+            ADDI16SP -> encode(CInstType.ADD16, EXUTag.DontCare, Func3.ADD),
+            ADDI4SPN -> encode(CInstType.ADD4 , EXUTag.DontCare, Func3.ADD),
             
-            SLLI    -> encode(CInstType.RA, EXUTag.DontCare),
-            // SRLI    -> encode(CInstType.)
+            SLLI    -> encode(CInstType.IAU, EXUTag.DontCare, Func3.SLL),
+            SRLI    -> encode(CInstType.IAU, EXUTag.F       , Func3.SR ),
+            SRAI    -> encode(CInstType.IAU, EXUTag.T       , Func3.SR ),
+            ANDI    -> encode(CInstType.IAS, EXUTag.DontCare, Func3.AND),
+
+            MV      -> encode(CInstType.R, EXUTag.DontCare, Func3.ADD),
+            ADD     -> encode(CInstType.R, EXUTag.DontCare, Func3.ADD),
+
+            AND     -> encode(CInstType.A, EXUTag.DontCare, Func3.AND),
+            OR      -> encode(CInstType.A, EXUTag.DontCare, Func3.OR ),
+            XOR     -> encode(CInstType.A, EXUTag.DontCare, Func3.XOR),
+            SUB     -> encode(CInstType.A, EXUTag.T       , Func3.ADD),
+
+            BREAK   -> encode(CInstType.EB, EXUTag.DontCare, Func3.ADD)
         ),
-        encode(CInstType.IVD, EXUTag.DontCare)
+        encode(CInstType.IVD, EXUTag.DontCare, Func3.ADD)
     )
 }
