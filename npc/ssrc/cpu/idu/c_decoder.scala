@@ -65,6 +65,11 @@ object CExtensionEncode {
         count += 1
     }
 
+    def get_tag(name: String, bits: UInt) : UInt = {
+        val tag = tags(name)
+        return bits(tag.start + tag.length - 1, tag.start)
+    }
+
     // IDU
     add_tag("ImmType",  4)
     add_tag("ASel",     2)
@@ -93,7 +98,6 @@ object CExtensionEncode {
     // WBU
     add_tag("GPRWen",   1)
     add_tag("GPRWSel",  2)
-    add_tag("CSRWen",   1)
     add_tag("IsBrk",    1)
     add_tag("IsIvd",    1)
 
@@ -301,6 +305,38 @@ object CExtensionEncode {
     }
 }
 
+class CExtensionOP(bits: UInt) {
+    // IDU
+    val immType = CExtensionEncode.get_tag("ImmType",   bits)
+    val aSel    = CExtensionEncode.get_tag("ASel",      bits)
+    val bSel    = CExtensionEncode.get_tag("BSel",      bits)
+    val cSel    = CExtensionEncode.get_tag("CSel",      bits)
+    val gprRen1 = CExtensionEncode.get_tag("GPRRen1",   bits)
+    val gprRen2 = CExtensionEncode.get_tag("GPRRen2",   bits)
+    val gprRaddr1 = CExtensionEncode.get_tag("GPRRaddr1", bits)
+    val gprRaddr2 = CExtensionEncode.get_tag("GPRRaddr2", bits)
+    val gprWaddr = CExtensionEncode.get_tag("GPRWaddr", bits)
+    
+    // EXU
+    val func3   = CExtensionEncode.get_tag("Func3",     bits)
+    val aluAdd  = CExtensionEncode.get_tag("AluAdd",    bits)
+    val exuTag  = CExtensionEncode.get_tag("EXUTag",    bits)
+    
+    // Jump
+    val dnpcSel = CExtensionEncode.get_tag("DNPCSel",   bits)
+    val isJmp   = CExtensionEncode.get_tag("IsJmp",     bits)
+    val isBranch = CExtensionEncode.get_tag("IsBranch", bits)
+    
+    // LSU
+    val memRen  = CExtensionEncode.get_tag("MemRen",    bits)
+    val memWen  = CExtensionEncode.get_tag("MemWen",    bits)
+
+    val gprWen  = CExtensionEncode.get_tag("GPRWen",    bits)
+    val gprWSel = CExtensionEncode.get_tag("GPRWSel",   bits)
+    val isBrk   = CExtensionEncode.get_tag("IsBrk",     bits)
+    val isIvd   = CExtensionEncode.get_tag("IsIvd",     bits)
+}
+
 import CExtensionEncode.encode
 object CExtensionDecoder {
     // Load and Store
@@ -380,4 +416,6 @@ object CExtensionDecoder {
         ),
         encode(CInstType.IVD, EXUTag.DontCare, Func3.ADD)
     )
+
+    def decode(inst: UInt) : CExtensionOP = new CExtensionOP(decoder(inst, truthTable))
 }
