@@ -441,7 +441,7 @@ case class Pattern(val instType: CInstType, val bits: BitPat) extends DecodePatt
   def bitPat: BitPat = bits
 }
 
-object NameContainsAdd extends DecodeField[Pattern, BitPat] {
+object NameContainsAdd extends DecodeField[Pattern, UInt] {
     def chiselType =  UInt(5.W)
     def name = "Example"
     def genTable(op: Pattern): BitPat = {
