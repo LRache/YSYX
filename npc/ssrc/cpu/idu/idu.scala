@@ -200,7 +200,22 @@ object CInstDecode {
         out.cSel := op.cSel
         out.dSel := false.B
 
-        out.func3 := op.func3
+        // EXU
+        out.func3   := op.func3
+        out.exu_tag := op.exuTag
+        out.alu_add := op.aluAdd
+        out.is_branch := op.isBranch
+        out.is_jmp  := op.isJmp
+        out.dnpc_sel := op.dnpcSel
+        
+        // LSU
+        out.mem_ren := op.memRen
+        out.mem_wen := op.memWen
+
+        // WBU
+        out.gpr_waddr := MuxLookup(op.gprWaddr, 0.U)(Seq(
+            
+        ))
     }
 }
 
