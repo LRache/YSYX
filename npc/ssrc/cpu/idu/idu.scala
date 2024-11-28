@@ -10,6 +10,7 @@ import cpu.IFUMessage
 import cpu.IDUMessage
 import cpu.reg.CSR
 import chisel3.internal.castToInt
+import cpu.idu.CGPRRaddr1Sel.INST1
 
 class IDUWire extends Bundle {
     val in =  Decoupled(new IFUMessage)
@@ -140,12 +141,14 @@ object InstDecode {
 }
 
 object CInstDecode {
+    def decode(op: CExtensionOP, out: InstDecoderOut) : Unit = {
+
+    }
+    
     def apply(inst: UInt, out: InstDecoderOut) : Unit = {
-        def compressed_gpr_translate(caddr: UInt) : UInt = {
+        def gpr_addr_translate(caddr: UInt) : UInt = {
             if (caddr.getWidth != 3) throw new IllegalArgumentException
-            MuxLookup(caddr, 0.U)(
-                for {c <- 0 to 8} yield (c.U -> (c+8).U(5.W))
-            )
+            return Cat("b01".U, caddr)
         }
         
         if (inst.getWidth != 16) {
@@ -153,16 +156,22 @@ object CInstDecode {
         }
 
         val op = CExtensionDecoder.decode(inst)
+        
 
         // IDU
+        val gpr_addr_1 = inst(11, 7)
+        val gpr_addr_2 = gpr_addr_translate(inst(9, 7))
+        val gpr_addr_3 = inst(6, 2)
+        val gpr_addr_4 = gpr_addr_translate(inst(4, 2))
+
         out.gpr_raddr1 := MuxLookup(op.gprRaddr1, 0.U)(Seq(
-            CGPRRaddr1Sel.INST1.U -> inst(11, 7),
-            CGPRRaddr1Sel.INST2.U -> compressed_gpr_translate(inst(9, 7)),
+            CGPRRaddr1Sel.INST1.U -> gpr_addr_1,
+            CGPRRaddr1Sel.INST2.U -> gpr_addr_2,
             CGPRRaddr1Sel.   X2.U -> 2.U(5.W),
         ))
         out.gpr_raddr2 := MuxLookup(op.gprRaddr2, 0.U)(Seq(
-            CGPRRaddr2Sel.INST1.U -> inst(6, 2),
-            CGPRRaddr2Sel.INST2.U -> compressed_gpr_translate(inst(4, 2)),
+            CGPRRaddr2Sel.INST3.U -> gpr_addr_3,
+            CGPRRaddr2Sel.INST4.U -> gpr_addr_4,
             CGPRRaddr2Sel.   X0.U -> 0.U(5.W),
         ))
         out.gpr_ren1 := op.gprRen1
@@ -170,7 +179,7 @@ object CInstDecode {
         out.csr_raddr := DontCare
         out.csr_ren := false.B
 
-        val imm_sl  = Cat(0.U(24.U), inst(3, 2), inst(12), inst(6, 4), 0.U(2.W))
+        val imm_sl  = Cat(0.U(24.W), inst(3, 2), inst(12), inst(6, 4), 0.U(2.W))
         val imm_ss  = Cat(0.U(24.W), inst(8, 7), inst(12, 9), 0.U(2.W))
         val imm_rls = Cat(0.U(25.W), inst(5), inst(12, 10), inst(6), 0.U(2.W))
         val imm_ji  = Cat(Fill(20, inst(12)), inst(12), inst(8), inst(10, 9), inst(6), inst(7), inst(2), inst(11), inst(5, 3), 0.U(1.W))
@@ -206,7 +215,7 @@ object CInstDecode {
         out.alu_add := op.aluAdd
         out.is_branch := op.isBranch
         out.is_jmp  := op.isJmp
-        out.dnpc_sel := op.dnpcSel
+        out.dnpc_sel := false.B
         
         // LSU
         out.mem_ren := op.memRen
@@ -214,8 +223,20 @@ object CInstDecode {
 
         // WBU
         out.gpr_waddr := MuxLookup(op.gprWaddr, 0.U)(Seq(
-            
+            CGPRWaddrSel.INST1.U -> gpr_addr_1,
+            CGPRWaddrSel.INST2.U -> gpr_addr_2,
+            CGPRWaddrSel.INST4.U -> gpr_addr_4,
+            CGPRWaddrSel.   X1.U -> 1.U(5.W),
+            CGPRWaddrSel.   X2.U -> 2.U(5.W),
         ))
+        out.gpr_ws := op.gprWSel
+        out.csr_waddr := DontCare
+        out.csr_wen := false.B
+
+        out.is_trap := false.B
+        out.is_ivd  := op.isIvd
+        out.is_brk  := op.isBrk
+        out.fence_i := false.B
     }
 }
 
@@ -246,10 +267,16 @@ object IDUInline {
             snpc := in.bits.snpc
         }
 
-        val normalInstOp = Wire(new InstDecoderOut())
-        InstDecode(inst, normalInstOp)
+        val isCompressed = false.B
+        val halfInst = inst(15, 0)
 
-        val op = normalInstOp
+        val normalInstOp = Wire(new InstDecoderOut())
+        val compressedInstOp = Wire(new InstDecoderOut())
+        InstDecode (inst,     normalInstOp)
+        CInstDecode(halfInst, compressedInstOp)
+
+        val op = Mux(isCompressed, compressedInstOp, normalInstOp)
+        // val op = normalInstOp
         
         // EXU
         out.bits.func3 := op.func3

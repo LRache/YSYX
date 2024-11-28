@@ -3,7 +3,7 @@ package cpu
 import scala.collection.mutable.Map
 
 object Config {
-    val HasDBG = false
+    val HasDBG = true
 
     // Config
     val HasMscratch = false

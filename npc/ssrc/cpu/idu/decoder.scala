@@ -11,6 +11,7 @@ import cpu.lsu.MemType
 import cpu.reg.GPRWSel
 import scala.collection.mutable.ArrayBuffer
 import cpu.Config
+import cpu.idu.CExtensionEncode.encode
 
 object Func3 {
     val ADD  = 0
@@ -102,81 +103,47 @@ object CSRAddrSel extends Enumeration {
     val N, Ins, VEC, EPC = Value
 }
 
-object Encode {
-    class Tag(s: Int, l: Int, i: Int) {
-        val start = s
-        val length = l
-        val mask = (1 << l) - 1
-        val index = i
-    }
-
-    val tags: Map[String, Tag] = Map()
-    var current = 0
-    var count = 0
-
-    def add_tag(name: String, length: Int) = {
-        tags += (name -> new Tag(current, length, count))
-        current += length
-        count += 1
-    }
+object NormalEncode {
+    val encoder = new BitPatEncoder()
 
     // IDU
-    add_tag("ImmType",  4)
-    add_tag("ASel",     2)
-    add_tag("BSel",     2)
-    add_tag("CSel",     1)
-    add_tag("DSel",     1)
-    add_tag("GPRRen1",  1)
-    add_tag("GPRRen2",  1)
-    add_tag("CSRRAddrSel", 2)
-    add_tag("CSRRen",   1)
-    add_tag("FenceI",   1)
-    add_tag("IsTrap",  1)
+    encoder.add_tag("ImmType",  4)
+    encoder.add_tag("ASel",     2)
+    encoder.add_tag("BSel",     2)
+    encoder.add_tag("CSel",     1)
+    encoder.add_tag("DSel",     1)
+    encoder.add_tag("GPRRen1",  1)
+    encoder.add_tag("GPRRen2",  1)
+    encoder.add_tag("CSRRAddrSel", 2)
+    encoder.add_tag("CSRRen",   1)
+    encoder.add_tag("FenceI",   1)
+    encoder.add_tag("IsTrap",  1)
     
     // EXU
-    add_tag("AluAdd",   1) // for load, save, jal, jalr
-    add_tag("EXUTag",   1) // for sub or unsigned
+    encoder.add_tag("AluAdd",   1) // for load, save, jal, jalr
+    encoder.add_tag("EXUTag",   1) // for sub or unsigned
 
     // Jump
-    add_tag("DNPCSel",  1)
-    add_tag("IsJmp",    1) // no condition jump
-    add_tag("IsBranch", 1)
+    encoder.add_tag("DNPCSel",  1)
+    encoder.add_tag("IsJmp",    1) // no condition jump
+    encoder.add_tag("IsBranch", 1)
 
     // LSU
-    add_tag("MemRen",   1)
-    add_tag("MemWen",   1)
+    encoder.add_tag("MemRen",   1)
+    encoder.add_tag("MemWen",   1)
     
     // WBU
-    add_tag("GPRWen",   1)
-    add_tag("GPRWSel",  2)
-    add_tag("CSRWen",   1)
-    add_tag("IsBrk",    1)
-    add_tag("IsIvd",    1)
+    encoder.add_tag("GPRWen",   1)
+    encoder.add_tag("GPRWSel",  2)
+    encoder.add_tag("CSRWen",   1)
+    encoder.add_tag("IsBrk",    1)
+    encoder.add_tag("IsIvd",    1)
 
-    def gen_bitpat(attr: Map[String, Int]) : BitPat = {
-        var bits: Long = 0L
-        for ((name, tag) <- tags) {
-            bits |= (attr(name) & tag.mask).toLong << tag.start
-        }
-        return BitPat(bits.U(current.W))
-    }
-
-    def gen_list(attr: Map[String, Int]) : List[UInt] = {
-        var l: List[UInt] = List.fill(count)(UInt())
-        for ((name, tag) <- tags) {
-            l(tag.index) := attr(name).U
-        }
-        return l
-    }
-
-    def get_tag(name: String, bits: UInt) : UInt = {
-        val tag = tags(name)
-        return bits(tag.start + tag.length - 1, tag.start)
-    }
+    def get_tag(name: String, bits: UInt) : UInt = encoder.get_tag(name, bits)
 
     def toInt(boolValue: Boolean): Int = if(boolValue) 1 else 0
     
-    def encode (
+    def apply (
         instType: InstType,
         exuTag:   EXUTag.EXUTag
     ): BitPat = {
@@ -336,53 +303,53 @@ object Encode {
         val isIvd = instType == InstType.IVD
         m += ("IsIvd" -> toInt(isIvd))
 
-        return gen_bitpat(m)
+        return encoder.gen_bitpat(m)
     }
     
-    def encode_r (exuTag: EXUTag) : BitPat = encode(InstType. R, exuTag)
-    def encode_ia(exuTag: EXUTag) : BitPat = encode(InstType.IA, exuTag)
-    def encode_iu() : BitPat = encode(InstType.IU, EXUTag.T)
-    def encode_load() : BitPat = encode(InstType. L, EXUTag.DontCare)
-    def encode_save() : BitPat = encode(InstType. S, EXUTag.DontCare)
-    def encode_jump(instType: InstType) : BitPat = encode(instType, EXUTag.DontCare)
-    def encode_brch() : BitPat = encode(InstType. B, EXUTag.DontCare)
-    def encode_csrr() : BitPat = encode(InstType.CR, EXUTag.DontCare)
-    def encode_csri() : BitPat = encode(InstType.CI, EXUTag.DontCare)
+    def encode_r (exuTag: EXUTag) : BitPat = apply(InstType. R, exuTag)
+    def encode_ia(exuTag: EXUTag) : BitPat = apply(InstType.IA, exuTag)
+    def encode_iu() : BitPat = apply(InstType.IU, EXUTag.T)
+    def encode_load() : BitPat = apply(InstType. L, EXUTag.DontCare)
+    def encode_save() : BitPat = apply(InstType. S, EXUTag.DontCare)
+    def encode_jump(instType: InstType) : BitPat = apply(instType, EXUTag.DontCare)
+    def encode_brch() : BitPat = apply(InstType. B, EXUTag.DontCare)
+    def encode_csrr() : BitPat = apply(InstType.CR, EXUTag.DontCare)
+    def encode_csri() : BitPat = apply(InstType.CI, EXUTag.DontCare)
 }
 
 class OP(bits : UInt) {
     // IDU
-    val immType = Encode.get_tag("ImmType", bits)
-    val aSel = Encode.get_tag("ASel", bits)
-    val bSel = Encode.get_tag("BSel", bits)
-    val cSel = Encode.get_tag("CSel", bits).asBool
-    val dSel = Encode.get_tag("DSel", bits).asBool
-    val gprRen1 = Encode.get_tag("GPRRen1", bits).asBool
-    val gprRen2 = Encode.get_tag("GPRRen2", bits).asBool
-    val csrRAddrSel = Encode.get_tag("CSRRAddrSel", bits)
-    val csrRen = Encode.get_tag("CSRRen", bits).asBool
-    val fenceI = Encode.get_tag("FenceI", bits).asBool
-    val isTrap = Encode.get_tag("IsTrap", bits).asBool
+    val immType = NormalEncode.get_tag("ImmType", bits)
+    val aSel = NormalEncode.get_tag("ASel", bits)
+    val bSel = NormalEncode.get_tag("BSel", bits)
+    val cSel = NormalEncode.get_tag("CSel", bits).asBool
+    val dSel = NormalEncode.get_tag("DSel", bits).asBool
+    val gprRen1 = NormalEncode.get_tag("GPRRen1", bits).asBool
+    val gprRen2 = NormalEncode.get_tag("GPRRen2", bits).asBool
+    val csrRAddrSel = NormalEncode.get_tag("CSRRAddrSel", bits)
+    val csrRen = NormalEncode.get_tag("CSRRen", bits).asBool
+    val fenceI = NormalEncode.get_tag("FenceI", bits).asBool
+    val isTrap = NormalEncode.get_tag("IsTrap", bits).asBool
 
     // EXU
-    val aluAdd = Encode.get_tag("AluAdd", bits).asBool
-    val exuTag = Encode.get_tag("EXUTag", bits).asBool
+    val aluAdd = NormalEncode.get_tag("AluAdd", bits).asBool
+    val exuTag = NormalEncode.get_tag("EXUTag", bits).asBool
 
     // Jump
-    val dnpcSel = Encode.get_tag("DNPCSel", bits).asBool
-    val isJmp = Encode.get_tag("IsJmp", bits).asBool
-    val isBranch = Encode.get_tag("IsBranch", bits).asBool
+    val dnpcSel = NormalEncode.get_tag("DNPCSel", bits).asBool
+    val isJmp = NormalEncode.get_tag("IsJmp", bits).asBool
+    val isBranch = NormalEncode.get_tag("IsBranch", bits).asBool
     
     // LSU
-    val memRen = Encode.get_tag("MemRen", bits).asBool
-    val memWen = Encode.get_tag("MemWen", bits).asBool
+    val memRen = NormalEncode.get_tag("MemRen", bits).asBool
+    val memWen = NormalEncode.get_tag("MemWen", bits).asBool
 
     // WBU
-    val gprWen = Encode.get_tag("GPRWen", bits).asBool
-    val gprWSel = Encode.get_tag("GPRWSel", bits)
-    val csrWen = Encode.get_tag("CSRWen", bits).asBool
-    val isBrk = Encode.get_tag("IsBrk", bits).asBool
-    val isIvd = Encode.get_tag("IsIvd", bits).asBool
+    val gprWen = NormalEncode.get_tag("GPRWen", bits).asBool
+    val gprWSel = NormalEncode.get_tag("GPRWSel", bits)
+    val csrWen = NormalEncode.get_tag("CSRWen", bits).asBool
+    val isBrk = NormalEncode.get_tag("IsBrk", bits).asBool
+    val isIvd = NormalEncode.get_tag("IsIvd", bits).asBool
 }
 
 object Decoder {
@@ -449,68 +416,68 @@ object Decoder {
 
     val truthTable = TruthTable(
         Map(      
-            ADD     -> Encode.encode_r(EXUTag.F),
-            SUB     -> Encode.encode_r(EXUTag.T),
-            AND     -> Encode.encode_r(EXUTag.F),
-            OR      -> Encode.encode_r(EXUTag.F),
-            XOR     -> Encode.encode_r(EXUTag.F),
-            SLL     -> Encode.encode_r(EXUTag.F),
-            SRL     -> Encode.encode_r(EXUTag.T),
-            SRA     -> Encode.encode_r(EXUTag.F),
-            SLT     -> Encode.encode_r(EXUTag.F),
-            SLTU    -> Encode.encode_r(EXUTag.T),
+            ADD     -> NormalEncode.encode_r(EXUTag.F),
+            SUB     -> NormalEncode.encode_r(EXUTag.T),
+            AND     -> NormalEncode.encode_r(EXUTag.F),
+            OR      -> NormalEncode.encode_r(EXUTag.F),
+            XOR     -> NormalEncode.encode_r(EXUTag.F),
+            SLL     -> NormalEncode.encode_r(EXUTag.F),
+            SRL     -> NormalEncode.encode_r(EXUTag.T),
+            SRA     -> NormalEncode.encode_r(EXUTag.F),
+            SLT     -> NormalEncode.encode_r(EXUTag.F),
+            SLTU    -> NormalEncode.encode_r(EXUTag.T),
 
-            ADDI    -> Encode.encode_ia(EXUTag.F),
-            ANDI    -> Encode.encode_ia(EXUTag.F),
-            ORI     -> Encode.encode_ia(EXUTag.F),
-            XORI    -> Encode.encode_ia(EXUTag.F),
-            SLLI    -> Encode.encode_ia(EXUTag.F),
-            SRLI    -> Encode.encode_ia(EXUTag.T),
-            SRAI    -> Encode.encode_ia(EXUTag.F),
-            SLTI    -> Encode.encode_ia(EXUTag.F),
-            SLTIU   -> Encode.encode_iu(),
+            ADDI    -> NormalEncode.encode_ia(EXUTag.F),
+            ANDI    -> NormalEncode.encode_ia(EXUTag.F),
+            ORI     -> NormalEncode.encode_ia(EXUTag.F),
+            XORI    -> NormalEncode.encode_ia(EXUTag.F),
+            SLLI    -> NormalEncode.encode_ia(EXUTag.F),
+            SRLI    -> NormalEncode.encode_ia(EXUTag.T),
+            SRAI    -> NormalEncode.encode_ia(EXUTag.F),
+            SLTI    -> NormalEncode.encode_ia(EXUTag.F),
+            SLTIU   -> NormalEncode.encode_iu(),
 
-            LB      -> Encode.encode_load(),
-            LH      -> Encode.encode_load(),
-            LW      -> Encode.encode_load(),
-            LBU     -> Encode.encode_load(),
-            LHU     -> Encode.encode_load(),
-            // LOAD    -> Encode.encode_load(),
+            LB      -> NormalEncode.encode_load(),
+            LH      -> NormalEncode.encode_load(),
+            LW      -> NormalEncode.encode_load(),
+            LBU     -> NormalEncode.encode_load(),
+            LHU     -> NormalEncode.encode_load(),
+            // LOAD    -> NormalEncode.encode_load(),
 
-            SB      -> Encode.encode_save(),
-            SH      -> Encode.encode_save(),
-            SW      -> Encode.encode_save(),
-            // SAVE    -> Encode.encode_save(),
+            SB      -> NormalEncode.encode_save(),
+            SH      -> NormalEncode.encode_save(),
+            SW      -> NormalEncode.encode_save(),
+            // SAVE    -> NormalEncode.encode_save(),
 
-            JALR    -> Encode.encode_jump(InstType.IJ),
-            JAL     -> Encode.encode_jump(InstType. J),
+            JALR    -> NormalEncode.encode_jump(InstType.IJ),
+            JAL     -> NormalEncode.encode_jump(InstType. J),
 
-            BEQ     -> Encode.encode_brch(),
-            BNE     -> Encode.encode_brch(),
-            BGE     -> Encode.encode_brch(),
-            BGEU    -> Encode.encode_brch(),
-            BLT     -> Encode.encode_brch(),
-            BLTU    -> Encode.encode_brch(),
-            // BRANCH  -> Encode.encode_brch(),
+            BEQ     -> NormalEncode.encode_brch(),
+            BNE     -> NormalEncode.encode_brch(),
+            BGE     -> NormalEncode.encode_brch(),
+            BGEU    -> NormalEncode.encode_brch(),
+            BLT     -> NormalEncode.encode_brch(),
+            BLTU    -> NormalEncode.encode_brch(),
+            // BRANCH  -> NormalEncode.encode_brch(),
 
-            CSRRW   -> Encode.encode_csrr(),
-            CSRRS   -> Encode.encode_csrr(),
-            CSRRC   -> Encode.encode_csrr(),
-            CSRRWI  -> Encode.encode_csri(),
-            CSRRSI  -> Encode.encode_csri(),
-            CSRRCI  -> Encode.encode_csri(),
-            // CSRR     -> Encode.encode_csrr(),
+            CSRRW   -> NormalEncode.encode_csrr(),
+            CSRRS   -> NormalEncode.encode_csrr(),
+            CSRRC   -> NormalEncode.encode_csrr(),
+            CSRRWI  -> NormalEncode.encode_csri(),
+            CSRRSI  -> NormalEncode.encode_csri(),
+            CSRRCI  -> NormalEncode.encode_csri(),
+            // CSRR     -> NormalEncode.encode_csrr(),
 
-            AUIPC   -> Encode.encode(InstType.UA, EXUTag.DontCare),
-            LUI     -> Encode.encode(InstType.UL, EXUTag.DontCare),
+            AUIPC   -> NormalEncode(InstType.UA, EXUTag.DontCare),
+            LUI     -> NormalEncode(InstType.UL, EXUTag.DontCare),
             
-            FENCE_I -> Encode.encode(InstType.FI, EXUTag.DontCare),
+            FENCE_I -> NormalEncode(InstType.FI, EXUTag.DontCare),
             
-            EBREAK  -> Encode.encode(InstType.EB, EXUTag.DontCare),
-            ECALL   -> Encode.encode(InstType.EC, EXUTag.DontCare),
-            MRET    -> Encode.encode(InstType.MR, EXUTag.DontCare)
+            EBREAK  -> NormalEncode(InstType.EB, EXUTag.DontCare),
+            ECALL   -> NormalEncode(InstType.EC, EXUTag.DontCare),
+            MRET    -> NormalEncode(InstType.MR, EXUTag.DontCare)
         ),
-        default = Encode.encode(InstType.IVD, EXUTag.DontCare),
+        default = NormalEncode(InstType.IVD, EXUTag.DontCare),
     )
 
     def decode(inst: UInt) : OP = {
