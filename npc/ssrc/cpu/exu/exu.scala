@@ -63,6 +63,8 @@ class EXU extends Module {
         GPRWSel. MEM.U -> alu_res,
     ))
     io.gprWSel := io.in.bits.mem_ren
+
+    // printf("%d\n", gpr_ws)
     
     val jmp = (io.in.bits.is_branch && alu_cmp) || io.in.bits.is_jmp || io.in.bits.trap.is_trap
     io.jmp := jmp

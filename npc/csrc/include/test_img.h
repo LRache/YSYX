@@ -333,7 +333,7 @@ static uint32_t test_img_data_hazard[] = {
 };
 
 static uint32_t test_img_simple_mem[] = {
-    0xa0000537, // 00 lui x10, 0xa0000
+    // 0xa0000537, // 00 lui x10, 0xa0000
     // 0x123455b7, // 04 lui x11, 0x12345
     // 0x67858593, // 08 addi x11, x11, 0x678
     // 0x00b52023, // 0c sw x11, 0(x10)

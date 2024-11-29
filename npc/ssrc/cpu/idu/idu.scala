@@ -32,7 +32,7 @@ class IDUWire extends Bundle {
     val predict_failed = Bool()
 }
 
-class InstDecoderOut extends Bundle{
+class InstDecoderOut extends Bundle {
     val gpr_raddr1 = UInt(Config.GPRAddrLength.W)
     val gpr_raddr2 = UInt(Config.GPRAddrLength.W)
     val gpr_ren1   = Bool()
@@ -66,7 +66,7 @@ class InstDecoderOut extends Bundle{
     val is_ivd  = Bool()
     val is_brk  = Bool()
     
-    val fence_i    = Bool()
+    val fence_i = Bool()
 }
 
 object InstDecode {
@@ -75,7 +75,7 @@ object InstDecode {
             throw new IllegalArgumentException
         }
 
-        val op = Decoder.decode(inst)
+        val op = InstDecodeTable.decode(inst)
         
         // IDU
         out.gpr_raddr1 := inst(15 + Config.GPRAddrLength - 1, 15)
@@ -83,11 +83,10 @@ object InstDecode {
         out.gpr_ren1 := op.gprRen1
         out.gpr_ren2 := op.gprRen2
         out.csr_raddr := MuxLookup(op.csrRAddrSel, 0.U(12.W))(Seq(
-            CSRAddrSel.VEC.id.U -> CSRAddr.MTVEC,
-            CSRAddrSel.EPC.id.U -> CSRAddr.MEPC,
-            CSRAddrSel.Ins.id.U -> CSRAddr.csr_addr_translate(inst(31, 20))
-            )
-        )
+            CSRAddrSel.VEC.U -> CSRAddr.MTVEC,
+            CSRAddrSel.EPC.U -> CSRAddr.MEPC,
+            CSRAddrSel.Ins.U -> CSRAddr.csr_addr_translate(inst(31, 20))
+        ))
         out.csr_ren := op.csrRen
 
         val signExtend20 = Fill(20, inst(31))
@@ -99,13 +98,13 @@ object InstDecode {
         val imm_j  = Cat(Fill(11, inst(31)), inst(31), inst(19, 12), inst(20), inst(30, 21), 0.B)
         val imm_c  = Cat(0.U(27.W), inst(19, 15))
         val imm = MuxLookup(op.immType, 0.U(32.W))(Seq(
-                ImmType. I.id.U -> imm_i,
-                ImmType.IU.id.U -> imm_iu,
-                ImmType. S.id.U -> imm_s,
-                ImmType. U.id.U -> imm_u,
-                ImmType. B.id.U -> imm_b,
-                ImmType. J.id.U -> imm_j,
-                ImmType. C.id.U -> imm_c,
+                ImmType. I.U -> imm_i,
+                ImmType.IU.U -> imm_iu,
+                ImmType. S.U -> imm_s,
+                ImmType. U.U -> imm_u,
+                ImmType. B.U -> imm_b,
+                ImmType. J.U -> imm_j,
+                ImmType. C.U -> imm_c,
             )
         )
         out.imm := imm
@@ -133,6 +132,8 @@ object InstDecode {
         out.csr_wen     := op.csrWen && out.gpr_raddr1.orR
         out.csr_waddr   := CSRAddr.csr_addr_translate(inst(31, 20))
         out.is_trap     := op.isTrap
+
+        printf("%d\n", op.gprWSel)
 
         out.fence_i := op.fenceI
         out.is_brk  := op.isBrk
@@ -271,12 +272,12 @@ object IDUInline {
         val halfInst = inst(15, 0)
 
         val normalInstOp = Wire(new InstDecoderOut())
-        val compressedInstOp = Wire(new InstDecoderOut())
+        // val compressedInstOp = Wire(new InstDecoderOut())
         InstDecode (inst,     normalInstOp)
-        CInstDecode(halfInst, compressedInstOp)
+        // CInstDecode(halfInst, compressedInstOp)
 
-        val op = Mux(isCompressed, compressedInstOp, normalInstOp)
-        // val op = normalInstOp
+        // val op = Mux(isCompressed, compressedInstOp, normalInstOp)
+        val op = normalInstOp
         
         // EXU
         out.bits.func3 := op.func3
@@ -287,6 +288,8 @@ object IDUInline {
         gpr_ren2 := op.gpr_ren2
         csr_raddr := op.csr_raddr
         csr_ren := op.csr_ren
+
+        // printf("%d\n", out.bits.rs1)
 
         // val signExtend20 = Fill(20, in.bits.inst(31))
         // val imm_i  = Cat(signExtend20, in.bits.inst(31, 20))
@@ -307,7 +310,6 @@ object IDUInline {
         //     )
         // )
 
-        
         val rs1 = MuxLookup(op.aSel, 0.U(32.W))(Seq(
             ASel.  PC.U -> pc,
             ASel.GPR1.U -> gpr_rdata1,
