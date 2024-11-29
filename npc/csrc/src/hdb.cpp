@@ -23,7 +23,7 @@ VTop top;
 static std::chrono::time_point<std::chrono::system_clock> timerStart;
 static uint64_t timer = 0;
 
-#define IMG_NAME test_img_simple_mem
+#define IMG_NAME test_img_csrrw
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
 

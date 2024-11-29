@@ -75,7 +75,7 @@ object InstDecode {
             throw new IllegalArgumentException
         }
 
-        val op = InstDecodeTable.decode(inst)
+        val op = Decoder.decode(inst)
         
         // IDU
         out.gpr_raddr1 := inst(15 + Config.GPRAddrLength - 1, 15)
@@ -133,8 +133,6 @@ object InstDecode {
         out.csr_waddr   := CSRAddr.csr_addr_translate(inst(31, 20))
         out.is_trap     := op.isTrap
 
-        printf("%d\n", op.gprWSel)
-
         out.fence_i := op.fenceI
         out.is_brk  := op.isBrk
         out.is_ivd  := op.isIvd
@@ -157,7 +155,6 @@ object CInstDecode {
         }
 
         val op = CExtensionDecoder.decode(inst)
-        
 
         // IDU
         val gpr_addr_1 = inst(11, 7)
@@ -288,27 +285,6 @@ object IDUInline {
         gpr_ren2 := op.gpr_ren2
         csr_raddr := op.csr_raddr
         csr_ren := op.csr_ren
-
-        // printf("%d\n", out.bits.rs1)
-
-        // val signExtend20 = Fill(20, in.bits.inst(31))
-        // val imm_i  = Cat(signExtend20, in.bits.inst(31, 20))
-        // val imm_iu = Cat(0.U(20.W), in.bits.inst(31, 20))
-        // val imm_s  = Cat(signExtend20, in.bits.inst(31, 25), in.bits.inst(11, 7))
-        // val imm_b  = Cat(signExtend20, in.bits.inst(31), in.bits.inst(7), in.bits.inst(30, 25), in.bits.inst(11, 8), 0.B)
-        // val imm_u  = Cat(in.bits.inst(31, 12), 0.U(12.W))
-        // val imm_j  = Cat(Fill(11, in.bits.inst(31)), in.bits.inst(31), in.bits.inst(19, 12), in.bits.inst(20), in.bits.inst(30, 21), 0.B)
-        // val imm_c  = Cat(0.U(27.W), in.bits.inst(19, 15))
-        // val imm = MuxLookup(op.immType, 0.U(32.W))(Seq(
-        //         ImmType. I.id.U -> imm_i,
-        //         ImmType.IU.id.U -> imm_iu,
-        //         ImmType. S.id.U -> imm_s,
-        //         ImmType. U.id.U -> imm_u,
-        //         ImmType. B.id.U -> imm_b,
-        //         ImmType. J.id.U -> imm_j,
-        //         ImmType. C.id.U -> imm_c,
-        //     )
-        // )
 
         val rs1 = MuxLookup(op.aSel, 0.U(32.W))(Seq(
             ASel.  PC.U -> pc,

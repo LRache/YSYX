@@ -533,9 +533,6 @@ case class InstPattern(
     val exuTag: EXUTag) 
 extends DecodePattern {
     def bitPat: BitPat = {
-        print(pattern)
-        println(pattern.getWidth)
-
         pattern
     }
 }
@@ -839,6 +836,25 @@ object InstDecodeField {
         }
     }
 
+    object CSRRAddrSelDecodeField extends DecodeField[InstPattern, UInt] {
+        def name = "CSRRAddrSel decode field"
+        def chiselType = UInt(2.W)
+        def genTable(op: InstPattern): BitPat = {
+            val isTrap = Seq(
+                InstType.EC, 
+                InstType.IVD
+            ).contains(op.instType)
+            val sel = if(isTrap) CSRAddrSel.VEC else op.instType match {
+                case InstType.MR => CSRAddrSel.EPC
+                case InstType.CR => CSRAddrSel.Ins
+                case InstType.CI => CSRAddrSel.Ins
+                case _ => CSRAddrSel.DontCare
+            }
+            return BitPat(sel.U(2.W))
+        }
+        override def default: BitPat = BitPat(CSRAddrSel.DontCare.U(2.W))
+    }
+
     object CSRRenDecodeField extends BoolDecodeField[InstPattern] {
         def name = "CSRRen decode field"
         def genTable(op: InstPattern): BitPat = {
@@ -980,7 +996,6 @@ object InstDecodeField {
                 case InstType.CI => GPRWSel. CSR
                 case _ => GPRWSel.EXU
             }
-            print(gprWSel)
             return BitPat(gprWSel.U(2.W))
         }
     }
@@ -1038,7 +1053,7 @@ class OPBundle extends Bundle {
 
     // WBU
     val gprWen  = Wire(Bool())
-    val gprWSel = Wire(Bool())
+    val gprWSel = Wire(UInt(2.W))
     val csrWen  = Wire(Bool())
     val isBrk   = Wire(Bool())
     val isIvd   = Wire(Bool())
@@ -1178,6 +1193,7 @@ object InstDecodeTable {
         InstDecodeField.GPRRen1DecodeField,
         InstDecodeField.GPRRen2DecodeField,
         InstDecodeField.CSRRenDecodeField,
+        InstDecodeField.CSRRAddrSelDecodeField,
         InstDecodeField.FenceIDecodeField,
         InstDecodeField.IsTrapDecodeField,
         InstDecodeField.AluAddDecodeField,
@@ -1206,7 +1222,7 @@ object InstDecodeTable {
         op.dSel    := decodeResult(InstDecodeField.DSelDecodeField)
         op.gprRen1 := decodeResult(InstDecodeField.GPRRen1DecodeField)
         op.gprRen2 := decodeResult(InstDecodeField.GPRRen2DecodeField)
-        op.csrRAddrSel := decodeResult(InstDecodeField.CSRRenDecodeField) // bug
+        op.csrRAddrSel := decodeResult(InstDecodeField.CSRRAddrSelDecodeField)
         op.csrRen  := decodeResult(InstDecodeField.CSRRenDecodeField)
         op.fenceI  := decodeResult(InstDecodeField.FenceIDecodeField)
         op.isTrap  := decodeResult(InstDecodeField.IsTrapDecodeField)
