@@ -71,9 +71,15 @@ object InstType extends Enumeration {
 }
 import InstType.InstType
 
-object ImmType extends Enumeration {
-    type ImmType = Value
-    val N, I, IU, S, B, U, J, C = Value
+object ImmType {
+    val I  = 0
+    val IU = 1
+    val S  = 2
+    val B  = 3
+    val U  = 4
+    val J  = 5
+    val C  = 6
+    val DontCare = 0
 }
 
 object EXUTag extends Enumeration {
@@ -145,22 +151,22 @@ object NormalEncode {
     
     def apply (
         instType: InstType,
-        exuTag:   EXUTag.EXUTag
+        exuTag:   EXUTag
     ): BitPat = {
         val m: Map[String, Int] = Map()
             
         val immType = instType match {
-            case InstType.IA => ImmType. I.id
-            case InstType.IJ => ImmType. I.id
-            case InstType. L => ImmType. I.id
-            case InstType.IU => ImmType.IU.id
-            case InstType. S => ImmType. S.id
-            case InstType. B => ImmType. B.id
-            case InstType.UA => ImmType. U.id
-            case InstType.UL => ImmType. U.id
-            case InstType. J => ImmType. J.id
-            case InstType.CI => ImmType. C.id
-            case _           => ImmType. N.id
+            case InstType.IA => ImmType. I
+            case InstType.IJ => ImmType. I
+            case InstType. L => ImmType. I
+            case InstType.IU => ImmType.IU
+            case InstType. S => ImmType. S
+            case InstType. B => ImmType. B
+            case InstType.UA => ImmType. U
+            case InstType.UL => ImmType. U
+            case InstType. J => ImmType. J
+            case InstType.CI => ImmType. C
+            case _           => ImmType.DontCare
         }
         m += ("ImmType" -> immType)
 
@@ -352,6 +358,40 @@ class OP(bits : UInt) {
     val isIvd = NormalEncode.get_tag("IsIvd", bits).asBool
 }
 
+class OPBundle extends Bundle {
+    val immType = UInt(3.W)
+    val aSel    = UInt(2.W)
+    val bSel    = UInt(2.W)
+    val cSel    = Bool()
+    val dSel    = Bool()
+    val gprRen1 = Bool()
+    val gprRen2 = Bool()
+    val csrRAddrSel = NormalEncode.get_tag("CSRRAddrSel", bits)
+    val csrRen  = NormalEncode.get_tag("CSRRen", bits).asBool
+    val fenceI  = NormalEncode.get_tag("FenceI", bits).asBool
+    val isTrap  = NormalEncode.get_tag("IsTrap", bits).asBool
+
+    // EXU
+    val aluAdd = NormalEncode.get_tag("AluAdd", bits).asBool
+    val exuTag = NormalEncode.get_tag("EXUTag", bits).asBool
+
+    // Jump
+    val dnpcSel = NormalEncode.get_tag("DNPCSel", bits).asBool
+    val isJmp = NormalEncode.get_tag("IsJmp", bits).asBool
+    val isBranch = NormalEncode.get_tag("IsBranch", bits).asBool
+    
+    // LSU
+    val memRen = NormalEncode.get_tag("MemRen", bits).asBool
+    val memWen = NormalEncode.get_tag("MemWen", bits).asBool
+
+    // WBU
+    val gprWen = NormalEncode.get_tag("GPRWen", bits).asBool
+    val gprWSel = NormalEncode.get_tag("GPRWSel", bits)
+    val csrWen = NormalEncode.get_tag("CSRWen", bits).asBool
+    val isBrk = NormalEncode.get_tag("IsBrk", bits).asBool
+    val isIvd = NormalEncode.get_tag("IsIvd", bits).asBool
+}
+
 object Decoder {
     val ADD     = BitPat("b0000000_?????_?????_000_?????_011_0011")
     val SUB     = BitPat("b0100000_?????_?????_000_?????_011_0011")
@@ -484,3 +524,175 @@ object Decoder {
         return new OP(decoder(inst, truthTable))
     }
 }
+
+case class InstPattern(
+    val pattern: BitPat, 
+    val instType: InstType, 
+    val exuTag: EXUTag) 
+extends DecodePattern {
+    def bitPat: BitPat = pattern
+}
+
+object InstDecodeField {
+    // object ImmTypeDecodeField extends DecodeField[InstPattern, UInt] {
+    //     def name = "Immediate type decode field"
+    //     def chiselType = UInt(3.W)
+    //     def genTable(op: InstPattern) : BitPat = {
+    //         val immType = op.instType match {
+    //             case InstType.IA => ImmType. I
+    //             case InstType.IJ => ImmType. I
+    //             case InstType. L => ImmType. I
+    //             case InstType.IU => ImmType.IU
+    //             case InstType. S => ImmType. S
+    //             case InstType. B => ImmType. B
+    //             case InstType.UA => ImmType. U
+    //             case InstType.UL => ImmType. U
+    //             case InstType. J => ImmType. J
+    //             case InstType.CI => ImmType. C
+    //             case _           => ImmType. DontCare
+    //         }
+    //         return BitPat(immType.U(3.W))
+    //     }
+    // }
+
+    // object ASelDecodeField extends DecodeField[InstPattern, UInt] {
+    //     def name = "ASel decode field"
+    //     def chiselType = UInt(2.W)
+    //     def genTable(op: InstPattern): BitPat = {
+    //         val aSel = op.instType match {
+    //             case InstType. R => ASel.GPR1
+    //             case InstType.IA => ASel.GPR1
+    //             case InstType.IJ => ASel.GPR1
+    //             case InstType.IU => ASel.GPR1
+    //             case InstType. L => ASel.GPR1
+    //             case InstType. S => ASel.GPR1
+    //             case InstType. B => ASel.  PC
+    //             case InstType. J => ASel.  PC
+    //             case InstType.UA => ASel.  PC
+    //             case InstType.CR => ASel. CSR
+    //             case InstType.CI => ASel. CSR
+    //             case InstType.EC => ASel.  PC // mepc = pc, pc = mtvec
+    //             case InstType.FI => ASel.  PC
+    //             case InstType.IVD => ASel. PC
+    //             case _ => ASel.ZERO // Dont Care
+    //         }
+    //         return BitPat(aSel.U(2.W))
+    //     }
+    // }
+
+    // object BSelDecodeField extends DecodeField[InstPattern, UInt] {
+    //     def name = "BSel decode field"
+    //     def chiselType = UInt(2.W)
+    //     def genTable(op: InstPattern): BitPat = {
+    //         val bSel = op.instType match {
+    //             case InstType. R => BSel.GPR2
+    //             case InstType.IA => BSel. Imm
+    //             case InstType.IJ => BSel. Imm
+    //             case InstType.IU => BSel. Imm
+    //             case InstType. L => BSel. Imm
+    //             case InstType. S => BSel. Imm
+    //             case InstType. J => BSel. Imm
+    //             case InstType. B => BSel. Imm
+    //             case InstType.UL => BSel. Imm
+    //             case InstType.UA => BSel. Imm
+    //             case InstType.CR => BSel.GPR1
+    //             case InstType.CI => BSel. Imm
+    //             case InstType.EC => BSel. CSR
+    //             case InstType.IVD => BSel.CSR
+    //             case InstType.MR => BSel. CSR
+    //             case _ => BSel.DontCare // Dont care
+    //         }
+    //         return BitPat(bSel.U(2.W))
+    //     }
+    // }
+
+    // object CSelDecodeField extends BoolDecodeField[InstPattern] {
+    //     def name = "CSel decode field"
+    //     def genTable(op: InstPattern): BitPat = {
+    //         val cSel = Seq(
+    //             InstType.IJ,
+    //             InstType. J
+    //         ).contains(op.instType)
+    //         return BitPat(cSel.B)
+    //     }
+    // }
+
+    // object DSelDecodeField extends BoolDecodeField[InstPattern] {
+    //     def name = "DSel decode field"
+    //     def genTable(op: InstPattern): BitPat = {
+    //         val dSel = Seq(
+    //             InstType.IA, 
+    //             InstType.IU
+    //         ).contains(op.instType)
+    //         return BitPat(dSel.B)
+    //     }
+    // }
+
+    // object GPRRen1DecodeField extends BoolDecodeField[InstPattern] {
+    //     def name = "GPRRen1 decode field"
+    //     def genTable(op: InstPattern): BitPat = {
+    //         val ren = Seq(
+    //             InstType. R,
+    //             InstType.IA,
+    //             InstType.IJ,
+    //             InstType.IU,
+    //             InstType. L,
+    //             InstType. S,
+    //             InstType. B,
+    //             InstType.CR,
+    //         ).contains(op.instType)
+    //         return BitPat(ren.B)
+    //     }
+    // }
+
+    // object GPRRen2DecodeField extends BoolDecodeField[InstPattern] {
+    //     def name = "GPRRen2 decode field"
+    //     def genTable(op: InstPattern): BitPat = {
+    //         val ren = Seq(
+    //             InstType. R,
+    //             InstType. B,
+    //             InstType. S,
+    //         ).contains(op.instType)
+    //         return BitPat(ren.B)
+    //     }
+    // }
+
+    // object CSRRenDecodeField extends BoolDecodeField[InstPattern] {
+    //     def name = "CSRRen decode field"
+    //     def genTable(op: InstPattern): BitPat = {
+    //         val ren = Seq(
+    //             InstType. CR,
+    //             InstType. CI,
+    //             InstType. EC,
+    //             InstType. MR,
+    //             InstType.IVD,
+    //         ).contains(op.instType)
+    //         return BitPat(ren.B)
+    //     }
+    // }
+
+    // object FenceIDecodeField extends BoolDecodeField[InstPattern] {
+    //     def name = "FenceI decode field"
+    //     def genTable(op: InstPattern): BitPat = {
+    //         val isFenceI = op.instType == InstType.FI
+    //         return BitPat(isFenceI.B)
+    //     }
+    // }
+
+    // object AluAddDecodeField extends BoolDecodeField[InstPattern] {
+    //     def name = "AluAdd decode field"
+    //     def genTable(op: InstPattern): BitPat = {
+    //         val aluAdd = Seq(
+    //             InstType. L, // load
+    //             InstType. S, // save
+    //             InstType.UA, // auipc
+    //             InstType. B, // branch
+    //             InstType. J, // jal
+    //             InstType.UL, // lui
+    //             InstType.MR  // mret
+    //         ).contains(op.instType)
+    //         return BitPat
+    //     }
+    // }
+}
+
