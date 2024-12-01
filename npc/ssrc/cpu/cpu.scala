@@ -21,7 +21,7 @@ import cpu.reg.CSRAddr
 import bus.ClintInline
 import bus.AXI4ArbiterInline
 import cpu.idu.IDUInline
-import cpu.idu.IDUWire
+import cpu.idu.IDUBundle
 
 class HCPU(instStart : BigInt) extends Module {
     val io = IO(new Bundle {
@@ -29,7 +29,7 @@ class HCPU(instStart : BigInt) extends Module {
         val slave   = Flipped(new AXI4IO)
         val interrupt = Input(Bool())
     })
-    val gpr = Module(new GPR(Config.GPRAddrLength))
+    val gpr = Module(new GPR(Config.GPRAddrWidth))
     val csr = Module(new CSR)
 
     val icache = Module(new ICache(2, 0))
@@ -40,7 +40,7 @@ class HCPU(instStart : BigInt) extends Module {
         nextIn.bits := RegEnable(prevOut.bits, prevOut.valid && nextIn.ready)
     }
 
-    val idu = Wire(new IDUWire)
+    val idu = Wire(new IDUBundle)
     IDUInline(idu)
 
     val ifu = Module(new IFU(instStart))

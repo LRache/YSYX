@@ -16,14 +16,14 @@ object CSRWSel extends Enumeration {
 }
 
 object CSRAddr {
-    val MVENDORID   = 0x0.U(Config.CSRAddrLength.W)
-    val MARCHID     = 0x1.U(Config.CSRAddrLength.W)
-    val SATP        = 0x2.U(Config.CSRAddrLength.W)
-    val MSTATUS     = 0x3.U(Config.CSRAddrLength.W)
-    val MTVEC       = 0x4.U(Config.CSRAddrLength.W)
-    val MSCRATCH    = 0x5.U(Config.CSRAddrLength.W)
-    val MEPC        = 0x6.U(Config.CSRAddrLength.W)
-    val MCAUSE      = 0x7.U(Config.CSRAddrLength.W)
+    val MVENDORID   = 0x0.U(Config.CSRAddrWidth.W)
+    val MARCHID     = 0x1.U(Config.CSRAddrWidth.W)
+    val SATP        = 0x2.U(Config.CSRAddrWidth.W)
+    val MSTATUS     = 0x3.U(Config.CSRAddrWidth.W)
+    val MTVEC       = 0x4.U(Config.CSRAddrWidth.W)
+    val MSCRATCH    = 0x5.U(Config.CSRAddrWidth.W)
+    val MEPC        = 0x6.U(Config.CSRAddrWidth.W)
+    val MCAUSE      = 0x7.U(Config.CSRAddrWidth.W)
 
     def csr_addr_translate(origin: UInt): UInt = {
         val table = ArrayBuffer(
@@ -36,7 +36,7 @@ object CSRAddr {
         )
         if (Config.HasMscratch) { table.append(0x340.U(12.W) -> CSRAddr.MSCRATCH) }
         if (Config.HasSatp    ) { table.append(0x180.U(12.W) -> CSRAddr.SATP    ) }
-        return MuxLookup(origin, 0.U(Config.CSRAddrLength.W))(table.toSeq)
+        return MuxLookup(origin, 0.U(Config.CSRAddrWidth.W))(table.toSeq)
     }
 }
 
@@ -51,8 +51,8 @@ class CSRDebugger extends BlackBox {
 
 class CSR extends Module {
     val io = IO(new Bundle {
-        val w       = Flipped(new RegWIO(Config.CSRAddrLength))
-        val raddr   = Input (UInt(Config.CSRAddrLength.W))
+        val w       = Flipped(new RegWIO(Config.CSRAddrWidth))
+        val raddr   = Input (UInt(Config.CSRAddrWidth.W))
         val rdata   = Output(UInt(32.W))
 
         val trap = Flipped(new TrapMessage)

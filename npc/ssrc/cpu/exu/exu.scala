@@ -3,12 +3,12 @@ package cpu.exu
 import chisel3._
 import chisel3.util._
 
+import cpu.idu.GPRWSel
 import cpu.reg.CSRWSel
 import cpu.IDUMessage
 import cpu.EXUMessage
 import cpu.Config
 import cpu.RegWIO
-import cpu.reg.GPRWSel
 import cpu.TrapMessage
 
 class EXU extends Module {
@@ -17,7 +17,7 @@ class EXU extends Module {
         val out = Decoupled(new EXUMessage)
 
         // CSR
-        val csr = new RegWIO(Config.CSRAddrLength)
+        val csr = new RegWIO(Config.CSRAddrWidth)
         
         // Trap
         val trap = new TrapMessage
@@ -63,14 +63,12 @@ class EXU extends Module {
         GPRWSel. MEM.U -> alu_res,
     ))
     io.gprWSel := io.in.bits.mem_ren
-
-    // printf("%d\n", gpr_ws)
     
     val jmp = (io.in.bits.is_branch && alu_cmp) || io.in.bits.is_jmp || io.in.bits.trap.is_trap
     io.jmp := jmp
     io.predict_jmp := io.in.bits.predict_jmp
     io.is_branch := io.in.bits.is_branch
-    io.dnpc := Mux(io.in.bits.dnpc_sel, rs2, alu_res)(31, 2)
+    io.dnpc := Mux(io.in.bits.dnpc_sel || io.in.bits.trap.is_trap, rs2, alu_res)(31, 2)
     io.predictor_pc := io.in.bits.predictor_pc(31, 2)
     
     // Trap

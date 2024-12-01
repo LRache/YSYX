@@ -10,7 +10,6 @@ import cpu.LSUMessage
 
 import bus.AXI4IO
 import cpu.LSUPerfCounter
-import cpu.reg.GPRWSel
 
 object MemType{
     val B  = 0.U

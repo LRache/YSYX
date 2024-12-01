@@ -12,17 +12,20 @@ object Config {
     val JudgeExuRaw = false
 
     val HasClint = true
-    val HasBTB = false
+    val HasBTB = true
     
     // ysyx
     val VendorID = 0x79737938
     val ArchID = 0x24080016
+
+    // IFU
+    val PCWidth = 30
     
     // GPR
-    val GPRAddrLength = 4
+    val GPRAddrWidth = 4
     
     // CSR
-    val CSRAddrLength = 3
+    val CSRAddrWidth = 3
     val CSRInitValue = Map(
         "mvendorid" -> VendorID,
         "marchid"   -> ArchID,

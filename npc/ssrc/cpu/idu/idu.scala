@@ -9,20 +9,18 @@ import cpu.reg.CSRAddr
 import cpu.IFUMessage
 import cpu.IDUMessage
 import cpu.reg.CSR
-import chisel3.internal.castToInt
-import cpu.idu.CGPRRaddr1Sel.INST1
 
-class IDUWire extends Bundle {
+class IDUBundle extends Bundle {
     val in =  Decoupled(new IFUMessage)
     val out = Decoupled(new IDUMessage)
 
-    val gpr_raddr1 = UInt(Config.GPRAddrLength.W)
-    val gpr_raddr2 = UInt(Config.GPRAddrLength.W)
+    val gpr_raddr1 = UInt(Config.GPRAddrWidth.W)
+    val gpr_raddr2 = UInt(Config.GPRAddrWidth.W)
     val gpr_rdata1 = UInt(32.W)
     val gpr_rdata2 = UInt(32.W)
     val gpr_ren1   = Bool()
     val gpr_ren2   = Bool()
-    val csr_raddr  = UInt(Config.CSRAddrLength.W)
+    val csr_raddr  = UInt(Config.CSRAddrWidth.W)
     val csr_rdata  = UInt(32.W)
     val csr_ren    = Bool()
         
@@ -33,11 +31,11 @@ class IDUWire extends Bundle {
 }
 
 class InstDecoderOut extends Bundle {
-    val gpr_raddr1 = UInt(Config.GPRAddrLength.W)
-    val gpr_raddr2 = UInt(Config.GPRAddrLength.W)
+    val gpr_raddr1 = UInt(Config.GPRAddrWidth.W)
+    val gpr_raddr2 = UInt(Config.GPRAddrWidth.W)
     val gpr_ren1   = Bool()
     val gpr_ren2   = Bool()
-    val csr_raddr  = UInt(Config.CSRAddrLength.W)
+    val csr_raddr  = UInt(Config.CSRAddrWidth.W)
     val csr_ren    = Bool()
 
     val imm = UInt(32.W)
@@ -57,9 +55,10 @@ class InstDecoderOut extends Bundle {
     val mem_wen = Bool()
     val mem_ren = Bool()
 
-    val gpr_waddr = UInt(Config.GPRAddrLength.W)
+    val gpr_waddr = UInt(Config.GPRAddrWidth.W)
     val gpr_ws    = UInt(2.W)
-    val csr_waddr = UInt(Config.CSRAddrLength.W)
+    val gpr_wen   = Bool()
+    val csr_waddr = UInt(Config.CSRAddrWidth.W)
     val csr_wen   = Bool()
     
     val is_trap = Bool()
@@ -71,18 +70,17 @@ class InstDecoderOut extends Bundle {
 
 object InstDecode {
     def apply(inst: UInt, out: InstDecoderOut) : Unit = {
-        if (inst.getWidth != 32) {
-            throw new IllegalArgumentException
-        }
+        assert(inst.getWidth == 32)
 
-        val op = Decoder.decode(inst)
+        val op = Wire(new DecodeOPBundle)
+        InstDecoder.decode(inst, op)
         
         // IDU
-        out.gpr_raddr1 := inst(15 + Config.GPRAddrLength - 1, 15)
-        out.gpr_raddr2 := inst(20 + Config.GPRAddrLength - 1, 20)
+        out.gpr_raddr1 := inst(15 + Config.GPRAddrWidth - 1, 15)
+        out.gpr_raddr2 := inst(20 + Config.GPRAddrWidth - 1, 20)
         out.gpr_ren1 := op.gprRen1
         out.gpr_ren2 := op.gprRen2
-        out.csr_raddr := MuxLookup(op.csrRAddrSel, 0.U(12.W))(Seq(
+        out.csr_raddr := MuxLookup(op.csrRAddrSel, 0.U(Config.CSRAddrWidth.W))(Seq(
             CSRAddrSel.VEC.U -> CSRAddr.MTVEC,
             CSRAddrSel.EPC.U -> CSRAddr.MEPC,
             CSRAddrSel.Ins.U -> CSRAddr.csr_addr_translate(inst(31, 20))
@@ -127,8 +125,9 @@ object InstDecode {
         out.mem_wen := op.memWen
 
         // WBU
-        out.gpr_waddr   := Mux(op.gprWen, inst(7 + Config.GPRAddrLength - 1, 7), 0.U)
+        out.gpr_waddr   := inst(7 + Config.GPRAddrWidth - 1, 7)
         out.gpr_ws      := op.gprWSel
+        out.gpr_wen     := op.gprWen
         out.csr_wen     := op.csrWen && out.gpr_raddr1.orR
         out.csr_waddr   := CSRAddr.csr_addr_translate(inst(31, 20))
         out.is_trap     := op.isTrap
@@ -265,8 +264,8 @@ object IDUInline {
             snpc := in.bits.snpc
         }
 
-        val isCompressed = false.B
-        val halfInst = inst(15, 0)
+        // val isCompressed = false.B
+        // val halfInst = inst(15, 0)
 
         val normalInstOp = Wire(new InstDecoderOut())
         // val compressedInstOp = Wire(new InstDecoderOut())
@@ -318,7 +317,7 @@ object IDUInline {
 
         // WBU
         // GPR
-        out.bits.gpr_waddr := op.gpr_waddr
+        out.bits.gpr_waddr := Mux(op.gpr_wen, op.gpr_waddr, 0.U(5.W))
         out.bits.gpr_ws := op.gpr_ws
         
         // CSR
@@ -330,7 +329,7 @@ object IDUInline {
         out.bits.csr_waddr := op.csr_waddr
 
         // FENCE
-        fence_i := op.fence_i && in.valid
+        fence_i := op.fence_i
 
         // TAG
         out.bits.is_ivd := op.is_ivd
@@ -343,22 +342,22 @@ object IDUInline {
         out.bits.dbg <> in.bits.dbg
     }
 
-    def apply(wire: IDUWire) : Unit = {
+    def apply(bundle: IDUBundle) : Unit = {
         apply(
-            in  = wire.in ,
-            out = wire.out,
-            gpr_raddr1 = wire.gpr_raddr1,
-            gpr_raddr2 = wire.gpr_raddr2,
-            gpr_rdata1 = wire.gpr_rdata1,
-            gpr_rdata2 = wire.gpr_rdata2,
-            gpr_ren1   = wire.gpr_ren1,
-            gpr_ren2   = wire.gpr_ren2,
-            csr_raddr  = wire.csr_raddr,
-            csr_rdata  = wire.csr_rdata,
-            csr_ren    = wire.csr_ren,
-            fence_i    = wire.fence_i,
-            raw        = wire.raw,
-            predict_failed = wire.predict_failed
+            in  = bundle.in ,
+            out = bundle.out,
+            gpr_raddr1 = bundle.gpr_raddr1,
+            gpr_raddr2 = bundle.gpr_raddr2,
+            gpr_rdata1 = bundle.gpr_rdata1,
+            gpr_rdata2 = bundle.gpr_rdata2,
+            gpr_ren1   = bundle.gpr_ren1,
+            gpr_ren2   = bundle.gpr_ren2,
+            csr_raddr  = bundle.csr_raddr,
+            csr_rdata  = bundle.csr_rdata,
+            csr_ren    = bundle.csr_ren,
+            fence_i    = bundle.fence_i,
+            raw        = bundle.raw,
+            predict_failed = bundle.predict_failed
         )
     }
 }
@@ -368,13 +367,13 @@ class IDU extends Module {
         val in = Flipped(Decoupled(new IFUMessage))
         val out = Decoupled(new IDUMessage)
 
-        val gpr_raddr1 = Output(UInt(Config.GPRAddrLength.W))
-        val gpr_raddr2 = Output(UInt(Config.GPRAddrLength.W))
+        val gpr_raddr1 = Output(UInt(Config.GPRAddrWidth.W))
+        val gpr_raddr2 = Output(UInt(Config.GPRAddrWidth.W))
         val gpr_rdata1 = Input (UInt(32.W))
         val gpr_rdata2 = Input (UInt(32.W))
         val gpr_ren1   = Output(Bool())
         val gpr_ren2   = Output(Bool())
-        val csr_raddr  = Output(UInt(Config.CSRAddrLength.W))
+        val csr_raddr  = Output(UInt(Config.CSRAddrWidth.W))
         val csr_rdata  = Input (UInt(32.W))
         val csr_ren    = Output(Bool())
         

@@ -3,9 +3,7 @@ package cpu.wbu
 import chisel3._
 import chisel3.util._
 
-import cpu.reg.GPRWSel
 import cpu.LSUMessage
-import cpu.reg.CSRAddr
 import cpu.RegWIO
 
 class WBU extends Module {

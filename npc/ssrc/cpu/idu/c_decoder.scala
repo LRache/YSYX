@@ -5,16 +5,25 @@ import scala.collection.mutable.Map
 import chisel3._
 import chisel3.util._
 import chisel3.util.experimental.decode._
-import cpu.reg.GPRWSel
+import cpu.idu.CImmType.{UI => UI}
 
 object CInstType extends Enumeration {
     type CInstType = Value
     val SL, SS, RL, RS, J, JAL, JR, JALR, B, LI, LUI, IAU, IAS, I16, I4, R, A, EB, IVD = Value
 }
 
-object CImmType extends Enumeration {
-    type CImmType = Value
-    val SL, SS, RLS, JI, B, LI, UI, AU, AS, I16, I4 = Value
+object CImmType {
+    val SL  = 0
+    val SS  = 1
+    val RLS = 2 
+    val JI  = 3
+    val B   = 4
+    val LI  = 5
+    val UI  = 6
+    val AU  = 7
+    val AS  = 8
+    val I16 = 9
+    val I4  = 10
 }
 
 object OverlapType {
@@ -62,20 +71,6 @@ object CExtensionEncode {
     }
 
     val encoder = new BitPatEncoder()
-    // val tags: Map[String, Tag] = Map()
-    // var current = 0
-    // var count = 0
-
-    // def add_tag(name: String, length: Int) = {
-    //     tags += (name -> new Tag(current, length, count))
-    //     current += length
-    //     count += 1
-    // }
-
-    // def get_tag(name: String, bits: UInt) : UInt = {
-    //     val tag = tags(name)
-    //     return bits(tag.start + tag.length - 1, tag.start)
-    // }
 
     // IDU
     encoder.add_tag("ImmType",  4)
@@ -437,19 +432,67 @@ object CExtensionDecoder {
     val JALR_OP = encode(CInstType.JALR, EXUTag.DontCare, Func3.ADD)  
 }
 
-case class Pattern(val instType: CInstType, val bits: BitPat) extends DecodePattern {
-  def bitPat: BitPat = bits
-}
+object CInstDecoder {
+    object CInstType extends Enumeration {
+        type CInstType = Value
+        val SL, SS, RL, RS, J, JAL, JR, JALR, B, LI, LUI, IAU, IAS, I16, I4, R, A, EB, IVD = Value
+    }
+    import CInstType.CInstType
 
-object NameContainsAdd extends DecodeField[Pattern, UInt] {
-    def chiselType =  UInt(5.W)
-    def name = "Example"
-    def genTable(op: Pattern): BitPat = {
-        if (op.bits(4, 0) == BitPat("00000")) {
-            return BitPat("b1")
+    case class InstPattern(val pattern: BitPat, val instType: CInstType, val func3: Int) extends DecodePattern {
+        def bitPat: BitPat = pattern
+    }
+
+    object DecodeField {
+        object ImmTypeField extends DecodeField[InstPattern, UInt] {
+            def name = "ImmType decode field"
+            def chiselType: UInt = UInt(4.W)
+            def genTable(op: InstPattern): BitPat = {
+                val immType = op.instType match {
+                    case CInstType. SL => CImmType. SL;
+                    case CInstType. SS => CImmType. SS;
+                    case CInstType. RL => CImmType.RLS;
+                    case CInstType. RS => CImmType.RLS;
+                    case CInstType.  J => CImmType. JI;
+                    case CInstType.  B => CImmType.  B;
+                    case CInstType. LI => CImmType. LI;
+                    case CInstType.LUI => CImmType. UI;
+                    case CInstType.IAU => CImmType. AU;
+                    case CInstType.IAS => CImmType. AS;
+                    case CInstType.I16 => CImmType.I16;
+                    case CInstType.I4  => CImmType. I4;
+                    case _             => CImmType.  B; //Dont Care
+                }
+                return BitPat(immType.U(3.W))
+            }
         }
-        return BitPat("b0")
-  }
+
+        object ASelField extends DecodeField[InstPattern, UInt] {
+            def name = "ASel decode field"
+            def chiselType: UInt = UInt(2.W)
+            def genTable(op: InstPattern): BitPat = {
+                 val sel = op.instType match {
+                    case CInstType.  SL => ASel.GPR1;
+                    case CInstType.  SS => ASel.GPR1;
+                    case CInstType.  RL => ASel.GPR1;
+                    case CInstType.  RS => ASel.GPR1;
+                    case CInstType.   J => ASel.  PC;
+                    case CInstType. JAL => ASel.  PC;
+                    case CInstType.  JR => ASel.GPR1;
+                    case CInstType.JALR => ASel.GPR1;
+                    case CInstType.   B => ASel.  PC;
+                    case CInstType.  LI => ASel.ZERO;
+                    case CInstType. LUI => ASel.ZERO;
+                    case CInstType. IAU => ASel.GPR1;
+                    case CInstType. IAS => ASel.GPR1;
+                    case CInstType. I16 => ASel.GPR1;
+                    case CInstType.  I4 => ASel.GPR1;
+                    case CInstType.   R => ASel.GPR1;
+                    case CInstType.   A => ASel.GPR1;
+                    case _              => ASel.ZERO; // Dont Care
+                }
+                return BitPat(sel.U(2.W))
+            }
+        }
+    }
 }
-
-
