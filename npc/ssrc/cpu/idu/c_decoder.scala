@@ -127,7 +127,7 @@ object CExtensionEncode {
             case CInstType.I4  => CImmType. I4;
             case _             => CImmType.  B; //Dont Care
         }
-        m += ("ImmType" -> immType.id)
+        m += ("ImmType" -> immType)
 
         val aSel = instType match {
             case CInstType.  SL => ASel.GPR1;

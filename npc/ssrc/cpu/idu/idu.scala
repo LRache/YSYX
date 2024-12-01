@@ -188,17 +188,17 @@ object CInstDecode {
         val imm_i16 = Cat(0.U(22.W), inst(15), inst(4, 3), inst(5), inst(2), inst(6), 0.U(4.W))
         val imm_i4  = Cat(0.U(22.W), inst(11, 8), inst(13, 12), inst(5), inst(6), 0.U(2.W))
         out.imm := MuxLookup(op.immType, 0.U)(Seq(
-            CImmType. SL.id.U -> imm_sl,
-            CImmType. SS.id.U -> imm_ss,
-            CImmType.RLS.id.U -> imm_rls,
-            CImmType. JI.id.U -> imm_ji,
-            CImmType.  B.id.U -> imm_b,
-            CImmType. LI.id.U -> imm_li,
-            CImmType. UI.id.U -> imm_ui,
-            CImmType. AU.id.U -> imm_au,
-            CImmType. AS.id.U -> imm_as,
-            CImmType.I16.id.U -> imm_i16,
-            CImmType. I4.id.U -> imm_i4
+            CImmType. SL.U -> imm_sl,
+            CImmType. SS.U -> imm_ss,
+            CImmType.RLS.U -> imm_rls,
+            CImmType. JI.U -> imm_ji,
+            CImmType.  B.U -> imm_b,
+            CImmType. LI.U -> imm_li,
+            CImmType. UI.U -> imm_ui,
+            CImmType. AU.U -> imm_au,
+            CImmType. AS.U -> imm_as,
+            CImmType.I16.U -> imm_i16,
+            CImmType. I4.U -> imm_i4
         ))
 
         out.aSel := op.aSel
