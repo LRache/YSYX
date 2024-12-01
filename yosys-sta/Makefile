@@ -2,7 +2,7 @@ DESIGN ?= HCPU
 SDC_FILE ?= $(abspath ../npc/sdc/hcpu.sdc)
 RTL_FILES += $(abspath $(shell find "$(NPC_HOME)/vsrc/cpu" -name "*.v"))
 RTL_FILES += $(abspath ../npc/build/HCPU.v)
-export CLK_FREQ_MHZ ?= 500
+export CLK_FREQ_MHZ ?= 1000
 
 RESULT_DIR = ./result/$(DESIGN)-$(CLK_FREQ_MHZ)MHz
 SCRIPT_DIR = ./scripts
