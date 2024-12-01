@@ -494,5 +494,33 @@ object CInstDecoder {
                 return BitPat(sel.U(2.W))
             }
         }
+
+        object BSelField extends DecodeField[InstPattern, UInt] {
+            def name = "BSel decode field"
+            def chiselType: UInt = UInt(2.W)
+            def genTable(op: InstPattern): BitPat = {
+                val sel = op.instType match {
+                    case CInstType.  SL => BSel.Imm;
+                    case CInstType.  SS => BSel.Imm;
+                    case CInstType.  RL => BSel.Imm;
+                    case CInstType.  RS => BSel.Imm;
+                    case CInstType.   J => BSel.Imm;
+                    case CInstType. JAL => BSel.Imm;
+                    case CInstType.  JR => BSel.Imm;
+                    case CInstType.JALR => BSel.Imm;
+                    case CInstType.   B => BSel.Imm;
+                    case CInstType.  LI => BSel.Imm;
+                    case CInstType. LUI => BSel.Imm;
+                    case CInstType. IAU => BSel.Imm;
+                    case CInstType. IAS => BSel.Imm;
+                    case CInstType. I16 => BSel.Imm;
+                    case CInstType.  I4 => BSel.Imm;
+                    case CInstType.   R => BSel.GPR2;
+                    case CInstType.   A => BSel.GPR2;
+                    case _              => BSel.DontCare; // DontCare
+                }
+                return BitPat(sel.U(2.W))
+            }
+        }
     }
 }
