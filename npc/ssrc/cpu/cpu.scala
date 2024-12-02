@@ -121,7 +121,7 @@ class HCPU(instStart : BigInt) extends Module {
         // idu.io.gpr_rdata1 := Mux(exuRawSolveable1, exu.io.out.bits.rs, Mux(lsuRaw1, lsu.io.out.bits.gpr_wdata, gpr.io.rdata1))
         // idu.io.gpr_rdata2 := Mux(exuRawSolveable2, exu.io.out.bits.rs, Mux(lsuRaw2, lsu.io.out.bits.gpr_wdata, gpr.io.rdata2))
         idu.gpr_rdata1 := Mux(exuRawSolveable1, exu.io.out.bits.rs, Mux(lsuRaw1, lsu.io.out.bits.gpr_wdata, gpr.io.rdata1))
-        idu.gpr_rdata2:= Mux(exuRawSolveable2, exu.io.out.bits.rs, Mux(lsuRaw2, lsu.io.out.bits.gpr_wdata, gpr.io.rdata2))
+        idu.gpr_rdata2 := Mux(exuRawSolveable2, exu.io.out.bits.rs, Mux(lsuRaw2, lsu.io.out.bits.gpr_wdata, gpr.io.rdata2))
     } else {
         // idu.io.gpr_rdata1 := Mux(lsuRaw1, lsu.io.out.bits.gpr_wdata, gpr.io.rdata1)
         // idu.io.gpr_rdata2 := Mux(lsuRaw2, lsu.io.out.bits.gpr_wdata, gpr.io.rdata2)

@@ -440,13 +440,14 @@ static uint32_t test_img_bootloader[] = {
 };
 
 static uint32_t test_img_temp[] = {
-    0x00000793, // 00 li a5, 0
-    0x00800613, // 04 li a2, 8
-    0x00478793, // 08 addi a5, a5, 4
-    NOP,        // 0c
-    
-    NOP,        // 10
-    0xfec79ae3, // 14 bne a5, a2, 0x28 (-12)
+    0xa0000137, // 00 lui sp, 0x80100
+    0x00200293, // 04 addi t0, x0, 8
+    0x00512023, // 08 sw t0, 0(sp)
+    0x00012303, // 0c lw t1, 0(sp)
+    0xfff30313, // 10 addi t1, t1, -1
+    0x00612023, // 14 sw t1, 0(sp)
+    0x00012283, // 18 lw t0, 0(sp)
+    0xfe0296e3, // 1c bne t0, t0, -20
     GOOD_TRAP   // 18 1c
 };
 
