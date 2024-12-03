@@ -26,11 +26,11 @@ class EXU extends Module {
         val gprWSel = Output(Bool())
 
         // Control Hazard
-        val jmp = Output(Bool())
-        val predict_jmp = Output(Bool())
-        val is_branch = Output(Bool())
-        val dnpc = Output(UInt(30.W))
-        val predictor_pc = Output(UInt(30.W))
+        val jmp          = Output(Bool())
+        val predict_jmp  = Output(Bool())
+        val is_branch    = Output(Bool())
+        val dnpc         = Output(UInt(Config.PCWidth.W))
+        val predictor_pc = Output(UInt(Config.PCWidth.W))
     })
     val func3 = io.in.bits.func3
     val rs1 = io.in.bits.rs1
@@ -68,8 +68,8 @@ class EXU extends Module {
     io.jmp := jmp
     io.predict_jmp := io.in.bits.predict_jmp
     io.is_branch := io.in.bits.is_branch
-    io.dnpc := Mux(io.in.bits.dnpc_sel || io.in.bits.trap.is_trap, rs2, alu_res)(31, 2)
-    io.predictor_pc := io.in.bits.predictor_pc(31, 2)
+    io.dnpc := Mux(io.in.bits.dnpc_sel || io.in.bits.trap.is_trap, rs2, alu_res)(31, 32 - Config.PCWidth)
+    io.predictor_pc := io.in.bits.predictor_pc(31, 32 - Config.PCWidth)
     
     // Trap
     io.trap := io.in.bits.trap

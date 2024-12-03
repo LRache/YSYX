@@ -15,12 +15,12 @@ class IFU(instStart : BigInt) extends Module {
         val cache   = Flipped(new ICacheIO)
 
         // Branch predict
-        val dnpc = Input(UInt(30.W))
+        val dnpc      = Input(UInt(PCWidth.W))
         val predict_failed = Input(Bool())
         val is_branch = Input(Bool())
         val is_jmp    = Input(Bool())
         val is_fence  = Input(Bool())
-        val predictor_pc = Input(UInt(30.W))
+        val predictor_pc = Input(UInt(PCWidth.W))
     })
     def static_next_pc(pc: UInt) = pc + 4.U(32.W)(31, 32 - PCWidth)
     
@@ -49,17 +49,17 @@ class IFU(instStart : BigInt) extends Module {
         io.out.bits.predict_jmp := false.B
     }
 
-    io.cache.raddr := pc
+    io.cache.raddr := pc(PCWidth - 1, PCWidth - 30)
     io.cache.ready := true.B
 
     pc := Mux(io.out.ready && io.cache.valid, npc, pc)
     val inst = io.cache.rdata
 
-    io.out.bits.pc   := Cat(pc,   0.U((32-PCWidth).W))
-    io.out.bits.snpc := Cat(snpc, 0.U((32-PCWidth).W))
+    io.out.bits.pc   := Cat(pc,   0.U((32 - PCWidth).W))
+    io.out.bits.snpc := Cat(snpc, 0.U((32 - PCWidth).W))
     io.out.bits.inst := inst
     
     io.out.valid := io.cache.valid && state === s_fetch && !io.predict_failed
-    io.out.bits.dbg.pc   := Cat(pc, 0.U((32-PCWidth).W))
+    io.out.bits.dbg.pc   := Cat(pc, 0.U((32 - PCWidth).W))
     io.out.bits.dbg.inst := inst
 }

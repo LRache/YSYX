@@ -9,6 +9,7 @@ import cpu.reg.CSRAddr
 import cpu.IFUMessage
 import cpu.IDUMessage
 import cpu.reg.CSR
+import os.read
 
 class IDUBundle extends Bundle {
     val in =  Decoupled(new IFUMessage)
@@ -139,21 +140,18 @@ object InstDecode {
 }
 
 object CInstDecode {
-    def decode(op: CExtensionOP, out: InstDecoderOut) : Unit = {
-
-    }
-    
     def apply(inst: UInt, out: InstDecoderOut) : Unit = {
         def gpr_addr_translate(caddr: UInt) : UInt = {
             if (caddr.getWidth != 3) throw new IllegalArgumentException
-            return Cat("b01".U, caddr)
+            return Cat((0.U)((5 - Config.GPRAddrWidth).W), 1.U(1.W), caddr)
         }
         
         if (inst.getWidth != 16) {
             throw new IllegalArgumentException
         }
 
-        val op = CExtensionDecoder.decode(inst)
+        val op = Wire(new CDecodeOPBundle)
+        CInstDecoder.decode(inst, op)
 
         // IDU
         val gpr_addr_1 = inst(11, 7)
@@ -164,17 +162,20 @@ object CInstDecode {
         out.gpr_raddr1 := MuxLookup(op.gprRaddr1, 0.U)(Seq(
             CGPRRaddr1Sel.INST1.U -> gpr_addr_1,
             CGPRRaddr1Sel.INST2.U -> gpr_addr_2,
-            CGPRRaddr1Sel.   X2.U -> 2.U(5.W),
+            CGPRRaddr1Sel.   X2.U -> 2.U(Config.GPRAddrWidth.W),
+            CGPRRaddr1Sel. ZERO.U -> 0.U(Config.GPRAddrWidth.W),
         ))
         out.gpr_raddr2 := MuxLookup(op.gprRaddr2, 0.U)(Seq(
             CGPRRaddr2Sel.INST3.U -> gpr_addr_3,
             CGPRRaddr2Sel.INST4.U -> gpr_addr_4,
-            CGPRRaddr2Sel.   X0.U -> 0.U(5.W),
+            CGPRRaddr2Sel. ZERO.U -> 0.U(Config.GPRAddrWidth.W),
         ))
         out.gpr_ren1 := op.gprRen1
         out.gpr_ren2 := op.gprRen2
         out.csr_raddr := DontCare
         out.csr_ren := false.B
+
+        printf("immType=%d ivd=%d\n", op.immType, op.isIvd)
 
         val imm_sl  = Cat(0.U(24.W), inst(3, 2), inst(12), inst(6, 4), 0.U(2.W))
         val imm_ss  = Cat(0.U(24.W), inst(8, 7), inst(12, 9), 0.U(2.W))
@@ -185,7 +186,7 @@ object CInstDecode {
         val imm_ui  = Cat(Fill(14, inst(12)), inst(6, 2), 0.U(12.W))
         val imm_au  = Cat(0.U(26.W), inst(12), inst(6, 2))
         val imm_as  = imm_li
-        val imm_i16 = Cat(0.U(22.W), inst(15), inst(4, 3), inst(5), inst(2), inst(6), 0.U(4.W))
+        val imm_i16 = Cat(0.U(22.W), inst(12), inst(4, 3), inst(5), inst(2), inst(6), 15.U(4.W))
         val imm_i4  = Cat(0.U(22.W), inst(11, 8), inst(13, 12), inst(5), inst(6), 0.U(2.W))
         out.imm := MuxLookup(op.immType, 0.U)(Seq(
             CImmType. SL.U -> imm_sl,
@@ -219,14 +220,15 @@ object CInstDecode {
         out.mem_wen := op.memWen
 
         // WBU
-        out.gpr_waddr := MuxLookup(op.gprWaddr, 0.U)(Seq(
+        out.gpr_waddr := MuxLookup(op.gprWaddrSel, 0.U)(Seq(
             CGPRWaddrSel.INST1.U -> gpr_addr_1,
             CGPRWaddrSel.INST2.U -> gpr_addr_2,
             CGPRWaddrSel.INST4.U -> gpr_addr_4,
             CGPRWaddrSel.   X1.U -> 1.U(5.W),
             CGPRWaddrSel.   X2.U -> 2.U(5.W),
         ))
-        out.gpr_ws := op.gprWSel
+        out.gpr_ws  := op.gprWSel
+        out.gpr_wen := op.gprWen
         out.csr_waddr := DontCare
         out.csr_wen := false.B
 
@@ -254,26 +256,56 @@ object IDUInline {
         raw       : Bool,
         predict_failed: Bool
     ): Unit = {
-        val pc   = in.bits.pc
+        val pc   = Wire(UInt(32.W))
         val snpc = Wire(UInt(32.W))
         val inst = in.bits.inst
-
-        if (Config.HasBTB) {
-            snpc := pc + 4.U(32.W)
-        } else {
-            snpc := in.bits.snpc
-        }
-
-        // val isCompressed = false.B
-        // val halfInst = inst(15, 0)
-
+        
         val normalInstOp = Wire(new InstDecoderOut())
-        // val compressedInstOp = Wire(new InstDecoderOut())
-        InstDecode (inst,     normalInstOp)
-        // CInstDecode(halfInst, compressedInstOp)
+        InstDecode(inst, normalInstOp)
 
-        // val op = Mux(isCompressed, compressedInstOp, normalInstOp)
-        val op = normalInstOp
+        val op = Wire(new InstDecoderOut())
+        val ready = Wire(Bool())
+        val valid = Wire(Bool())
+        if (Config.Extension.C) {
+            val isCompressedInst = !inst(1, 0).andR
+            // printf("%d %x\n", isCompressedInst, inst)
+            val isHalfPC = in.bits.pc(1).asBool
+
+            val s_high :: s_low :: Nil = Enum(2)
+            val state = RegInit(s_low)
+            state := MuxLookup(state, s_low)(Seq(
+                s_low  -> Mux(!raw && out.ready && in.valid && isCompressedInst && !isHalfPC, s_high, s_low),
+                s_high -> Mux(!raw && out.ready, s_low, s_high)
+            ))
+            val isCompressed = isCompressedInst || isHalfPC || state === s_high
+
+            // printf("state = %d out.valid=%d in.ready=%d in.valid=%d in.pc=0x%x\n", state, out.valid, in.ready, in.valid, in.bits.pc)
+
+            pc   := Mux(state === s_high, in.bits.pc + 2.U(32.W), in.bits.pc)
+            snpc := Cat(pc(31, 2) + 1.U, 0.U(2.W))
+            
+            val halfInstL = inst(15, 0 )
+            val halfInstU = inst(31, 16)
+            val halfInst  = Mux(state === s_high || isHalfPC, halfInstL, halfInstU)
+            
+            val compressedInstOp = Wire(new InstDecoderOut())
+            CInstDecode(halfInst, compressedInstOp)
+            
+            op := Mux(isCompressed, compressedInstOp, normalInstOp)
+            ready := (state === s_low && !(isCompressed && in.valid)) || state === s_high
+            valid := state === s_high
+        } else {
+            op := normalInstOp
+            ready := true.B
+            valid := false.B
+
+            pc := in.bits.pc
+            if (Config.HasBTB) {
+                snpc := pc + 4.U(32.W)
+            } else {
+                snpc := in.bits.snpc
+            }
+        }
         
         // EXU
         out.bits.func3 := op.func3
@@ -335,8 +367,10 @@ object IDUInline {
         out.bits.is_ivd := op.is_ivd
         out.bits.is_brk := op.is_brk
 
-         in.ready := out.ready && !raw
-        out.valid := in .valid && !predict_failed && !raw
+         in.ready := (out.ready && ready) && !raw
+        out.valid := (in .valid || valid) && !raw && !predict_failed
+
+        // printf("%d %d\n", in.valid, out.valid)
 
         // DEBUG
         out.bits.dbg <> in.bits.dbg

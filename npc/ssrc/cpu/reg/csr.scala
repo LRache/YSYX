@@ -101,5 +101,9 @@ class CSR extends Module {
     if (Config.HasMscratch) { table.append(CSRAddr.MSCRATCH-> mscratch) }
     if (Config.HasSatp    ) { table.append(CSRAddr.SATP    -> satp    ) }
 
+    // when (io.trap.is_trap) {
+    //     printf("Trap: cause = %x, epc = %x\n", cause, mepc)
+    // }
+
     io.rdata := MuxLookup(io.raddr, 0.U(32.W))(table.toSeq)
 }

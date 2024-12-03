@@ -31,6 +31,8 @@ object Func3 {
     val GE  = 5
     val LTU = 6
     val GEU = 7
+
+    val DontCare = 8
 }
 
 object Func3UInt {
@@ -66,6 +68,7 @@ object ASel {
     val GPR1 = 1
     val CSR  = 2
     val ZERO = 3
+    val DontCare = 4
 }
 
 object BSel {
@@ -80,7 +83,7 @@ object CSRAddrSel {
     val Ins = 0
     val VEC = 1
     val EPC = 2
-    val DontCare = 0
+    val DontCare = 3
 }
 
 object GPRWSel {
@@ -173,7 +176,8 @@ object InstDecoder {
                     case InstType.CI => ImmType. C
                     case _ => ImmType.DontCare
                 }
-                return BitPat(immType.U(3.W))
+                if (immType == ImmType.DontCare) return BitPat.dontCare(3)
+                else return BitPat(immType.U(3.W))
             }
         }
 
@@ -183,21 +187,24 @@ object InstDecoder {
             def genTable(op: InstPattern): BitPat = {
                 val sel = op.instType match {
                     case InstType. R => ASel.GPR1
+                    case InstType.RC => ASel.GPR1
                     case InstType.IA => ASel.GPR1
+                    case InstType.IC => ASel.GPR1
                     case InstType.IJ => ASel.GPR1
                     case InstType.IU => ASel.GPR1
                     case InstType. L => ASel.GPR1
                     case InstType. S => ASel.GPR1
                     case InstType. B => ASel.  PC
                     case InstType. J => ASel.  PC
-                    case InstType.UA => ASel.  PC
+                    case InstType.UL => ASel.ZERO // lui
+                    case InstType.UA => ASel.  PC // auipc
                     case InstType.CR => ASel. CSR
                     case InstType.CI => ASel. CSR
                     case InstType.EC => ASel.  PC // mepc = pc, pc = mtvec
-                    case InstType.FI => ASel.  PC
-                    case _ => ASel.ZERO
+                    case _ => ASel.DontCare
                 }
-                return BitPat(sel.U(2.W))
+                if (sel == ASel.DontCare) return BitPat.dontCare(2)
+                else return BitPat(sel.U(2.W))
             }
             override def default: BitPat = BitPat(ASel.PC.U(2.W)) // Invalid Type
         }
@@ -223,7 +230,8 @@ object InstDecoder {
                     case InstType.MR => BSel. CSR
                     case _ => BSel.DontCare
                 }
-                return BitPat(sel.U(2.W))
+                if (sel == BSel.DontCare) return BitPat.dontCare(2)
+                else return BitPat(sel.U(2.W))
             }
             override def default: BitPat = BitPat(BSel.CSR.U(2.W)) // Invalid Type
         }
@@ -283,16 +291,15 @@ object InstDecoder {
             def name = "CSRRAddrSel decode field"
             def chiselType = UInt(2.W)
             def genTable(op: InstPattern): BitPat = {
-                val isTrap = Seq(
-                    InstType.EC, 
-                    InstType.IVD
-                ).contains(op.instType)
-                val sel = if(isTrap) CSRAddrSel.VEC else op.instType match {
+                val sel = op.instType match {
+                    case InstType.EC => CSRAddrSel.VEC
                     case InstType.MR => CSRAddrSel.EPC
                     case InstType.CR => CSRAddrSel.Ins
                     case InstType.CI => CSRAddrSel.Ins
                     case _ => CSRAddrSel.DontCare
                 }
+                // to reduce area
+                // if (sel == CSRAddrSel.DontCare) return BitPat.dontCare(2)
                 return BitPat(sel.U(2.W))
             }
             override def default: BitPat = BitPat(CSRAddrSel.VEC.U(2.W))
@@ -348,6 +355,7 @@ object InstDecoder {
         object EXUTagField extends BoolDecodeField[InstPattern] {
             def name = "EXUTag decode field"
             def genTable(op: InstPattern): BitPat = {
+                if (op.exuTag == EXUTag.DontCare) return BitPat.dontCare(1)
                 val exuTag = op.exuTag == EXUTag.T
                 return BitPat(exuTag.B)
             }
@@ -443,7 +451,10 @@ object InstDecoder {
         object CSRWenField extends BoolDecodeField[InstPattern] {
             def name = "CSRWen decode field"
             def genTable(op: InstPattern): BitPat = {
-                val csrWen = Seq(InstType.CR, InstType.CI).contains(op.instType)
+                val csrWen = Seq(
+                    InstType.CR, 
+                    InstType.CI
+                ).contains(op.instType)
                 return BitPat(csrWen.B)
             }
         }

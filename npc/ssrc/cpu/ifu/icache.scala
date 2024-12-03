@@ -10,7 +10,7 @@ import cpu.Config.PCWidth
 import cpu.ICachePerfCounter
 
 class ICacheIO extends Bundle {
-    val raddr = Input (UInt(PCWidth.W))
+    val raddr = Input (UInt(30.W))
     val rdata = Output(UInt(32.W))
     val ready = Input (Bool())
     val valid = Output(Bool())
@@ -23,7 +23,7 @@ class ICache (e: Int, s: Int) extends Module {
         val perf  = new ICachePerfCounter()
         val fence = Input(Bool())
     })
-    val ADDR_OFFSET = 32 - PCWidth
+    val ADDR_OFFSET = 32 - 30
 
     val b = 4
     val S = 1 << s

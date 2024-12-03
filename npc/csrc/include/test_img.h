@@ -1,10 +1,13 @@
 #pragma once
 
+#include <cstdint>
 #include <stdint.h>
 
 #define NOP 0x00000013
+#define CNOP 0x0001
 #define __EBREAK 0x00100073
 #define GOOD_TRAP 0x00000513, __EBREAK,
+#define CAT_C(f, s) (uint32_t)(((s) & 0xffff) | ((f) << 16))
 
 static uint32_t test_img_ebreak[] = {
     __EBREAK
@@ -232,7 +235,7 @@ static uint32_t test_img_ecall[] = {
     0xfff00793, // 0c addi x15, x0, -1
     0x00000073, // 10 ecall
     0x00000000, // 14
-    0x30200073, // mret
+    // 0x30200073, // mret
     0x34201673, // 18 csrrw x12, mcause, x0
 
     GOOD_TRAP
@@ -472,5 +475,80 @@ static uint32_t test_img_btb[] = {
     0x00000113, // 04 addi x2, x0, 0
     0x00110113, // 08 addi x2, x2, 1
     0xfe209ee3, // 0c bne  x1, x2, -4
+    GOOD_TRAP
+};
+
+static uint32_t test_img_c_addi[] = {
+    CAT_C(0x4085, 0x0085),
+    CAT_C(0x0085, 0x0085),
+    CAT_C(0x0085, 0x0085),
+    CAT_C(0x0085, 0x0085),
+    GOOD_TRAP
+};
+
+static uint32_t test_img_c_wait[] = {
+    0xa00000b7, // lui x1, 0xa0000
+    0x0000a103, // lw x2, 0(x1)
+    CAT_C(0x4085, 0x0085),
+    GOOD_TRAP
+};
+
+static uint32_t test_img_c_spsl[] = {
+    0xa0000137, // lui x2, 0xa0000
+    0x123451b7, // lui x3, 0x12345
+    0x78918193, // addi x3, x3, 0x789
+    CAT_C(0xc20e, 0x4212),
+    GOOD_TRAP
+};
+
+static uint32_t test_img_c_rsl[] = {
+    0xa0000537, // lui x10, 0xa0000
+    0x123454b7, // lui x9, 0x12345
+    0x78948493, // addi x10, x10, 0x789
+    CAT_C(0xc144, 0x414c), // c.sw x9, 4(x10) c.lw x11, 4(x10)
+    GOOD_TRAP
+};
+
+static uint32_t test_img_c_lui[] = {
+    CAT_C(0x71e9, 0x626d), // c.lui x3, 0x3a  c.lui x4, 0x1b
+    GOOD_TRAP
+};
+
+static uint32_t test_img_c_addsp4[] = {
+    CAT_C(0x4101, 0x4441), // c.li x2, 0           c.li x8, 0x10
+    CAT_C(0x1fc0, 0x0001), // c.addi4spn x8, 0x3f4 c.nop
+    GOOD_TRAP
+};
+
+static uint32_t test_img_c_shift[] = {
+    CAT_C(0x44f1, 0x0492), // c.li x9, 0x1c  c.slli x9, 4
+    CAT_C(0x44f1, 0x8091), // c.li x9, 0x1c  c.srli x9, 4
+    0x87654537, // lui x10, 0x87654
+    0x32150513, // addi x10, x10, 0x321
+    CAT_C(0x8511, 0x0001), // c.srai x10, 4
+    GOOD_TRAP
+};
+
+static uint32_t test_img_c_andi[] = {
+    0x87654537, // lui x10, 0x87654
+    0x32150513, // addi x10, x10, 0x321
+    0x00a005b3, // add x11, x0, x10
+    CAT_C(0x891d, 0x99c1), // c.andi x10, 0x3
+    GOOD_TRAP
+};
+
+static uint32_t test_img_c_reg[] = {
+    CAT_C(0x44f1, 0x451d), // c.li  x9 , 0x1c  c.li x10, 0x7
+    CAT_C(0x85a6,  CNOP),  // c.mv  x11, x9    c.mv x12, x10
+    CAT_C(0x95aa, 0x85a6), // c.add x11, x10   c.mv x11, x9
+    CAT_C(0x8d91, 0x85a6), // c.sub x11, x10   c.mv x11, x9
+    CAT_C(0x8de9, 0x85a6), // c.and x11, x10
+    CAT_C(0x8da9, 0x85a6), // c.xor x11, x10
+    CAT_C(0x8dc9, 0x85a6), // c.or  x11, x10
+    GOOD_TRAP
+};
+
+static uint32_t test_img_c_ivd[] = {
+    CAT_C(0x0001, 0x0001), // c.li  x9 , 0x1c  c.li x10, 0x7
     GOOD_TRAP
 };

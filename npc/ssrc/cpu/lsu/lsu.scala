@@ -124,6 +124,10 @@ class LSU extends Module {
     val nothingToDo = state === s_idle && !(memRen || memWen)
     io.in.ready  := (nothingToDo || done)
     io.out.valid := (nothingToDo || done) && io.in.valid
+
+    // when(memWen) {
+    //     printf("[LSU] [W] addr: %x, data: %x, func3: %b\n", addr, wdata, memType)
+    // }
     
     // Unused
     io.mem.awid    := DontCare

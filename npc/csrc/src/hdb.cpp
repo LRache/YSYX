@@ -23,7 +23,7 @@ VTop top;
 static std::chrono::time_point<std::chrono::system_clock> timerStart;
 static uint64_t timer = 0;
 
-#define IMG_NAME test_img_temp
+#define IMG_NAME test_img_c_ivd
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
 
@@ -144,8 +144,10 @@ void hdb::invalid_inst() {
 
 void hdb::set_gpr(uint32_t addr, word_t data) {
     if (addr == 0) return ;
-    // Log("Set gpr x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
     cpu.gpr[addr] = data;
+    #ifdef DEBUG_LOG
+    Log("Set gpr x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
+    #endif
 }
 
 const char *name = "unknown";
@@ -172,7 +174,9 @@ void hdb::set_pc(word_t pc) {
     itrace::trace(pc);
     lastUpdatePCClock = cpu.clockCount;
     pcOn = true;
+    #ifdef DEBUG_LOG
     // Log("Exec to pc=" FMT_WORD " at clock=%lu", pc, cpu.clockCount);
+    #endif
 }
 
 void hdb::set_inst(word_t inst) {
