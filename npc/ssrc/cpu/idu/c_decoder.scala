@@ -90,7 +90,7 @@ class CDecodeOPBundle extends Bundle {
     val gprWSel = UInt(2.W)
     val isBrk   = Bool()
     val limit   = UInt(2.W)
-    val isIvd   = Bool()
+    // val isIvd   = Bool()
 }
 
 object CInstDecoder {
@@ -581,7 +581,7 @@ object CInstDecoder {
         DecodeField.GPRWSelField,
         DecodeField.IsBrkField,
         DecodeField.LimitField,
-        DecodeField.IsIvdField,
+        // DecodeField.IsIvdField,
         DecodeField.IsHitField
     )
 
@@ -612,7 +612,6 @@ object CInstDecoder {
         op.gprWSel := decodeResult(DecodeField.GPRWSelField)
         op.isBrk   := decodeResult(DecodeField.IsBrkField)
         op.limit   := decodeResult(DecodeField.LimitField)
-        op.isIvd   := decodeResult(DecodeField.IsIvdField)
         return decodeResult(DecodeField.IsHitField)
     }
 
@@ -637,7 +636,6 @@ object CInstDecoder {
         op.gprWSel := DontCare
         op.limit   := Limit.NO.U
         op.isBrk   := true.B
-        op.isIvd   := false.B
     }
 
     def decode(inst: UInt, op: CDecodeOPBundle): Unit = {
@@ -649,7 +647,7 @@ object CInstDecoder {
             opArray  += lop
             hitArray += hit
         }
-        val isEBreak = (inst === 36866.U(16.W))
+        val isEBreak = (inst === Bits.EBREAK.value.U(16.W))
         val ebreakOP = Wire(new CDecodeOPBundle)
         decode_ebreak(ebreakOP)
         op := Mux(isEBreak, ebreakOP, Mux(hitArray(0), opArray(0), opArray(1)))

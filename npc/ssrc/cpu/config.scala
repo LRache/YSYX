@@ -3,7 +3,7 @@ package cpu
 import scala.collection.mutable.Map
 
 object Config {
-    val HasDBG = false
+    val HasDBG = true
 
     object Extension {
         val C = true
@@ -16,7 +16,7 @@ object Config {
     val JudgeExuRaw = false
 
     val HasClint = true
-    val HasBTB = false
+    val HasBTB = true
     
     // ysyx
     val VendorID = 0x79737938

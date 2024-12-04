@@ -237,10 +237,9 @@ object CInstDecode {
             Limit.Imm.U -> out.imm.xorR,
             Limit.RS1.U -> out.gpr_raddr1.xorR,
         ))
-        // notIvd := true.B    
 
         out.is_trap := false.B
-        out.is_ivd  := op.isIvd || !notIvd
+        out.is_ivd  := !notIvd
         out.is_brk  := op.isBrk
         out.fence_i := false.B
     }
