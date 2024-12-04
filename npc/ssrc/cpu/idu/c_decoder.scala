@@ -29,7 +29,7 @@ object OverlapType {
     val JALR = 2 
 }
 
-object CGPRRaddr1Sel extends {
+object CGPRRaddr1Sel {
     val INST1 = 0; // inst[11:7]
     val INST2 = 1; // inst[ 9:7]
     val X2    = 2;
@@ -39,7 +39,7 @@ object CGPRRaddr1Sel extends {
     val DontCare = 4;
 }
 
-object CGPRRaddr2Sel extends Enumeration {
+object CGPRRaddr2Sel {
     val INST3 = 0; // inst[6:2]
     val INST4 = 1; // inst[4:2]
     val X0    = 2;
@@ -47,7 +47,7 @@ object CGPRRaddr2Sel extends Enumeration {
     val DontCare = 0;
 }
 
-object CGPRWaddrSel extends Enumeration {
+object CGPRWaddrSel {
     val INST1 = 0; // inst[11:7]
     val INST2 = 1; // inst[ 9:7]
     val INST4 = 2; // inst[ 4:2]
@@ -56,6 +56,13 @@ object CGPRWaddrSel extends Enumeration {
     val X2    = 4;
     val SP    = 4;
     val DontCare = 0;
+}
+
+object Limit {
+    val NO  = 0
+    val RD  = 1
+    val Imm = 2
+    val RS1 = 3
 }
 
 import EXUTag.EXUTag
@@ -94,7 +101,13 @@ object CInstDecoder {
     }
     import CInstType.CInstType
 
-    case class InstPattern(val pattern: BitPat, val instType: CInstType, val exuTag: EXUTag, val func3: Int) extends DecodePattern {
+    case class InstPattern(
+        val pattern: BitPat, 
+        val instType: CInstType, 
+        val exuTag: EXUTag, 
+        val func3: Int,
+        val limit: Int,
+    ) extends DecodePattern {
         def bitPat: BitPat = pattern
     }
 
@@ -402,6 +415,14 @@ object CInstDecoder {
             }
         }
 
+        object LimitField extends DecodeField[InstPattern, UInt] {
+            def name = "Limit decode field"
+            def chiselType: UInt = UInt(2.W)
+            def genTable(op: InstPattern): BitPat = {
+                return BitPat(op.limit.U(2.W))
+            }
+        }
+
         object IsBrkField extends BoolDecodeField[InstPattern] {
             def name = "IsBrk decode field"
             def genTable(op: InstPattern): BitPat = {
@@ -484,60 +505,60 @@ object CInstDecoder {
 
     val instTableArray = new ArrayBuffer[Seq[InstPattern]]
 
-    instTableArray += Seq(
-        InstPattern(Bits.NOP,    CInstType.IAU, EXUTag.DontCare, Func3.ADD),
-        InstPattern(Bits.EBREAK, CInstType.EB , EXUTag.DontCare, Func3.ADD),
-    )
+    // instTableArray += Seq(
+    //     InstPattern(Bits.NOP,    CInstType.IAU, EXUTag.DontCare, Func3.ADD),
+    //     InstPattern(Bits.EBREAK, CInstType.EB , EXUTag.DontCare, Func3.ADD),
+    // )
+
+    // instTableArray += Seq(
+    //     InstPattern(Bits.IVD_LWSP, CInstType.IVD, EXUTag.DontCare, Func3.ADD),
+    //     InstPattern(Bits.IVD_LI  , CInstType.IVD, EXUTag.DontCare, Func3.ADD),
+    //     InstPattern(Bits.IVD_LUI , CInstType.IVD, EXUTag.DontCare, Func3.ADD),
+    //     InstPattern(Bits.IVD_ADDI, CInstType.IVD, EXUTag.DontCare, Func3.ADD),
+    //     InstPattern(Bits.IVD_ADDI16SP, CInstType.IVD, EXUTag.DontCare, Func3.ADD),
+    //     InstPattern(Bits.IVD_ADDI4SPN, CInstType.IVD, EXUTag.DontCare, Func3.ADD),
+    //     InstPattern(Bits.IVD_SLLI, CInstType.IVD, EXUTag.DontCare, Func3.SLL),
+    //     InstPattern(Bits.IVD_SRLI, CInstType.IVD, EXUTag.T       , Func3.SR ),
+    //     InstPattern(Bits.IVD_SRAI, CInstType.IVD, EXUTag.F       , Func3.SR ),
+    //     InstPattern(Bits.IVD_MV  , CInstType.IVD, EXUTag.DontCare, Func3.ADD),
+    //     InstPattern(Bits.IVD_ADD , CInstType.IVD, EXUTag.DontCare, Func3.ADD),
+    // )
 
     instTableArray += Seq(
-        InstPattern(Bits.IVD_LWSP, CInstType.IVD, EXUTag.DontCare, Func3.ADD),
-        InstPattern(Bits.IVD_LI  , CInstType.IVD, EXUTag.DontCare, Func3.ADD),
-        InstPattern(Bits.IVD_LUI , CInstType.IVD, EXUTag.DontCare, Func3.ADD),
-        InstPattern(Bits.IVD_ADDI, CInstType.IVD, EXUTag.DontCare, Func3.ADD),
-        InstPattern(Bits.IVD_ADDI16SP, CInstType.IVD, EXUTag.DontCare, Func3.ADD),
-        InstPattern(Bits.IVD_ADDI4SPN, CInstType.IVD, EXUTag.DontCare, Func3.ADD),
-        InstPattern(Bits.IVD_SLLI, CInstType.IVD, EXUTag.DontCare, Func3.SLL),
-        InstPattern(Bits.IVD_SRLI, CInstType.IVD, EXUTag.T       , Func3.SR ),
-        InstPattern(Bits.IVD_SRAI, CInstType.IVD, EXUTag.F       , Func3.SR ),
-        InstPattern(Bits.IVD_MV  , CInstType.IVD, EXUTag.DontCare, Func3.ADD),
-        InstPattern(Bits.IVD_ADD , CInstType.IVD, EXUTag.DontCare, Func3.ADD),
-    )
-
-    instTableArray += Seq(
-        InstPattern(Bits.JR      , CInstType.JR  , EXUTag.DontCare, Func3.ADD),
-        InstPattern(Bits.JALR    , CInstType.JALR, EXUTag.DontCare, Func3.ADD),
-        InstPattern(Bits.ADDI16SP, CInstType.I16 , EXUTag.DontCare, Func3.ADD),
+        InstPattern(Bits.JR      , CInstType.JR  , EXUTag.DontCare, Func3.ADD, Limit.RS1),
+        InstPattern(Bits.JALR    , CInstType.JALR, EXUTag.DontCare, Func3.ADD, Limit. NO),
+        InstPattern(Bits.ADDI16SP, CInstType.I16 , EXUTag.DontCare, Func3.ADD, Limit.Imm),
     )   
 
     instTableArray += Seq(
-        InstPattern(Bits.LWSP, CInstType.SL, EXUTag.DontCare, Func3.W),
-        InstPattern(Bits.SWSP, CInstType.SS, EXUTag.DontCare, Func3.W),
-        InstPattern(Bits.LW  , CInstType.RL, EXUTag.DontCare, Func3.W),
-        InstPattern(Bits.SW  , CInstType.RS, EXUTag.DontCare, Func3.W),
+        InstPattern(Bits.LWSP, CInstType.SL, EXUTag.DontCare, Func3.W, Limit.RD),
+        InstPattern(Bits.SWSP, CInstType.SS, EXUTag.DontCare, Func3.W, Limit.NO),
+        InstPattern(Bits.LW  , CInstType.RL, EXUTag.DontCare, Func3.W, Limit.NO),
+        InstPattern(Bits.SW  , CInstType.RS, EXUTag.DontCare, Func3.W, Limit.NO),
 
-        InstPattern(Bits.J   , CInstType.J   , EXUTag.DontCare, Func3.ADD),
-        InstPattern(Bits.JAL , CInstType.JAL , EXUTag.DontCare, Func3.ADD),
+        InstPattern(Bits.J   , CInstType.J   , EXUTag.DontCare, Func3.ADD, Limit.NO),
+        InstPattern(Bits.JAL , CInstType.JAL , EXUTag.DontCare, Func3.ADD, Limit.NO),
 
-        InstPattern(Bits.BEQZ, CInstType.B, EXUTag.DontCare, Func3.EQ),
-        InstPattern(Bits.BNEZ, CInstType.B, EXUTag.DontCare, Func3.NE),
+        InstPattern(Bits.BEQZ, CInstType.B, EXUTag.DontCare, Func3.EQ, Limit.NO),
+        InstPattern(Bits.BNEZ, CInstType.B, EXUTag.DontCare, Func3.NE, Limit.NO),
 
-        InstPattern(Bits.LI  , CInstType.LI , EXUTag.DontCare, Func3.ADD),
-        InstPattern(Bits.LUI , CInstType.LUI, EXUTag.DontCare, Func3.ADD),
+        InstPattern(Bits.LI  , CInstType.LI , EXUTag.DontCare, Func3.ADD, Limit. RD),
+        InstPattern(Bits.LUI , CInstType.LUI, EXUTag.DontCare, Func3.ADD, Limit.Imm),
 
-        InstPattern(Bits.ADDI    , CInstType.IAU, EXUTag.F       , Func3.ADD),
-        InstPattern(Bits.ADDI4SPN, CInstType.I4 , EXUTag.DontCare, Func3.ADD),
+        InstPattern(Bits.ADDI    , CInstType.IAU, EXUTag.F       , Func3.ADD, Limit. RD),
+        InstPattern(Bits.ADDI4SPN, CInstType.I4 , EXUTag.DontCare, Func3.ADD, Limit.Imm),
 
-        InstPattern(Bits.SLLI, CInstType.IAU, EXUTag.DontCare, Func3.SLL),
-        InstPattern(Bits.SRLI, CInstType.IAS, EXUTag.T       , Func3.SR ),
-        InstPattern(Bits.SRAI, CInstType.IAS, EXUTag.F       , Func3.SR ),
-        InstPattern(Bits.ANDI, CInstType.IAS, EXUTag.DontCare, Func3.AND),
+        InstPattern(Bits.SLLI, CInstType.IAU, EXUTag.DontCare, Func3.SLL, Limit.NO),
+        InstPattern(Bits.SRLI, CInstType.IAS, EXUTag.T       , Func3.SR , Limit.NO),
+        InstPattern(Bits.SRAI, CInstType.IAS, EXUTag.F       , Func3.SR , Limit.NO),
+        InstPattern(Bits.ANDI, CInstType.IAS, EXUTag.DontCare, Func3.AND, Limit.NO),
 
-        InstPattern(Bits.MV , CInstType.MV, EXUTag.DontCare, Func3.ADD),
-        InstPattern(Bits.ADD, CInstType. A, EXUTag.DontCare, Func3.ADD),
-        InstPattern(Bits.SUB, CInstType. A, EXUTag.T       , Func3.ADD),
-        InstPattern(Bits.XOR, CInstType. A, EXUTag.DontCare, Func3.XOR),
-        InstPattern(Bits.OR , CInstType. A, EXUTag.DontCare, Func3.OR ),
-        InstPattern(Bits.AND, CInstType. A, EXUTag.DontCare, Func3.AND),
+        InstPattern(Bits.MV , CInstType.MV, EXUTag.DontCare, Func3.ADD, Limit.RD),
+        InstPattern(Bits.ADD, CInstType. A, EXUTag.DontCare, Func3.ADD, Limit.RD),
+        InstPattern(Bits.SUB, CInstType. A, EXUTag.T       , Func3.ADD, Limit.NO),
+        InstPattern(Bits.XOR, CInstType. A, EXUTag.DontCare, Func3.XOR, Limit.NO),
+        InstPattern(Bits.OR , CInstType. A, EXUTag.DontCare, Func3.OR , Limit.NO),
+        InstPattern(Bits.AND, CInstType. A, EXUTag.DontCare, Func3.AND, Limit.NO),
     )
 
     val decodeFieldSeq = Seq(
@@ -594,6 +615,29 @@ object CInstDecoder {
         return decodeResult(DecodeField.IsHitField)
     }
 
+    def decode_ebreak(op: CDecodeOPBundle) : Unit = {
+        op.immType := DontCare
+        op.aSel    := DontCare
+        op.bSel    := DontCare
+        op.cSel    := DontCare
+        op.gprRen1 := DontCare
+        op.gprRen2 := DontCare
+        op.gprRaddr1 := DontCare
+        op.gprRaddr2 := DontCare
+        op.gprWaddrSel := DontCare
+        op.func3   := DontCare
+        op.aluAdd  := DontCare
+        op.exuTag  := DontCare
+        op.isJmp   := DontCare
+        op.isBranch := DontCare
+        op.memRen  := DontCare
+        op.memWen  := DontCare
+        op.gprWen  := DontCare
+        op.gprWSel := DontCare
+        op.isBrk   := true.B
+        op.isIvd   := false.B
+    }
+
     def decode(inst: UInt, op: CDecodeOPBundle): Unit = {
         val opArray  = new ArrayBuffer[CDecodeOPBundle]
         val hitArray = new ArrayBuffer[Bool]
@@ -603,6 +647,9 @@ object CInstDecoder {
             opArray  += lop
             hitArray += hit
         }
-        op := Mux(hitArray(0), opArray(0), Mux(hitArray(1), opArray(1), Mux(hitArray(2), opArray(2), opArray(3))))
+        val isEBreak = (inst == Bits.EBREAK.value.U(16.W)).B
+        val ebreakOP = Wire(new CDecodeOPBundle)
+        decode_ebreak(ebreakOP)
+        op := Mux(isEBreak, Mux(hitArray(0), opArray(0), opArray(1)), ebreakOP)
     }
 }
