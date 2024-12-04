@@ -44,7 +44,6 @@ CXXFLAGS += $(addprefix -DVTopHeader=, \"V$(TOP)/V$(TOP).h\")
 
 LDFLAGS += -dynamic-linker $(NEMU_SO)
 
-
 ifneq ($(rom),)
 FLAGS += -r $(abspath $(rom))
 endif
