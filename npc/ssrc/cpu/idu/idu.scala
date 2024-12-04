@@ -175,8 +175,6 @@ object CInstDecode {
         out.csr_raddr := DontCare
         out.csr_ren := false.B
 
-        printf("immType=%d ivd=%d\n", op.immType, op.isIvd)
-
         val imm_sl  = Cat(0.U(24.W), inst(3, 2), inst(12), inst(6, 4), 0.U(2.W))
         val imm_ss  = Cat(0.U(24.W), inst(8, 7), inst(12, 9), 0.U(2.W))
         val imm_rls = Cat(0.U(25.W), inst(5), inst(12, 10), inst(6), 0.U(2.W))
@@ -232,8 +230,17 @@ object CInstDecode {
         out.csr_waddr := DontCare
         out.csr_wen := false.B
 
+        val notIvd = Wire(Bool())
+        notIvd := MuxLookup(op.limit, false.B)(Seq(
+            Limit. NO.U -> true.B,
+            Limit. RD.U -> out.gpr_waddr.xorR,
+            Limit.Imm.U -> out.imm.xorR,
+            Limit.RS1.U -> out.gpr_raddr1.xorR,
+        ))
+        // notIvd := true.B    
+
         out.is_trap := false.B
-        out.is_ivd  := op.isIvd
+        out.is_ivd  := op.isIvd || !notIvd
         out.is_brk  := op.isBrk
         out.fence_i := false.B
     }
@@ -370,7 +377,9 @@ object IDUInline {
          in.ready := (out.ready && ready) && !raw
         out.valid := (in .valid || valid) && !raw && !predict_failed
 
-        // printf("%d %d\n", in.valid, out.valid)
+        // when (in.valid) {
+        //     printf(p"IDU: pc=0x${Hexadecimal(pc)} inst=0x${Hexadecimal(inst)} isBrk=${out.bits.is_brk}\n")
+        // }
 
         // DEBUG
         out.bits.dbg <> in.bits.dbg

@@ -1,13 +1,11 @@
 package cpu.idu
 
 import scala.collection.mutable.Map
+import scala.collection.mutable.ArrayBuffer
 
 import chisel3._
 import chisel3.util._
 import chisel3.util.experimental.decode._
-import cpu.idu.CInstDecoder.DecodeField.IsHitField
-import scala.collection.mutable.ArrayBuffer
-import cpu.idu.CSRAddrSel.Ins
 
 object CImmType {
     val SL  = 0
@@ -91,6 +89,7 @@ class CDecodeOPBundle extends Bundle {
     val gprWen  = Bool()
     val gprWSel = UInt(2.W)
     val isBrk   = Bool()
+    val limit   = UInt(2.W)
     val isIvd   = Bool()
 }
 
@@ -426,8 +425,7 @@ object CInstDecoder {
         object IsBrkField extends BoolDecodeField[InstPattern] {
             def name = "IsBrk decode field"
             def genTable(op: InstPattern): BitPat = {
-                val isBrk = op.instType == CInstType.EB
-                return BitPat(isBrk.B)
+                return BitPat(false.B)
             }
             override def default: BitPat = BitPat(false.B)
         }
@@ -527,6 +525,7 @@ object CInstDecoder {
     instTableArray += Seq(
         InstPattern(Bits.JR      , CInstType.JR  , EXUTag.DontCare, Func3.ADD, Limit.RS1),
         InstPattern(Bits.JALR    , CInstType.JALR, EXUTag.DontCare, Func3.ADD, Limit. NO),
+        InstPattern(Bits.NOP     , CInstType.IAU , EXUTag.DontCare, Func3.ADD, Limit. NO),
         InstPattern(Bits.ADDI16SP, CInstType.I16 , EXUTag.DontCare, Func3.ADD, Limit.Imm),
     )   
 
@@ -545,7 +544,7 @@ object CInstDecoder {
         InstPattern(Bits.LI  , CInstType.LI , EXUTag.DontCare, Func3.ADD, Limit. RD),
         InstPattern(Bits.LUI , CInstType.LUI, EXUTag.DontCare, Func3.ADD, Limit.Imm),
 
-        InstPattern(Bits.ADDI    , CInstType.IAU, EXUTag.F       , Func3.ADD, Limit. RD),
+        InstPattern(Bits.ADDI    , CInstType.IAU, EXUTag.F       , Func3.ADD, Limit.Imm),
         InstPattern(Bits.ADDI4SPN, CInstType.I4 , EXUTag.DontCare, Func3.ADD, Limit.Imm),
 
         InstPattern(Bits.SLLI, CInstType.IAU, EXUTag.DontCare, Func3.SLL, Limit.NO),
@@ -581,6 +580,7 @@ object CInstDecoder {
         DecodeField.GPRWenField,
         DecodeField.GPRWSelField,
         DecodeField.IsBrkField,
+        DecodeField.LimitField,
         DecodeField.IsIvdField,
         DecodeField.IsHitField
     )
@@ -611,6 +611,7 @@ object CInstDecoder {
         op.gprWen  := decodeResult(DecodeField.GPRWenField)
         op.gprWSel := decodeResult(DecodeField.GPRWSelField)
         op.isBrk   := decodeResult(DecodeField.IsBrkField)
+        op.limit   := decodeResult(DecodeField.LimitField)
         op.isIvd   := decodeResult(DecodeField.IsIvdField)
         return decodeResult(DecodeField.IsHitField)
     }
@@ -634,6 +635,7 @@ object CInstDecoder {
         op.memWen  := DontCare
         op.gprWen  := DontCare
         op.gprWSel := DontCare
+        op.limit   := Limit.NO.U
         op.isBrk   := true.B
         op.isIvd   := false.B
     }
@@ -647,9 +649,9 @@ object CInstDecoder {
             opArray  += lop
             hitArray += hit
         }
-        val isEBreak = (inst == Bits.EBREAK.value.U(16.W)).B
+        val isEBreak = (inst === 36866.U(16.W))
         val ebreakOP = Wire(new CDecodeOPBundle)
         decode_ebreak(ebreakOP)
-        op := Mux(isEBreak, Mux(hitArray(0), opArray(0), opArray(1)), ebreakOP)
+        op := Mux(isEBreak, ebreakOP, Mux(hitArray(0), opArray(0), opArray(1)))
     }
 }

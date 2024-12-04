@@ -548,7 +548,12 @@ static uint32_t test_img_c_reg[] = {
     GOOD_TRAP
 };
 
+static uint32_t test_img_c_nop[] = {
+    CAT_C(CNOP, CNOP), // c.nop
+    GOOD_TRAP
+};
+
 static uint32_t test_img_c_ivd[] = {
-    CAT_C(0x0001, 0x0001), // c.li  x9 , 0x1c  c.li x10, 0x7
+    CAT_C(0x0000, 0x0000), // c.li  x9 , 0x1c  c.li x10, 0x7
     GOOD_TRAP
 };
