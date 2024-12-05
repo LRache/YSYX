@@ -4,7 +4,9 @@
 #include <iostream>
 #include <ostream>
 #include <iomanip>
+#include <unordered_set>
 
+#include "common.h"
 #include "memory.h"
 #include "debug.h"
 #include "hdb.h"
@@ -23,7 +25,9 @@ VTop top;
 static std::chrono::time_point<std::chrono::system_clock> timerStart;
 static uint64_t timer = 0;
 
-#define IMG_NAME test_img_c_ivd
+static std::unordered_set<word_t> breakpointSet;
+
+#define IMG_NAME test_img_c_addi_nohazard
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
 
@@ -70,6 +74,24 @@ void hdb::init() {
 
     cpu.mstatus = 0x1800;
     Log("Init finished.");
+
+    // breakpointSet.insert(0xa00000da);
+}
+
+void check_pc() {
+    if (!(in_flash(cpu.pc) || in_sdram(cpu.pc))) {
+        panic("Invalid PC = " FMT_WORD", lastPC = " FMT_WORD, cpu.pc, cpu.lastPC);
+    }
+    if (cpu.pc & 0x1) {
+        panic("Unaligned PC = " FMT_WORD", lastPC = " FMT_WORD, cpu.pc, cpu.lastPC);
+    }
+}
+
+void check_breakpoint() {
+    if (breakpointSet.find(cpu.pc) != breakpointSet.end()) {
+        Log("Hit breakpoint at pc=" FMT_WORD, cpu.pc);
+        cpu.running = false;
+    }
 }
 
 void hdb::step() {
@@ -83,10 +105,9 @@ void hdb::step() {
         check_step_timeout();
     }
     if (cpu.running) difftest::step();
+    check_pc();
+    check_breakpoint();
     cpu.instCount++;
-    if (!(in_flash(cpu.pc) || in_sdram(cpu.pc))) {
-        panic("Invalid PC = " FMT_WORD", lastPC = " FMT_WORD, cpu.pc, cpu.lastPC);
-    }
 }
 
 void hdb_statistic() {
@@ -175,14 +196,16 @@ void hdb::set_pc(word_t pc) {
     lastUpdatePCClock = cpu.clockCount;
     pcOn = true;
     #ifdef DEBUG_LOG
-    // Log("Exec to pc=" FMT_WORD " at clock=%lu", pc, cpu.clockCount);
+    Log("Exec to pc=" FMT_WORD " at clock=%lu", pc, cpu.clockCount);
     #endif
 }
 
 void hdb::set_inst(word_t inst) {
     cpu.lastInst = cpu.inst;
     cpu.inst = inst;
-    // Log(FMT_WORD, inst);
+    #ifdef DEBUG_LOG
+    Log(FMT_WORD, inst);
+    #endif
 }
 
 void hdb::set_reset(bool reset) {

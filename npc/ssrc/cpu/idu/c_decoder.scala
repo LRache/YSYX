@@ -121,13 +121,14 @@ object CInstDecoder {
                     case CInstType. RL => CImmType.RLS;
                     case CInstType. RS => CImmType.RLS;
                     case CInstType.  J => CImmType. JI;
+                    case CInstType.JAL => CImmType. JI;
                     case CInstType.  B => CImmType.  B;
                     case CInstType. LI => CImmType. LI;
                     case CInstType.LUI => CImmType. UI;
                     case CInstType.IAU => CImmType. AU;
                     case CInstType.IAS => CImmType. AS;
                     case CInstType.I16 => CImmType.I16;
-                    case CInstType.I4  => CImmType. I4;
+                    case CInstType. I4 => CImmType. I4;
                     case _             => CImmType.  B; //Dont Care
                 }
                 return BitPat(immType.U(4.W))
@@ -167,20 +168,20 @@ object CInstDecoder {
             def chiselType: UInt = UInt(2.W)
             def genTable(op: InstPattern): BitPat = {
                 val sel = op.instType match {
-                    case CInstType.  SL => BSel.Imm;
-                    case CInstType.  SS => BSel.Imm;
-                    case CInstType.  RL => BSel.Imm;
-                    case CInstType.  RS => BSel.Imm;
-                    case CInstType.   J => BSel.Imm;
-                    case CInstType. JAL => BSel.Imm;
-                    case CInstType.  JR => BSel.Imm;
-                    case CInstType.JALR => BSel.Imm;
-                    case CInstType.  LI => BSel.Imm;
-                    case CInstType. LUI => BSel.Imm;
-                    case CInstType. IAU => BSel.Imm;
-                    case CInstType. IAS => BSel.Imm;
-                    case CInstType. I16 => BSel.Imm;
-                    case CInstType.  I4 => BSel.Imm;
+                    case CInstType.  SL => BSel. Imm;
+                    case CInstType.  SS => BSel. Imm;
+                    case CInstType.  RL => BSel. Imm;
+                    case CInstType.  RS => BSel. Imm;
+                    case CInstType.   J => BSel. Imm;
+                    case CInstType. JAL => BSel. Imm;
+                    case CInstType.  JR => BSel.GPR2;
+                    case CInstType.JALR => BSel.GPR2;
+                    case CInstType.  LI => BSel. Imm;
+                    case CInstType. LUI => BSel. Imm;
+                    case CInstType. IAU => BSel. Imm;
+                    case CInstType. IAS => BSel. Imm;
+                    case CInstType. I16 => BSel. Imm;
+                    case CInstType.  I4 => BSel. Imm;
                     case CInstType.  MV => BSel.GPR2;
                     case CInstType.   A => BSel.GPR2;
                     case _              => BSel.DontCare; // DontCare
@@ -214,7 +215,9 @@ object CInstDecoder {
                     CInstType. IAS,
                     CInstType. I16,
                     CInstType.  I4,
-                    CInstType.   A
+                    CInstType.   A,
+                    CInstType.  JR,
+                    CInstType.JALR,
                 ).contains(op.instType)
                 return BitPat(ren.B)
             }
@@ -263,12 +266,14 @@ object CInstDecoder {
             def chiselType: UInt = UInt(2.W)
             def genTable(op: InstPattern): BitPat = {
                 val sel = op.instType match {
-                    case CInstType.SS => CGPRRaddr2Sel.INST3;
-                    case CInstType.RS => CGPRRaddr2Sel.INST4;
-                    case CInstType. B => CGPRRaddr2Sel.ZERO;
-                    case CInstType.MV => CGPRRaddr2Sel.INST3;
-                    case CInstType. A => CGPRRaddr2Sel.INST4;
-                    case _            => CGPRRaddr2Sel.DontCare; 
+                    case CInstType.  SS => CGPRRaddr2Sel.INST3;
+                    case CInstType.  RS => CGPRRaddr2Sel.INST4;
+                    case CInstType.   B => CGPRRaddr2Sel. ZERO;
+                    case CInstType.  MV => CGPRRaddr2Sel.INST3;
+                    case CInstType.   A => CGPRRaddr2Sel.INST4;
+                    case CInstType.  JR => CGPRRaddr2Sel. ZERO;
+                    case CInstType.JALR => CGPRRaddr2Sel. ZERO;
+                    case _ => CGPRRaddr2Sel.DontCare; 
                 }
                 return BitPat(sel.U(2.W))
             }
@@ -526,7 +531,7 @@ object CInstDecoder {
         InstPattern(Bits.JR      , CInstType.JR  , EXUTag.DontCare, Func3.ADD, Limit.RS1),
         InstPattern(Bits.JALR    , CInstType.JALR, EXUTag.DontCare, Func3.ADD, Limit. NO),
         InstPattern(Bits.NOP     , CInstType.IAU , EXUTag.DontCare, Func3.ADD, Limit. NO),
-        InstPattern(Bits.ADDI16SP, CInstType.I16 , EXUTag.DontCare, Func3.ADD, Limit.Imm),
+        InstPattern(Bits.ADDI16SP, CInstType.I16 , EXUTag.DontCare, Func3.ADD, Limit. NO),
     )   
 
     instTableArray += Seq(

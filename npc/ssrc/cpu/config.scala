@@ -16,14 +16,14 @@ object Config {
     val JudgeExuRaw = false
 
     val HasClint = true
-    val HasBTB = true
+    val HasBTB = false
     
     // ysyx
     val VendorID = 0x79737938
     val ArchID = 0x24080016
 
     // IFU
-    val PCWidth = 30
+    val PCWidth = 32
     
     // GPR
     val GPRAddrWidth = 4

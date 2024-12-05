@@ -21,7 +21,7 @@ class IFU(instStart : BigInt) extends Module {
         val is_fence  = Input(Bool())
         val predictor_pc = Input(UInt(Config.PCWidth.W))
     })
-    def static_next_pc(pc: UInt) = pc + 4.U(32.W)(31, 32 - Config.PCWidth)
+    def static_next_pc(pc: UInt) = Cat((pc(Config.PCWidth - 1, Config.PCWidth - 30) + 1.U(30.W)), 0.U((Config.PCWidth - 30).W))
     
     val pc   = RegInit(instStart.U(32.W)(31, 32 - Config.PCWidth))
     val snpc = static_next_pc(pc)
@@ -45,6 +45,9 @@ class IFU(instStart : BigInt) extends Module {
         io.out.bits.predict_jmp := predictJmp
     } else {
         npc := Mux(state === s_skip_once, dnpc, snpc)
+        // when (state === s_skip_once) {
+        //     printf("npc= %x\n", npc)
+        // }
         io.out.bits.predict_jmp := false.B
     }
 
@@ -57,6 +60,14 @@ class IFU(instStart : BigInt) extends Module {
     io.out.bits.pc   := Cat(pc,   0.U((32 - Config.PCWidth).W))
     io.out.bits.snpc := Cat(snpc, 0.U((32 - Config.PCWidth).W))
     io.out.bits.inst := inst
+
+    // when (io.out.ready && io.cache.valid) {
+    //     printf("npc2= %x\n", npc)
+    // }
+
+    // when (io.out.valid) {
+    //     printf("send %x\n", pc)
+    // }
     
     io.out.valid := io.cache.valid && state === s_fetch && !io.predict_failed
     io.out.bits.dbg.pc   := Cat(pc, 0.U((32 - Config.PCWidth).W))

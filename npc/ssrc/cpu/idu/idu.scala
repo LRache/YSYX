@@ -9,7 +9,6 @@ import cpu.reg.CSRAddr
 import cpu.IFUMessage
 import cpu.IDUMessage
 import cpu.reg.CSR
-import os.read
 
 class IDUBundle extends Bundle {
     val in =  Decoupled(new IFUMessage)
@@ -182,9 +181,9 @@ object CInstDecode {
         val imm_b   = Cat(Fill(23, inst(12)), inst(12), inst(6, 5), inst(11, 10), inst(4, 3), 0.U(1.W))
         val imm_li  = Cat(Fill(26, inst(12)), inst(12), inst(6, 2))
         val imm_ui  = Cat(Fill(14, inst(12)), inst(6, 2), 0.U(12.W))
-        val imm_au  = Cat(0.U(26.W), inst(12), inst(6, 2))
+        val imm_au  = Cat(Fill(27, inst(12)), inst(6, 2))
         val imm_as  = imm_li
-        val imm_i16 = Cat(0.U(22.W), inst(12), inst(4, 3), inst(5), inst(2), inst(6), 15.U(4.W))
+        val imm_i16 = Cat(Fill(23, inst(12)), inst(4, 3), inst(5), inst(2), inst(6), 0.U(4.W))
         val imm_i4  = Cat(0.U(22.W), inst(11, 8), inst(13, 12), inst(5), inst(6), 0.U(2.W))
         out.imm := MuxLookup(op.immType, 0.U)(Seq(
             CImmType. SL.U -> imm_sl,
@@ -233,9 +232,9 @@ object CInstDecode {
         val notIvd = Wire(Bool())
         notIvd := MuxLookup(op.limit, false.B)(Seq(
             Limit. NO.U -> true.B,
-            Limit. RD.U -> out.gpr_waddr.xorR,
-            Limit.Imm.U -> out.imm.xorR,
-            Limit.RS1.U -> out.gpr_raddr1.xorR,
+            Limit. RD.U -> out.gpr_waddr.orR,
+            Limit.Imm.U -> out.imm.orR,
+            Limit.RS1.U -> out.gpr_raddr1.orR,
         ))
 
         out.is_trap := false.B
@@ -262,9 +261,10 @@ object IDUInline {
         raw       : Bool,
         predict_failed: Bool
     ): Unit = {
-        val pc   = Wire(UInt(32.W))
+        val pc   = in.bits.pc
         val snpc = Wire(UInt(32.W))
         val inst = in.bits.inst
+        val dbgInst = Wire(UInt(32.W))
         
         val normalInstOp = Wire(new InstDecoderOut())
         InstDecode(inst, normalInstOp)
@@ -273,44 +273,51 @@ object IDUInline {
         val ready = Wire(Bool())
         val valid = Wire(Bool())
         if (Config.Extension.C) {
-            val isCompressedInst = !inst(1, 0).andR
-            // printf("%d %x\n", isCompressedInst, inst)
-            val isHalfPC = in.bits.pc(1).asBool
-
-            val s_high :: s_low :: Nil = Enum(2)
-            val state = RegInit(s_low)
-            state := MuxLookup(state, s_low)(Seq(
-                s_low  -> Mux(!raw && out.ready && in.valid && isCompressedInst && !isHalfPC, s_high, s_low),
-                s_high -> Mux(!raw && out.ready, s_low, s_high)
-            ))
-            val isCompressed = isCompressedInst || isHalfPC || state === s_high
-
-            // printf("state = %d out.valid=%d in.ready=%d in.valid=%d in.pc=0x%x\n", state, out.valid, in.ready, in.valid, in.bits.pc)
-
-            pc   := Mux(state === s_high, in.bits.pc + 2.U(32.W), in.bits.pc)
-            snpc := Cat(pc(31, 2) + 1.U, 0.U(2.W))
+            val tempInst = Reg(UInt(16.W))
+            val empty = RegInit(true.B)
+            val flag  = RegInit(false.B) // decode full inst anyway
             
-            val halfInstL = inst(15, 0 )
-            val halfInstU = inst(31, 16)
-            val halfInst  = Mux(state === s_high || isHalfPC, halfInstL, halfInstU)
+            val inInstFirst  = in.bits.inst(15, 0)
+            val inInstSecond = in.bits.inst(31, 16)
+            val pcAligned = !pc(1).asBool
+
+            val fullInst = Mux(empty, in.bits.inst, Cat(tempInst, inInstFirst))
+            val halfInst = Mux(empty, inInstFirst, tempInst)
             
-            val compressedInstOp = Wire(new InstDecoderOut())
-            CInstDecode(halfInst, compressedInstOp)
+            val fullInstOp = Wire(new InstDecoderOut())
+            val fullInstValid = !fullInstOp.is_ivd
+            InstDecode(fullInst, fullInstOp)
+            val halfInstOp = Wire(new InstDecoderOut())
+            CInstDecode(halfInst, halfInstOp)
+
+            op := Mux(flag, fullInstOp, Mux(fullInstValid, fullInstOp, halfInstOp))
+            dbgInst := Mux(flag, fullInst, Mux(fullInstValid, fullInst, halfInst))
             
-            op := Mux(isCompressed, compressedInstOp, normalInstOp)
-            ready := (state === s_low && !(isCompressed && in.valid)) || state === s_high
-            valid := state === s_high
+            val pc_4 = pc + 4.U(32.W)
+            val pc_2 = pc + 2.U(32.W)
+            snpc := Mux(flag, pc_4, Mux(empty, Mux(fullInstValid, pc_4, pc_2), Mux(fullInstValid, pc_2, pc)))
+
+            empty := Mux(in.valid, pcAligned && Mux(out.ready, Mux(empty, fullInstValid, !fullInstValid), empty), empty) || predict_failed
+            // flag  := (!pcAligned) || Mux(out.ready && !predict_failed, (!empty) && (!fullInstValid), flag)
+            flag := false.B
+            tempInst := Mux(out.ready, inInstSecond, tempInst)
+
+            ready := !(pcAligned && !empty && !fullInstValid) && out.ready // Maybe need to be optimized
+            valid := pcAligned && (in.valid || flag)
+            when(in.valid) {
+                printf("%d %d %d %d %x\n", empty, flag, pcAligned, out.valid, pc)
+            }
         } else {
             op := normalInstOp
-            ready := true.B
-            valid := false.B
+            ready := out.ready
+            valid := in. valid
 
-            pc := in.bits.pc
             if (Config.HasBTB) {
                 snpc := pc + 4.U(32.W)
             } else {
                 snpc := in.bits.snpc
             }
+            dbgInst := inst
         }
         
         // EXU
@@ -373,15 +380,16 @@ object IDUInline {
         out.bits.is_ivd := op.is_ivd
         out.bits.is_brk := op.is_brk
 
-         in.ready := (out.ready && ready) && !raw
-        out.valid := (in .valid || valid) && !raw && !predict_failed
+         in.ready := ready && !raw
+        out.valid := valid && !raw && !predict_failed
 
         // when (in.valid) {
         //     printf(p"IDU: pc=0x${Hexadecimal(pc)} inst=0x${Hexadecimal(inst)} isBrk=${out.bits.is_brk}\n")
         // }
 
         // DEBUG
-        out.bits.dbg <> in.bits.dbg
+        out.bits.dbg.pc := pc
+        out.bits.dbg.inst := dbgInst
     }
 
     def apply(bundle: IDUBundle) : Unit = {

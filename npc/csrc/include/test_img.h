@@ -7,7 +7,7 @@
 #define CNOP 0x0001
 #define __EBREAK 0x00100073
 #define GOOD_TRAP 0x00000513, __EBREAK,
-#define CAT_C(f, s) (uint32_t)(((s) & 0xffff) | ((f) << 16))
+#define CAT_C(f, s) (uint32_t)(((f) & 0xffff) | ((s) << 16))
 
 static uint32_t test_img_ebreak[] = {
     __EBREAK
@@ -443,14 +443,7 @@ static uint32_t test_img_bootloader[] = {
 };
 
 static uint32_t test_img_temp[] = {
-    0xa0000137, // 00 lui sp, 0x80100
-    0x00200293, // 04 addi t0, x0, 8
-    0x00512023, // 08 sw t0, 0(sp)
-    0x00012303, // 0c lw t1, 0(sp)
-    0xfff30313, // 10 addi t1, t1, -1
-    0x00612023, // 14 sw t1, 0(sp)
-    0x00012283, // 18 lw t0, 0(sp)
-    0xfe0296e3, // 1c bne t0, t0, -20
+    CAT_C(0x4101, 0x1151),
     GOOD_TRAP   // 18 1c
 };
 
@@ -483,6 +476,15 @@ static uint32_t test_img_c_addi[] = {
     CAT_C(0x0085, 0x0085),
     CAT_C(0x0085, 0x0085),
     CAT_C(0x0085, 0x0085),
+    GOOD_TRAP
+};
+
+static uint32_t test_img_c_addi_nohazard[] = {
+    CAT_C(0x0085, 0x0109), // 00
+    CAT_C(0x018d, 0x0211), // 04
+    // CAT_C(0x0295, CNOP  ), // 08
+    // CAT_C(0x039d, 0x0421),
+    // CAT_C(0x05ad, 0x0631),
     GOOD_TRAP
 };
 
@@ -555,5 +557,77 @@ static uint32_t test_img_c_nop[] = {
 
 static uint32_t test_img_c_ivd[] = {
     CAT_C(0x0000, 0x0000), // c.li  x9 , 0x1c  c.li x10, 0x7
+    GOOD_TRAP
+};
+
+static uint32_t test_img_c_addi16sp[] = {
+    CAT_C(0x711d, 0x4101), // c.addi16spn x2, 0x3a  c.li x2, 0
+    CAT_C(0x6155, CNOP),   // c.addi16spn x2, 0x13  c.nop
+    GOOD_TRAP
+};
+
+static uint32_t test_img_c_good_trap[] = {
+    CAT_C(0x4501, 0x9002)
+};
+
+static uint32_t test_img_c_j[] = {
+    CAT_C(0xa011, 0x0085), // c.j 4
+    CAT_C(CNOP  , 0xa011), // c.nop c.j 4
+    CAT_C(0x0109, 0x018d), // c.addi x2, 2  c.addi x3, 3
+    0x0060006f, // jal x0, 6
+    CAT_C(0x4211, 0x4295), // c.li x4, 4    c.li x5, 5
+    0x0040006f, // jal x0 4
+    CAT_C(0x4319, 0x439d), // c.li x6, 6    c.li x7, 7
+    GOOD_TRAP
+};
+
+static uint32_t test_img_c_jal[] = {
+    CAT_C(0x2011, 0x4085), // 00 c.jal 4  c.li x1, 1
+    CAT_C(CNOP  , 0x2011), // 04 c.nop c.jal 4
+    CAT_C(0x4109, 0x418d), // 08 c.addi x2, 2  c.addi x3, 3
+    CAT_C(CNOP  , 0x2019), // 0c c.nop c.jal 6
+    CAT_C(0x4211, 0x4295), // 10 c.li x4, 4    c.li x5, 5
+    CAT_C(0x4319, 0x439d), // 14 c.li x6, 6    c.li x7, 7
+    CAT_C(0x2019, CNOP  ), // 18 c.jal 6 c.nop 
+    CAT_C(0x4421, 0x44a5), // 1c c.li x8, 8    c.li x9, 9
+    GOOD_TRAP
+};
+
+static uint32_t test_img_c_jr[] = {
+    0x00000097,            // 00 auipc x1, 0
+    0x00c08093,            // 04 addi x1, x1, 12
+    CAT_C(0x8082, 0x4085), // 08 c.jr x1     c.li x1, 1
+    CAT_C(0x4109, 0x418d), // 0c c.li x2, 2  c.li x3, 3
+    0x00000097,            // 10 auipc x1, 0
+    0x00e08093,            // 14 addi x1, x1, 14
+    CAT_C(0x8082, 0x4085), // 18 c.jr x1     c.li x1, 1
+    CAT_C(0x4211, 0x4295), // 1c c.li x4, 4    c.li x5, 5
+    GOOD_TRAP
+};
+
+static uint32_t test_img_c_jalr[] = {
+    0x00000117,            // 00 auipc x2, 0
+    0x00c10113,            // 04 addi x2, x2, 12
+    CAT_C(0x9102, 0x4085), // 08 c.jalr x2   c.li x1, 1
+    CAT_C(0x4109, 0x418d), // 0c c.li x2, 2  c.li x3, 3
+    0x00000117,            // 00 auipc x2, 0
+    0x00e10113,            // 04 addi x2, x2, 14
+    CAT_C(0x9102, 0x4085), // 18 c.jalr x2     c.li x1, 1
+    CAT_C(0x4211, 0x4295), // 1c c.li x4, 4    c.li x5, 5
+    GOOD_TRAP
+};
+
+static uint32_t test_img_c_jalr2[] = {
+    0x00000197, // auipc x3, 0
+    0x00e180e7, // jalr x1, 14(x3)
+    CAT_C(0x4085, 0x4109), // 04 c.li x1, 1  c.li x2, 2
+    CAT_C(0x418d, 0x1151), // 08 c.li x3, 3  c.li x4, 4
+    GOOD_TRAP
+};
+
+static uint32_t test_img_c_branch[] = {
+    CAT_C(0x4405, 0xc011), // 00 c.li x8, 1  c.bnez x8, 6
+    CAT_C(0x4085, 0x4109), // 04 c.li x1, 1  c.li x2, 2
+    CAT_C(0x418d, 0x4211), // 08 c.li x3, 3  c.li x4, 4
     GOOD_TRAP
 };
