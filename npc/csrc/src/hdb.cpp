@@ -27,7 +27,7 @@ static uint64_t timer = 0;
 
 static std::unordered_set<word_t> breakpointSet;
 
-#define IMG_NAME test_img_c_addi_nohazard
+#define IMG_NAME test_img_c_temp
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
 

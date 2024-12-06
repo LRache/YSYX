@@ -297,15 +297,16 @@ object IDUInline {
             val pc_2 = pc + 2.U(32.W)
             snpc := Mux(flag, pc_4, Mux(empty, Mux(fullInstValid, pc_4, pc_2), Mux(fullInstValid, pc_2, pc)))
 
-            empty := Mux(in.valid, pcAligned && Mux(out.ready, Mux(empty, fullInstValid, !fullInstValid), empty), empty) || predict_failed
+            val en = out.ready && !raw
+            empty := Mux(in.valid, pcAligned && Mux(en, Mux(empty, fullInstValid, !fullInstValid), empty), empty) || predict_failed
             // flag  := (!pcAligned) || Mux(out.ready && !predict_failed, (!empty) && (!fullInstValid), flag)
             flag := false.B
-            tempInst := Mux(out.ready, inInstSecond, tempInst)
+            tempInst := Mux(en, inInstSecond, tempInst)
 
             ready := !(pcAligned && !empty && !fullInstValid) && out.ready // Maybe need to be optimized
-            valid := pcAligned && (in.valid || flag)
-            when(in.valid) {
-                printf("%d %d %d %d %x\n", empty, flag, pcAligned, out.valid, pc)
+            valid := pcAligned && in.valid
+            when(in.valid && out.ready) {
+                printf("%d %d %d %d %x\n", empty, pcAligned, out.valid, in.ready, pc)
             }
         } else {
             op := normalInstOp
