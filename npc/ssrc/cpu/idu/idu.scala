@@ -273,16 +273,18 @@ object IDUInline {
         val ready = Wire(Bool())
         val valid = Wire(Bool())
         if (Config.Extension.C) {
-            val tempInst = Reg(UInt(16.W))
-            val empty = RegInit(true.B)
-            val flag  = RegInit(false.B) // decode full inst anyway
+            val saved = Reg(UInt(16.W))
+            val left  = RegInit(false.B) // decode full inst anyway
             
-            val inInstFirst  = in.bits.inst(15, 0)
-            val inInstSecond = in.bits.inst(31, 16)
+            val inInstLow  = in.bits.inst(15, 0)
+            val inInstHigh = in.bits.inst(31, 16)
             val pcAligned = !pc(1).asBool
 
-            val fullInst = Mux(empty, in.bits.inst, Cat(tempInst, inInstFirst))
-            val halfInst = Mux(empty, inInstFirst, tempInst)
+            val s_empty :: s_saved :: Nil = Enum(2) // s_decode for decode left inst
+            val state = RegInit(s_empty)
+
+            val fullInst = Mux(state === s_empty, in.bits.inst, Cat(inInstLow, saved))
+            val halfInst = Mux(state === s_empty, inInstLow, saved)
             
             val fullInstOp = Wire(new InstDecoderOut())
             val fullInstValid = !fullInstOp.is_ivd
@@ -290,24 +292,43 @@ object IDUInline {
             val halfInstOp = Wire(new InstDecoderOut())
             CInstDecode(halfInst, halfInstOp)
 
-            op := Mux(flag, fullInstOp, Mux(fullInstValid, fullInstOp, halfInstOp))
-            dbgInst := Mux(flag, fullInst, Mux(fullInstValid, fullInst, halfInst))
+            state := Mux(predict_failed, s_empty, Mux(
+                (in.valid || left) && !raw,
+                Mux(
+                    pcAligned,
+                    MuxLookup(state, s_empty)(Seq(
+                        s_empty -> Mux(fullInstValid, s_empty, s_saved),
+                        s_saved -> Mux(fullInstValid, s_saved, s_empty)
+                    )),
+                    s_empty
+                ),
+                state
+            ))
+
+            op := Mux(fullInstValid, fullInstOp, halfInstOp)
+            dbgInst := Mux(fullInstValid, fullInst, halfInst)
             
-            val pc_4 = pc + 4.U(32.W)
-            val pc_2 = pc + 2.U(32.W)
-            snpc := Mux(flag, pc_4, Mux(empty, Mux(fullInstValid, pc_4, pc_2), Mux(fullInstValid, pc_2, pc)))
-
-            val en = out.ready && !raw
-            empty := Mux(in.valid, pcAligned && Mux(en, Mux(empty, fullInstValid, !fullInstValid), empty), empty) || predict_failed
-            // flag  := (!pcAligned) || Mux(out.ready && !predict_failed, (!empty) && (!fullInstValid), flag)
-            flag := false.B
-            tempInst := Mux(en, inInstSecond, tempInst)
-
-            ready := !(pcAligned && !empty && !fullInstValid) && out.ready // Maybe need to be optimized
-            valid := pcAligned && in.valid
-            when(in.valid && out.ready) {
-                printf("%d %d %d %d %x\n", empty, pcAligned, out.valid, in.ready, pc)
+            snpc := in.bits.pc + MuxLookup(state, 0.U)(Seq(
+                s_empty -> Mux(fullInstValid, 4.U(32.W), 2.U(32.W)),
+                s_saved -> Mux(fullInstValid, 2.U(32.W), 0.U(32.W))
+            ))
+            pc := in.bits.pc - MuxLookup(state, 0.U)(Seq(
+                s_empty -> 0.U,
+                s_saved -> 2.U,
+            ))
+            when(out.valid && out.ready) {
+                printf("0x%x 0x%x %d %d\n", pc, dbgInst, op.is_jmp, left)
             }
+            // when(in.valid && out.ready) {
+            //     printf("0x%x 0x%x\n", in.bits.pc, in.bits.inst)
+            // }
+
+            left := Mux(predict_failed || !pcAligned, false.B, state === s_saved && !fullInstValid)
+
+            saved := Mux(!pcAligned, inInstHigh, inInstLow)
+
+            valid := (left || in.valid) && pcAligned
+            ready := (!(pcAligned && state === s_saved && !fullInstValid) || predict_failed) && out.ready 
         } else {
             op := normalInstOp
             ready := out.ready

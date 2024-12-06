@@ -633,7 +633,9 @@ static uint32_t test_img_c_branch[] = {
 };
 
 static uint32_t test_img_c_temp[] = {
-    0xa0000137,
-    CAT_C(CNOP,   0x1152),
-    CAT_C(0xc406, 0x2049),
+    NOP, // 00
+    NOP, // 04
+    CAT_C(0x2811, 0x4085), // 08
+    CAT_C(0x4109, 0x418d), // 0c
+    GOOD_TRAP
 };

@@ -5,6 +5,8 @@
 #include "hdb.h"
 #include "config.h"
 
+bool batchMode = false;
+
 void atexit() {
     hdb::end();
     Log("Bye~");
@@ -22,6 +24,7 @@ void parse_args(int argc, char **argv) {
         {"zip"      , no_argument      , 0, 'z'},
         {"nodifftest", no_argument     , 0, 'o'},
         {"allowIllegalInstruction", no_argument, 0, 'a'},
+        {"batch"    , no_argument      , 0, 'b'},
         {0, 0, 0, 0}
     };
 
@@ -64,6 +67,9 @@ void parse_args(int argc, char **argv) {
                 config::statistic = true;
                 config::statisticOutputFileName = optarg;
                 break;
+            case 'b':
+                batchMode = true;
+                break;
         }
     }
 }
@@ -77,6 +83,12 @@ int main(int argc, char **argv) {
     
     hdb::init();
     int r = 0;
-    r = hdb::run();
+    if (batchMode) {
+        r = hdb::run();
+    } else {
+        hdb::dbg_init();
+        hdb::start_dbg();
+    }
+    
     return r;
 }

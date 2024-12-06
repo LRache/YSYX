@@ -32,7 +32,7 @@ class IFU(instStart : BigInt) extends Module {
     val state = RegInit(s_fetch)
     state := MuxLookup(state, s_fetch)(Seq(
         s_fetch     -> Mux(io.predict_failed, s_skip_once, s_fetch),
-        s_skip_once -> Mux(io.cache.valid, s_fetch, s_skip_once)
+        s_skip_once -> Mux(io.cache.valid,    s_fetch, s_skip_once)
     ))
 
     if (Config.HasBTB) {
@@ -45,9 +45,6 @@ class IFU(instStart : BigInt) extends Module {
         io.out.bits.predict_jmp := predictJmp
     } else {
         npc := Mux(state === s_skip_once, dnpc, snpc)
-        // when (state === s_skip_once) {
-        //     printf("npc= %x\n", npc)
-        // }
         io.out.bits.predict_jmp := false.B
     }
 
@@ -55,19 +52,18 @@ class IFU(instStart : BigInt) extends Module {
     io.cache.ready := true.B
 
     pc := Mux(io.out.ready && io.cache.valid, npc, pc)
+    when (io.out.ready && io.cache.valid) {
+        printf("npc=0x%x\n", npc)
+    }
     val inst = io.cache.rdata
 
     io.out.bits.pc   := Cat(pc,   0.U((32 - Config.PCWidth).W))
     io.out.bits.snpc := Cat(snpc, 0.U((32 - Config.PCWidth).W))
     io.out.bits.inst := inst
 
-    // when (io.out.ready && io.cache.valid) {
-    //     printf("npc2= %x\n", npc)
-    // }
-
-    // when (io.out.valid) {
-    //     printf("send %x\n", pc)
-    // }
+    when (io.out.valid && io.out.ready) {
+        printf("send %x\n", pc)
+    }
     
     io.out.valid := io.cache.valid && state === s_fetch && !io.predict_failed
     io.out.bits.dbg.pc   := Cat(pc, 0.U((32 - Config.PCWidth).W))

@@ -2,7 +2,7 @@
 #define __CONFIG_H__
 
 #define HAS_NVBOARD
-// #define DIFFTEST
+#define DIFFTEST
 #define PERF
 #define TRACE
 #define CHECK_STEP_TIMEOUT

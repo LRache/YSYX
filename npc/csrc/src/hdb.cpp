@@ -87,6 +87,14 @@ void check_pc() {
     }
 }
 
+void hdb::add_breakpoint(word_t pc) {
+    breakpointSet.insert(pc);
+}
+
+void hdb::delete_breakpoint(word_t pc) {
+    breakpointSet.erase(pc);
+}
+
 void check_breakpoint() {
     if (breakpointSet.find(cpu.pc) != breakpointSet.end()) {
         Log("Hit breakpoint at pc=" FMT_WORD, cpu.pc);
@@ -128,6 +136,7 @@ void hdb_statistic() {
 }
 
 void hdb::end() {
+    trace::close();
     difftest::end();
     perf::statistic(std::cout);
     if (config::statistic) perf::statistic(statisticFile);
@@ -142,13 +151,15 @@ int hdb::run(uint64_t n) {
         while (cpu.running && n--) step();
     }
     
-    int r = cpu.gpr[10];
-    if (r == 0) {
-        Log(ANSI_FG_GREEN "HIT GOOD TRAP" ANSI_FG_BLUE " at pc=" FMT_WORD, cpu.pc);
-    } else {
-        Log(ANSI_FG_RED "HIT BAD TRAP" ANSI_FG_BLUE " with code %d at pc=" FMT_WORD, r, cpu.pc);
+    int r = 0;
+    if (!cpu.running) {
+        r = cpu.gpr[10];
+        if (r == 0) {
+            Log(ANSI_FG_GREEN "HIT GOOD TRAP" ANSI_FG_BLUE " at pc=" FMT_WORD, cpu.pc);
+        } else {
+            Log(ANSI_FG_RED "HIT BAD TRAP" ANSI_FG_BLUE " with code %d at pc=" FMT_WORD, r, cpu.pc);
+        }
     }
-    trace::close();
     return r;
 }
 

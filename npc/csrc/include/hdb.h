@@ -37,6 +37,8 @@ namespace hdb
 {
     void init();
     void step();
+    void start_dbg();
+    void dbg_init();
     int run(uint64_t n = 0);
     void end();
 
@@ -48,6 +50,9 @@ namespace hdb
     void set_done(bool done);
     void set_gpr(uint32_t addr, word_t data);
     void set_csr(uint32_t addr, word_t data);
+
+    void add_breakpoint(word_t pc);
+    void delete_breakpoint(word_t pc);
 } // namespace hdb
 
 namespace nvboard
