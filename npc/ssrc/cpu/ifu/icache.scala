@@ -10,7 +10,7 @@ import cpu.Config.PCWidth
 import cpu.ICachePerfCounter
 
 class ICacheIO extends Bundle {
-    val raddr = Input (UInt(30.W))
+    val raddr = Input (UInt(32.W))
     val rdata = Output(UInt(32.W))
     val ready = Input (Bool())
     val valid = Output(Bool())

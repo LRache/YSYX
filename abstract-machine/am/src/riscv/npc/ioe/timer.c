@@ -4,7 +4,7 @@
 #define CLINT_BASE 0x02000000
 #define CLINT_LOW  *(volatile uint32_t *)(CLINT_BASE + 0)
 #define CLINT_HIGH *(volatile uint32_t *)(CLINT_BASE + 4)
-#define FREQUENCY  850
+#define FREQUENCY  800
 
 void __am_timer_init() {
 }

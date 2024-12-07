@@ -61,7 +61,7 @@ void hdb::init() {
     timer = 0;
 
     top.reset = 1;
-    for (int i = 0; i < 16; i++) exec_once();
+    for (int i = 0; i < 20; i++) exec_once();
     top.reset = 0;
     Log("Reset top at clock=%" PRIu64, cpu.clockCount);
     

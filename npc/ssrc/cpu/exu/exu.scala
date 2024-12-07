@@ -70,10 +70,6 @@ class EXU extends Module {
     io.is_branch := io.in.bits.is_branch
     io.dnpc := Mux(io.in.bits.dnpc_sel || io.in.bits.trap.is_trap, rs2, alu_res)(31, 32 - Config.PCWidth)
     io.predictor_pc := io.in.bits.predictor_pc(31, 32 - Config.PCWidth)
-
-    when(io.in.bits.is_jmp) {
-        printf("dnpc=%x\n", io.dnpc)
-    }
     
     // Trap
     io.trap := io.in.bits.trap

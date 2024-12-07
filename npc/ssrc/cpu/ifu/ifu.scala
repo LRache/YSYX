@@ -52,18 +52,11 @@ class IFU(instStart : BigInt) extends Module {
     io.cache.ready := true.B
 
     pc := Mux(io.out.ready && io.cache.valid, npc, pc)
-    when (io.out.ready && io.cache.valid) {
-        printf("npc=0x%x\n", npc)
-    }
     val inst = io.cache.rdata
 
     io.out.bits.pc   := Cat(pc,   0.U((32 - Config.PCWidth).W))
     io.out.bits.snpc := Cat(snpc, 0.U((32 - Config.PCWidth).W))
     io.out.bits.inst := inst
-
-    when (io.out.valid && io.out.ready) {
-        printf("send %x\n", pc)
-    }
     
     io.out.valid := io.cache.valid && state === s_fetch && !io.predict_failed
     io.out.bits.dbg.pc   := Cat(pc, 0.U((32 - Config.PCWidth).W))
