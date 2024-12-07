@@ -4,17 +4,7 @@ import chisel3._
 import chisel3.util.MuxLookup
 import circt.stage.ChiselStage
 import cpu.Config
-
-object AluFunc3 {
-    val ADD  = 0.U(3.W)
-    val XOR  = 4.U(3.W)
-    val OR   = 6.U(3.W)
-    val AND  = 7.U(3.W)
-    val SLL  = 1.U(3.W)
-    val SR   = 5.U(3.W)
-    val SLT  = 2.U(3.W)
-    val SLTU = 3.U(3.W)
-}
+import cpu.idu.Func3UInt
 
 object AluInline {
     def apply(
@@ -53,14 +43,14 @@ object AluInline {
         val eq  = !xor.orR
 
         val resultTable = Seq(
-            AluFunc3. ADD -> add,
-            AluFunc3. AND -> (ua & ub),
-            AluFunc3.  OR -> or,
-            AluFunc3. XOR -> xor,
-            AluFunc3. SLL -> (ua << shift),
-            AluFunc3.  SR -> Mux(tag, ua >> shift, (sa >> shift).asUInt),
-            AluFunc3. SLT -> lt .asUInt,
-            AluFunc3.SLTU -> ltu.asUInt,
+            Func3UInt. ADD -> add,
+            Func3UInt. AND -> (ua & ub),
+            Func3UInt.  OR -> or,
+            Func3UInt. XOR -> xor,
+            Func3UInt. SLL -> (ua << shift),
+            Func3UInt.  SR -> Mux(tag, ua >> shift, (sa >> shift).asUInt),
+            Func3UInt. SLT -> lt .asUInt,
+            Func3UInt.SLTU -> ltu.asUInt,
         )
         res := Mux(addT, add, MuxLookup(func3, 0.U(32.W))(resultTable))
 
@@ -113,5 +103,12 @@ class Alu extends Module {
 }
 
 object Alu extends App {
-    (new ChiselStage).execute(args, Seq(chisel3.stage.ChiselGeneratorAnnotation(() => new Alu)))
+    val firtoolOptions = Array("--lowering-options=" + List(
+        // make yosys happy
+        // see https://github.com/llvm/circt/blob/main/docs/VerilogGeneration.md
+        "disallowLocalVariables",
+        "disallowPackedArrays",
+        "locationInfoStyle=wrapInAtSquareBracket"
+    ).reduce(_ + "," + _))
+    circt.stage.ChiselStage.emitSystemVerilogFile(new Alu, args, firtoolOptions)
 }

@@ -21,7 +21,7 @@ import cpu.reg.CSRAddr
 import bus.ClintInline
 import bus.AXI4ArbiterInline
 import cpu.idu.IDUInline
-import cpu.idu.IDUWire
+import cpu.idu.IDUBundle
 
 class HCPU(instStart : BigInt) extends Module {
     val io = IO(new Bundle {
@@ -29,7 +29,7 @@ class HCPU(instStart : BigInt) extends Module {
         val slave   = Flipped(new AXI4IO)
         val interrupt = Input(Bool())
     })
-    val gpr = Module(new GPR(Config.GPRAddrLength))
+    val gpr = Module(new GPR(Config.GPRAddrWidth))
     val csr = Module(new CSR)
 
     val icache = Module(new ICache(2, 0))
@@ -40,7 +40,7 @@ class HCPU(instStart : BigInt) extends Module {
         nextIn.bits := RegEnable(prevOut.bits, prevOut.valid && nextIn.ready)
     }
 
-    val idu = Wire(new IDUWire)
+    val idu = Wire(new IDUBundle)
     IDUInline(idu)
 
     val ifu = Module(new IFU(instStart))
@@ -121,7 +121,7 @@ class HCPU(instStart : BigInt) extends Module {
         // idu.io.gpr_rdata1 := Mux(exuRawSolveable1, exu.io.out.bits.rs, Mux(lsuRaw1, lsu.io.out.bits.gpr_wdata, gpr.io.rdata1))
         // idu.io.gpr_rdata2 := Mux(exuRawSolveable2, exu.io.out.bits.rs, Mux(lsuRaw2, lsu.io.out.bits.gpr_wdata, gpr.io.rdata2))
         idu.gpr_rdata1 := Mux(exuRawSolveable1, exu.io.out.bits.rs, Mux(lsuRaw1, lsu.io.out.bits.gpr_wdata, gpr.io.rdata1))
-        idu.gpr_rdata2:= Mux(exuRawSolveable2, exu.io.out.bits.rs, Mux(lsuRaw2, lsu.io.out.bits.gpr_wdata, gpr.io.rdata2))
+        idu.gpr_rdata2 := Mux(exuRawSolveable2, exu.io.out.bits.rs, Mux(lsuRaw2, lsu.io.out.bits.gpr_wdata, gpr.io.rdata2))
     } else {
         // idu.io.gpr_rdata1 := Mux(lsuRaw1, lsu.io.out.bits.gpr_wdata, gpr.io.rdata1)
         // idu.io.gpr_rdata2 := Mux(lsuRaw2, lsu.io.out.bits.gpr_wdata, gpr.io.rdata2)

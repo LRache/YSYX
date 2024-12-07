@@ -6,24 +6,17 @@ import chisel3.util.RegEnable
 
 import cpu.Config
 
-object GPRWSel {
-    val SNPC = 0b00
-    val CSR  = 0b01
-    val EXU  = 0b10
-    val MEM  = 0b11
-}
-
-class GPR(addrLength : Int) extends Module {
+class GPR(addrWidth : Int) extends Module {
     val io = IO(new Bundle {
-        val waddr   = Input (UInt(addrLength.W))
+        val waddr   = Input (UInt(addrWidth.W))
         val wdata   = Input (UInt(32.W))
         val wen     = Input (Bool())
-        val raddr1  = Input (UInt(addrLength.W))
-        val raddr2  = Input (UInt(addrLength.W))
+        val raddr1  = Input (UInt(addrWidth.W))
+        val raddr2  = Input (UInt(addrWidth.W))
         val rdata1  = Output(UInt(32.W))
         val rdata2  = Output(UInt(32.W))
     })
-    val gprCount = (1 << addrLength) - 1
+    val gprCount = (1 << addrWidth) - 1
 
     val raddr1 = io.raddr1
     val raddr2 = io.raddr2

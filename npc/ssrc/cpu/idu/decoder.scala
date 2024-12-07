@@ -6,39 +6,44 @@ import chisel3._
 import chisel3.util._
 import chisel3.util.experimental.decode._
 
-import cpu.exu.CmpSel
-import cpu.lsu.MemType
-import cpu.reg.GPRWSel
 import scala.collection.mutable.ArrayBuffer
 import cpu.Config
-import cpu.idu.CSRAddrSel.Ins
 
-object InstType extends Enumeration {
-    type InstType = Value
-    val R, RC, IC, IA, IJ, IU, L, S, B, J, UL, UA, CR, CI, EB, EC, MR, FI, IVD = Value
-    // RC -> for xor, slt, sltu
-    // IC -> for xori, slti
-    // IA -> normal I Arithmetic, like addi
-    // IJ -> only jalr jump and link reg
-    // IU -> only for sltiu
-    // L  -> for load
-    // S  -> for save
-    // B  -> for branch
-    // J  -> only jal
-    // UL -> only lui
-    // UA -> only auipc
-    // C  -> for csr
-    // EC -> for ecall
-    // MR -> for mret
-    // EB -> for ebreak
-    // FI -> for fence i
-    // IVD -> invalid
+object Func3 {
+    val ADD  = 0
+    val SLL  = 1
+    val SLT  = 2
+    val SLTU = 3
+    val XOR  = 4
+    val SR   = 5
+    val OR   = 6
+    val AND  = 7
+
+    val BS = 0
+    val HS = 1
+    val W  = 2
+    val BU = 4
+    val HU = 5
+
+    val EQ  = 0
+    val NE  = 1
+    val LT  = 4
+    val GE  = 5
+    val LTU = 6
+    val GEU = 7
+
+    val DontCare = 8
 }
-import InstType.InstType
 
-object ImmType extends Enumeration {
-    type ImmType = Value
-    val N, I, IU, S, B, U, J, C = Value
+object Func3UInt {
+    val ADD  = Func3. ADD.U
+    val SLL  = Func3. SLL.U
+    val SLT  = Func3. SLT.U
+    val SLTU = Func3.SLTU.U
+    val XOR  = Func3. XOR.U
+    val SR   = Func3.  SR.U
+    val OR   = Func3.  OR.U
+    val AND  = Func3. AND.U
 }
 
 object EXUTag extends Enumeration {
@@ -47,439 +52,606 @@ object EXUTag extends Enumeration {
 }
 import EXUTag.EXUTag
 
+object ImmType {
+    val I  = 0
+    val IU = 1
+    val S  = 2
+    val B  = 3
+    val U  = 4
+    val J  = 5
+    val C  = 6
+    val DontCare = 0
+}
+
 object ASel {
     val PC   = 0
     val GPR1 = 1
     val CSR  = 2
     val ZERO = 3
+    val DontCare = 4
 }
 
 object BSel {
     val Imm  = 0
     val GPR1 = 1
     val GPR2 = 2
-    val CSR  = 3
-    
+    val CSR  = 3   
     val DontCare = 0
 }
 
-object CSRAddrSel extends Enumeration {
-    type CSRAddrSel = Value
-    val N, Ins, VEC, EPC = Value
+object CSRAddrSel {
+    val Ins = 0
+    val VEC = 1
+    val EPC = 2
+    val DontCare = 3
 }
 
-object Encode {
-    class Tag(s: Int, l: Int, i: Int) {
-        val start = s
-        val length = l
-        val mask = (1 << l) - 1
-        val index = i
-    }
-
-    val tags: Map[String, Tag] = Map()
-    var current = 0
-    var count = 0
-
-    def add_tag(name: String, length: Int) = {
-        tags += (name -> new Tag(current, length, count))
-        current += length
-        count += 1
-    }
-
-    // IDU
-    add_tag("ImmType",  4)
-    add_tag("ASel",     2)
-    add_tag("BSel",     2)
-    add_tag("CSel",     1)
-    add_tag("DSel",     1)
-    add_tag("GPRRen1",  1)
-    add_tag("GPRRen2",  1)
-    add_tag("CSRRAddrSel", 2)
-    add_tag("CSRRen",   1)
-    add_tag("FenceI",   1)
-    add_tag("IsTrap",  1)
-    
-    // EXU
-    add_tag("AluAdd",   1) // for load, save, jal, jalr
-    add_tag("EXUTag",   1) // for sub or unsigned
-
-    // Jump
-    add_tag("DNPCSel",  1)
-    add_tag("IsJmp",    1) // no condition jump
-    add_tag("IsBranch", 1)
-
-    // LSU
-    add_tag("MemRen",   1)
-    add_tag("MemWen",   1)
-    
-    // WBU
-    add_tag("GPRWen",   1)
-    add_tag("GPRWSel",  2)
-    add_tag("CSRWen",   1)
-    add_tag("IsBrk",    1)
-    add_tag("IsIvd",    1)
-
-    def gen_bitpat(attr: Map[String, Int]) : BitPat = {
-        var bits: Long = 0L
-        for ((name, tag) <- tags) {
-            bits |= (attr(name) & tag.mask).toLong << tag.start
-        }
-        return BitPat(bits.U(current.W))
-    }
-
-    def gen_list(attr: Map[String, Int]) : List[UInt] = {
-        var l: List[UInt] = List.fill(count)(UInt())
-        for ((name, tag) <- tags) {
-            l(tag.index) := attr(name).U
-        }
-        return l
-    }
-
-    def get_tag(name: String, bits: UInt) : UInt = {
-        val tag = tags(name)
-        return bits(tag.start + tag.length - 1, tag.start)
-    }
-
-    def toInt(boolValue: Boolean): Int = if(boolValue) 1 else 0
-    
-    def encode (
-        instType: InstType,
-        exuTag:   EXUTag.EXUTag
-    ): BitPat = {
-        val m: Map[String, Int] = Map()
-            
-        val immType = instType match {
-            case InstType.IA => ImmType. I.id
-            case InstType.IJ => ImmType. I.id
-            case InstType. L => ImmType. I.id
-            case InstType.IU => ImmType.IU.id
-            case InstType. S => ImmType. S.id
-            case InstType. B => ImmType. B.id
-            case InstType.UA => ImmType. U.id
-            case InstType.UL => ImmType. U.id
-            case InstType. J => ImmType. J.id
-            case InstType.CI => ImmType. C.id
-            case _           => ImmType. N.id
-        }
-        m += ("ImmType" -> immType)
-
-        val aSel = instType match {
-            case InstType. R => ASel.GPR1
-            case InstType.IA => ASel.GPR1
-            case InstType.IJ => ASel.GPR1
-            case InstType.IU => ASel.GPR1
-            case InstType. L => ASel.GPR1
-            case InstType. S => ASel.GPR1
-            case InstType. B => ASel.  PC
-            case InstType. J => ASel.  PC
-            case InstType.UA => ASel.  PC
-            case InstType.CR => ASel. CSR
-            case InstType.CI => ASel. CSR
-            case InstType.EC => ASel.  PC // mepc = pc, pc = mtvec
-            case InstType.FI => ASel.  PC
-            case InstType.IVD => ASel. PC
-            case _ => ASel.ZERO // Don't Care
-        }
-        m += ("ASel" -> aSel)
-
-        val bSel = instType match {
-            case InstType. R => BSel.GPR2
-            case InstType.IA => BSel. Imm
-            case InstType.IJ => BSel. Imm
-            case InstType.IU => BSel. Imm
-            case InstType. L => BSel. Imm
-            case InstType. S => BSel. Imm
-            case InstType. J => BSel. Imm
-            case InstType. B => BSel. Imm
-            case InstType.UL => BSel. Imm
-            case InstType.UA => BSel. Imm
-            case InstType.CR => BSel.GPR1
-            case InstType.CI => BSel. Imm
-            case InstType.EC => BSel. CSR
-            case InstType.IVD => BSel.CSR
-            case InstType.MR => BSel. CSR
-            case _ => BSel.DontCare // Dont care
-        }
-        m += ("BSel" -> bSel)
-
-        val cSel = Seq(
-            InstType.IJ,
-            InstType. J
-        ).contains(instType)
-        m += ("CSel" -> toInt(cSel))
-
-        val dSel = Seq(InstType.IA, InstType.IU).contains(instType)
-        m += ("DSel" -> toInt(dSel))
-            
-        val gprRen1 = aSel == ASel.GPR1 || bSel == BSel.GPR1 || instType == InstType.B
-        m += ("GPRRen1" -> toInt(gprRen1)) 
-        val gprRen2 = bSel == BSel.GPR2 || Seq(InstType.S, InstType.B).contains(instType)
-        m += ("GPRRen2" -> toInt(gprRen2))
-        val csrRen = aSel == ASel.CSR || bSel == BSel.CSR
-        m += ("CSRRen" -> toInt(csrRen))
-
-        val isTrap = Seq(InstType.EC, InstType.IVD).contains(instType)
-        m += ("IsTrap" -> toInt(isTrap))
-
-        val csrRRAddrSel = if(isTrap) CSRAddrSel.VEC else instType match {
-            case InstType.MR => CSRAddrSel.EPC
-            case InstType.CR => CSRAddrSel.Ins
-            case InstType.CI => CSRAddrSel.Ins
-            case _ => CSRAddrSel.N
-        }
-        m += ("CSRRAddrSel"-> csrRRAddrSel.id)
-
-        val fenceI = instType == InstType.FI
-        m += ("FenceI" -> toInt(fenceI))
-
-        val aluAdd = Seq(
-            InstType. L, // load
-            InstType. S, // save
-            InstType.UA, // auipc
-            InstType. B, // branch
-            InstType. J, // jal
-            InstType.UL, // lui
-            InstType.MR  // mret
-        ).contains(instType)
-        m += ("AluAdd" -> toInt(aluAdd))
-
-        m += ("EXUTag" -> toInt(exuTag == EXUTag.T))
-
-        val dnpcSel = instType == InstType.MR || isTrap
-        m += ("DNPCSel" -> toInt(dnpcSel))
-
-        val isJmp = Seq(
-            InstType. J,
-            InstType.IJ,
-            InstType.MR
-        ).contains(instType)
-        m += ("IsJmp" -> toInt(isJmp))
-
-        val isBranch = instType == InstType.B
-        m += ("IsBranch" -> toInt(isBranch))
-
-        val memRen = instType == InstType.L
-        m += ("MemRen" -> toInt(memRen))
-
-        val memWen = instType == InstType.S
-        m += ("MemWen" -> toInt(memWen))
-
-        val gprWen = Seq(
-            InstType. R,
-            InstType.IA,
-            InstType.IU,
-            InstType. L,
-            InstType.IJ,
-            InstType. J,
-            InstType.UL,
-            InstType.UA,
-            InstType.CR,
-            InstType.CI
-        ).contains(instType)
-        m += ("GPRWen" -> toInt(gprWen))
-
-        val gprWSel = instType match {
-            case InstType. R => GPRWSel. EXU
-            case InstType.IA => GPRWSel. EXU
-            case InstType.IU => GPRWSel. EXU
-            case InstType. L => GPRWSel. MEM
-            case InstType.IJ => GPRWSel.SNPC
-            case InstType. J => GPRWSel.SNPC
-            case InstType.UL => GPRWSel. EXU
-            case InstType.UA => GPRWSel. EXU
-            case InstType.CR => GPRWSel. CSR
-            case InstType.CI => GPRWSel. CSR
-            case _ => GPRWSel.EXU
-        }
-        m += ("GPRWSel" -> gprWSel)
-
-        val csrWen = Seq(InstType.CR, InstType.CI).contains(instType)
-        m += ("CSRWen" -> toInt(csrWen))
-
-        val isBrk = instType == InstType.EB
-        m += ("IsBrk" -> toInt(isBrk))
-
-        val isIvd = instType == InstType.IVD
-        m += ("IsIvd" -> toInt(isIvd))
-
-        return gen_bitpat(m)
-    }
-    
-    def encode_r (exuTag: EXUTag) : BitPat = encode(InstType. R, exuTag)
-    def encode_ia(exuTag: EXUTag) : BitPat = encode(InstType.IA, exuTag)
-    def encode_iu() : BitPat = encode(InstType.IU, EXUTag.T)
-    def encode_load() : BitPat = encode(InstType. L, EXUTag.DontCare)
-    def encode_save() : BitPat = encode(InstType. S, EXUTag.DontCare)
-    def encode_jump(instType: InstType) : BitPat = encode(instType, EXUTag.DontCare)
-    def encode_brch() : BitPat = encode(InstType. B, EXUTag.DontCare)
-    def encode_csrr() : BitPat = encode(InstType.CR, EXUTag.DontCare)
-    def encode_csri() : BitPat = encode(InstType.CI, EXUTag.DontCare)
+object GPRWSel {
+    val SNPC = 0b00
+    val CSR  = 0b01
+    val EXU  = 0b10
+    val MEM  = 0b11
+    val DontCare = 0
 }
 
-class OP(bits : UInt) {
-    // IDU
-    val immType = Encode.get_tag("ImmType", bits)
-    val aSel = Encode.get_tag("ASel", bits)
-    val bSel = Encode.get_tag("BSel", bits)
-    val cSel = Encode.get_tag("CSel", bits).asBool
-    val dSel = Encode.get_tag("DSel", bits).asBool
-    val gprRen1 = Encode.get_tag("GPRRen1", bits).asBool
-    val gprRen2 = Encode.get_tag("GPRRen2", bits).asBool
-    val csrRAddrSel = Encode.get_tag("CSRRAddrSel", bits)
-    val csrRen = Encode.get_tag("CSRRen", bits).asBool
-    val fenceI = Encode.get_tag("FenceI", bits).asBool
-    val isTrap = Encode.get_tag("IsTrap", bits).asBool
+class DecodeOPBundle extends Bundle {
+    val immType = UInt(3.W)
+    val aSel    = UInt(2.W)
+    val bSel    = UInt(2.W)
+    val cSel    = Bool()
+    val dSel    = Bool()
+    val gprRen1 = Bool()
+    val gprRen2 = Bool()
+    val csrRAddrSel = UInt(2.W)
+    val csrRen  = Bool()
+    val fenceI  = Bool()
+    val isTrap  = Bool()
 
     // EXU
-    val aluAdd = Encode.get_tag("AluAdd", bits).asBool
-    val exuTag = Encode.get_tag("EXUTag", bits).asBool
+    val aluAdd = Bool()
+    val exuTag = Bool()
 
     // Jump
-    val dnpcSel = Encode.get_tag("DNPCSel", bits).asBool
-    val isJmp = Encode.get_tag("IsJmp", bits).asBool
-    val isBranch = Encode.get_tag("IsBranch", bits).asBool
+    val dnpcSel  = Bool()
+    val isJmp    = Bool()
+    val isBranch = Bool()
     
     // LSU
-    val memRen = Encode.get_tag("MemRen", bits).asBool
-    val memWen = Encode.get_tag("MemWen", bits).asBool
+    val memRen = Bool()
+    val memWen = Bool()
 
     // WBU
-    val gprWen = Encode.get_tag("GPRWen", bits).asBool
-    val gprWSel = Encode.get_tag("GPRWSel", bits)
-    val csrWen = Encode.get_tag("CSRWen", bits).asBool
-    val isBrk = Encode.get_tag("IsBrk", bits).asBool
-    val isIvd = Encode.get_tag("IsIvd", bits).asBool
+    val gprWen  = Bool()
+    val gprWSel = UInt(2.W)
+    val csrWen  = Bool()
+    val isBrk   = Bool()
+    val isIvd   = Bool()
 }
 
-object Decoder {
-    val ADD     = BitPat("b0000000_?????_?????_000_?????_011_0011")
-    val SUB     = BitPat("b0100000_?????_?????_000_?????_011_0011")
-    val AND     = BitPat("b0000000_?????_?????_111_?????_011_0011")
-    val OR      = BitPat("b0000000_?????_?????_110_?????_011_0011")
-    val XOR     = BitPat("b0000000_?????_?????_100_?????_011_0011")
-    val SLL     = BitPat("b0000000_?????_?????_001_?????_011_0011")
-    val SRL     = BitPat("b0000000_?????_?????_101_?????_011_0011")
-    val SRA     = BitPat("b0100000_?????_?????_101_?????_011_0011")
-    val SLT     = BitPat("b0000000_?????_?????_010_?????_011_0011")
-    val SLTU    = BitPat("b0000000_?????_?????_011_?????_011_0011")
-
-    val ADDI    = BitPat("b????????????_?????_000_?????_001_0011")
-    val ANDI    = BitPat("b????????????_?????_111_?????_001_0011")
-    val ORI     = BitPat("b????????????_?????_110_?????_001_0011")
-    val XORI    = BitPat("b????????????_?????_100_?????_001_0011")
-    val SLLI    = BitPat("b????????????_?????_001_?????_001_0011")
-    val SRLI    = BitPat("b0000000_?????_?????_101_?????_001_0011")
-    val SRAI    = BitPat("b0100000_?????_?????_101_?????_001_0011")
-    val SLTI    = BitPat("b????????????_?????_010_?????_001_0011")
-    val SLTIU   = BitPat("b????????????_?????_011_?????_001_0011")
-
-    val JALR    = BitPat("b????????????_?????_000_?????_110_0111")
-
-    val LB      = BitPat("b????????????_?????_000_?????_000_0011")
-    val LH      = BitPat("b????????????_?????_001_?????_000_0011")
-    val LW      = BitPat("b????????????_?????_010_?????_000_0011")
-    val LBU     = BitPat("b????????????_?????_100_?????_000_0011")
-    val LHU     = BitPat("b????????????_?????_101_?????_000_0011")
-    val LOAD    = BitPat("b?????????????????_???_?????_000_0011")
-
-    val SB      = BitPat("b???????_?????_?????_000_?????_010_0011")
-    val SH      = BitPat("b???????_?????_?????_001_?????_010_0011")
-    val SW      = BitPat("b???????_?????_?????_010_?????_010_0011")
-    val SAVE    = BitPat("b?????????????????_???_?????_010_0011")
-
-    val JAL     = BitPat("b????????????????????_?????_110_1111")
-
-    val BEQ     = BitPat("b???????_?????_?????_000_?????_110_0011")
-    val BGE     = BitPat("b???????_?????_?????_101_?????_110_0011")
-    val BGEU    = BitPat("b???????_?????_?????_111_?????_110_0011")
-    val BLT     = BitPat("b???????_?????_?????_100_?????_110_0011")
-    val BLTU    = BitPat("b???????_?????_?????_110_?????_110_0011")
-    val BNE     = BitPat("b???????_?????_?????_001_?????_110_0011")
-    val BRANCH  = BitPat("b???????_?????_?????_???_?????_110_0011")
-
-    val AUIPC   = BitPat("b?????????????????????_?????_001_0111")
-    val LUI     = BitPat("b?????????????????????_?????_011_0111")
-
-    val FENCE_I = BitPat("b??????????????????_001_?????_000_1111")
-
-    val CSRRW   = BitPat("b????????????_?????_001_?????_111_0011")
-    val CSRRS   = BitPat("b????????????_?????_010_?????_111_0011")
-    val CSRRC   = BitPat("b????????????_?????_011_?????_111_0011")
-    val CSRRWI  = BitPat("b????????????_?????_101_?????_111_0011")
-    val CSRRSI  = BitPat("b????????????_?????_110_?????_111_0011")
-    val CSRRCI  = BitPat("b????????????_?????_111_?????_111_0011")
+object InstDecoder {
+    object InstType extends Enumeration {
+        type InstType = Value
+        val R, RC, IC, IA, IJ, IU, L, S, B, J, UL, UA, CR, CI, EB, EC, MR, FI, IVD = Value
+        // RC -> for xor, slt, sltu
+        // IC -> for xori, slti
+        // IA -> normal I Arithmetic, like addi
+        // IJ -> only jalr jump and link reg
+        // IU -> only for sltiu
+        // L  -> for load
+        // S  -> for save
+        // B  -> for branch
+        // J  -> only jal
+        // UL -> only lui
+        // UA -> only auipc
+        // C  -> for csr
+        // EC -> for ecall
+        // MR -> for mret
+        // EB -> for ebreak
+        // FI -> for fence i
+        // IVD -> invalid
+    }
     
-    val EBREAK  = BitPat("b00000000000100000000_00000_111_0011")
-    val ECALL   = BitPat("b00000000000000000000_00000_111_0011")
-    val MRET    = BitPat("b00110000001000000000_00000_111_0011")
+    import InstType.InstType
+    case class InstPattern(val pattern: BitPat, val instType: InstType, val exuTag: EXUTag) extends DecodePattern {
+        def bitPat: BitPat = {
+            pattern
+        }
+    }
+    
+    object DecodeField {
+        object ImmTypeField extends DecodeField[InstPattern, UInt] {
+            def name = "ImmType decode field"
+            def chiselType = UInt(3.W)
+            def genTable(op: InstPattern) : BitPat = {
+                val immType = op.instType match {
+                    case InstType.IA => ImmType. I
+                    case InstType.IJ => ImmType. I
+                    case InstType. L => ImmType. I
+                    case InstType.IU => ImmType.IU
+                    case InstType. S => ImmType. S
+                    case InstType. B => ImmType. B
+                    case InstType.UA => ImmType. U
+                    case InstType.UL => ImmType. U
+                    case InstType. J => ImmType. J
+                    case InstType.CI => ImmType. C
+                    case _ => ImmType.DontCare
+                }
+                if (immType == ImmType.DontCare) return BitPat.dontCare(3)
+                else return BitPat(immType.U(3.W))
+            }
+        }
 
-    val truthTable = TruthTable(
-        Map(      
-            ADD     -> Encode.encode_r(EXUTag.F),
-            SUB     -> Encode.encode_r(EXUTag.T),
-            AND     -> Encode.encode_r(EXUTag.F),
-            OR      -> Encode.encode_r(EXUTag.F),
-            XOR     -> Encode.encode_r(EXUTag.F),
-            SLL     -> Encode.encode_r(EXUTag.F),
-            SRL     -> Encode.encode_r(EXUTag.T),
-            SRA     -> Encode.encode_r(EXUTag.F),
-            SLT     -> Encode.encode_r(EXUTag.F),
-            SLTU    -> Encode.encode_r(EXUTag.T),
+        object ASelField extends DecodeField[InstPattern, UInt] {
+            def name = "ASel decode field"
+            def chiselType = UInt(2.W)
+            def genTable(op: InstPattern): BitPat = {
+                val sel = op.instType match {
+                    case InstType. R => ASel.GPR1
+                    case InstType.RC => ASel.GPR1
+                    case InstType.IA => ASel.GPR1
+                    case InstType.IC => ASel.GPR1
+                    case InstType.IJ => ASel.GPR1
+                    case InstType.IU => ASel.GPR1
+                    case InstType. L => ASel.GPR1
+                    case InstType. S => ASel.GPR1
+                    case InstType. B => ASel.  PC
+                    case InstType. J => ASel.  PC
+                    case InstType.UL => ASel.ZERO // lui
+                    case InstType.UA => ASel.  PC // auipc
+                    case InstType.CR => ASel. CSR
+                    case InstType.CI => ASel. CSR
+                    case InstType.EC => ASel.  PC // mepc = pc, pc = mtvec
+                    case _ => ASel.DontCare
+                }
+                if (sel == ASel.DontCare) return BitPat.dontCare(2)
+                else return BitPat(sel.U(2.W))
+            }
+            override def default: BitPat = BitPat(ASel.PC.U(2.W)) // Invalid Type
+        }
 
-            ADDI    -> Encode.encode_ia(EXUTag.F),
-            ANDI    -> Encode.encode_ia(EXUTag.F),
-            ORI     -> Encode.encode_ia(EXUTag.F),
-            XORI    -> Encode.encode_ia(EXUTag.F),
-            SLLI    -> Encode.encode_ia(EXUTag.F),
-            SRLI    -> Encode.encode_ia(EXUTag.T),
-            SRAI    -> Encode.encode_ia(EXUTag.F),
-            SLTI    -> Encode.encode_ia(EXUTag.F),
-            SLTIU   -> Encode.encode_iu(),
+        object BSelField extends DecodeField[InstPattern, UInt] {
+            def name = "BSel decode field"
+            def chiselType = UInt(2.W)
+            def genTable(op: InstPattern): BitPat = {
+                val sel = op.instType match {
+                    case InstType. R => BSel.GPR2
+                    case InstType.IA => BSel. Imm
+                    case InstType.IJ => BSel. Imm
+                    case InstType.IU => BSel. Imm
+                    case InstType. L => BSel. Imm
+                    case InstType. S => BSel. Imm
+                    case InstType. J => BSel. Imm
+                    case InstType. B => BSel. Imm
+                    case InstType.UL => BSel. Imm
+                    case InstType.UA => BSel. Imm
+                    case InstType.CR => BSel.GPR1
+                    case InstType.CI => BSel. Imm
+                    case InstType.EC => BSel. CSR
+                    case InstType.MR => BSel. CSR
+                    case _ => BSel.DontCare
+                }
+                if (sel == BSel.DontCare) return BitPat.dontCare(2)
+                else return BitPat(sel.U(2.W))
+            }
+            override def default: BitPat = BitPat(BSel.CSR.U(2.W)) // Invalid Type
+        }
 
-            LB      -> Encode.encode_load(),
-            LH      -> Encode.encode_load(),
-            LW      -> Encode.encode_load(),
-            LBU     -> Encode.encode_load(),
-            LHU     -> Encode.encode_load(),
-            // LOAD    -> Encode.encode_load(),
+        object CSelField extends BoolDecodeField[InstPattern] {
+            def name = "CSel decode field"
+            def genTable(op: InstPattern): BitPat = {
+                val sel = Seq(
+                    InstType.IJ,
+                    InstType. J
+                ).contains(op.instType)
+                return BitPat(sel.B)
+            }
+        }
 
-            SB      -> Encode.encode_save(),
-            SH      -> Encode.encode_save(),
-            SW      -> Encode.encode_save(),
-            // SAVE    -> Encode.encode_save(),
+        object DSelField extends BoolDecodeField[InstPattern] {
+            def name = "DSel decode field"
+            def genTable(op: InstPattern): BitPat = {
+                val sel = Seq(
+                    InstType.IA, 
+                    InstType.IU
+                ).contains(op.instType)
+                return BitPat(sel.B)
+            }
+        }
 
-            JALR    -> Encode.encode_jump(InstType.IJ),
-            JAL     -> Encode.encode_jump(InstType. J),
+        object GPRRen1Field extends BoolDecodeField[InstPattern] {
+            def name = "GPRRen1 decode field"
+            def genTable(op: InstPattern): BitPat = {
+                val ren = Seq(
+                    InstType. R,
+                    InstType.IA,
+                    InstType.IJ,
+                    InstType.IU,
+                    InstType. L,
+                    InstType. S,
+                    InstType. B,
+                    InstType.CR,
+                ).contains(op.instType)
+                return BitPat(ren.B)
+            }
+        }
 
-            BEQ     -> Encode.encode_brch(),
-            BNE     -> Encode.encode_brch(),
-            BGE     -> Encode.encode_brch(),
-            BGEU    -> Encode.encode_brch(),
-            BLT     -> Encode.encode_brch(),
-            BLTU    -> Encode.encode_brch(),
-            // BRANCH  -> Encode.encode_brch(),
+        object GPRRen2Field extends BoolDecodeField[InstPattern] {
+            def name = "GPRRen2 decode field"
+            def genTable(op: InstPattern): BitPat = {
+                val ren = Seq(
+                    InstType. R,
+                    InstType. B,
+                    InstType. S,
+                ).contains(op.instType)
+                return BitPat(ren.B)
+            }
+        }
 
-            CSRRW   -> Encode.encode_csrr(),
-            CSRRS   -> Encode.encode_csrr(),
-            CSRRC   -> Encode.encode_csrr(),
-            CSRRWI  -> Encode.encode_csri(),
-            CSRRSI  -> Encode.encode_csri(),
-            CSRRCI  -> Encode.encode_csri(),
-            // CSRR     -> Encode.encode_csrr(),
+        object CSRRAddrSelField extends DecodeField[InstPattern, UInt] {
+            def name = "CSRRAddrSel decode field"
+            def chiselType = UInt(2.W)
+            def genTable(op: InstPattern): BitPat = {
+                val sel = op.instType match {
+                    case InstType.EC => CSRAddrSel.VEC
+                    case InstType.MR => CSRAddrSel.EPC
+                    case InstType.CR => CSRAddrSel.Ins
+                    case InstType.CI => CSRAddrSel.Ins
+                    case _ => CSRAddrSel.DontCare
+                }
+                // to reduce area
+                // if (sel == CSRAddrSel.DontCare) return BitPat.dontCare(2)
+                return BitPat(sel.U(2.W))
+            }
+            override def default: BitPat = BitPat(CSRAddrSel.VEC.U(2.W))
+        }
 
-            AUIPC   -> Encode.encode(InstType.UA, EXUTag.DontCare),
-            LUI     -> Encode.encode(InstType.UL, EXUTag.DontCare),
-            
-            FENCE_I -> Encode.encode(InstType.FI, EXUTag.DontCare),
-            
-            EBREAK  -> Encode.encode(InstType.EB, EXUTag.DontCare),
-            ECALL   -> Encode.encode(InstType.EC, EXUTag.DontCare),
-            MRET    -> Encode.encode(InstType.MR, EXUTag.DontCare)
-        ),
-        default = Encode.encode(InstType.IVD, EXUTag.DontCare),
+        object CSRRenField extends BoolDecodeField[InstPattern] {
+            def name = "CSRRen decode field"
+            def genTable(op: InstPattern): BitPat = {
+                val ren = Seq(
+                    InstType. CR,
+                    InstType. CI,
+                    InstType. EC,
+                    InstType. MR,
+                    InstType.IVD,
+                ).contains(op.instType)
+                return BitPat(ren.B)
+            }
+            override def default: BitPat = BitPat(true.B)
+        }
+
+        object IsTrapField extends BoolDecodeField[InstPattern] {
+            def name = "IsTrap decode field"
+            def genTable(op: InstPattern): BitPat = {
+                val isTrap = op.instType == InstType.EC
+                return BitPat(isTrap.B)
+            }
+        }
+
+        object FenceIField extends BoolDecodeField[InstPattern] {
+            def name = "FenceI decode field"
+            def genTable(op: InstPattern): BitPat = {
+                val isFenceI = op.instType == InstType.FI
+                return BitPat(isFenceI.B)
+            }
+        }
+
+        object AluAddField extends BoolDecodeField[InstPattern] {
+            def name = "AluAdd decode field"
+            def genTable(op: InstPattern): BitPat = {
+                val aluAdd = Seq(
+                    InstType. L, // load
+                    InstType. S, // save
+                    InstType.UA, // auipc
+                    InstType. B, // branch
+                    InstType. J, // jal
+                    InstType.UL, // lui
+                    InstType.MR  // mret
+                ).contains(op.instType)
+                return BitPat(aluAdd.B)
+            }
+        }
+
+        object EXUTagField extends BoolDecodeField[InstPattern] {
+            def name = "EXUTag decode field"
+            def genTable(op: InstPattern): BitPat = {
+                if (op.exuTag == EXUTag.DontCare) return BitPat.dontCare(1)
+                val exuTag = op.exuTag == EXUTag.T
+                return BitPat(exuTag.B)
+            }
+        }
+
+        object DNPCSelField extends BoolDecodeField[InstPattern] {
+            def name = "DNPCSel decode field"
+            def genTable(op: InstPattern): BitPat = {
+                val dnpcSel = Seq(
+                    InstType.EC,
+                    InstType.MR,
+                ).contains(op.instType)
+                return BitPat(dnpcSel.B)
+            }
+        }
+
+        object IsJmpField extends BoolDecodeField[InstPattern] {
+            def name = "IsJmp decode field"
+            def genTable(op: InstPattern): BitPat = {
+                val isJmp = Seq(
+                    InstType. J,
+                    InstType.IJ,
+                    InstType.MR
+                ).contains(op.instType)
+                return BitPat(isJmp.B)
+            }
+        }
+
+        object IsBranchField extends BoolDecodeField[InstPattern] {
+            def name = "IsBranch decode field"
+            def genTable(op: InstPattern): BitPat = {
+                val isBranch = op.instType == InstType.B
+                return BitPat(isBranch.B)
+            }
+        }
+
+        object MemRenField extends BoolDecodeField[InstPattern] {
+            def name = "MemRen decode field"
+            def genTable(op: InstPattern): BitPat = {
+                val memRen = op.instType == InstType.L
+                return BitPat(memRen.B)
+            }
+        }
+
+        object MemWenField extends BoolDecodeField[InstPattern] {
+            def name = "MemWen decode field"
+            def genTable(op: InstPattern): BitPat = {
+                val memWen = op.instType == InstType.S
+                return BitPat(memWen.B)
+            }
+        }
+
+        object GPRWenField extends BoolDecodeField[InstPattern] {
+            def name = "GPRWen decode field"
+            def genTable(op: InstPattern): BitPat = {
+                val gprWen = Seq(
+                    InstType. R,
+                    InstType.IA,
+                    InstType.IU,
+                    InstType. L,
+                    InstType.IJ,
+                    InstType. J,
+                    InstType.UL,
+                    InstType.UA,
+                    InstType.CR,
+                    InstType.CI
+                ).contains(op.instType)
+                return BitPat(gprWen.B)
+            }
+        }
+
+        object GPRWSelField extends DecodeField[InstPattern, UInt] {
+            def name = "GPRWSel decode field"
+            def chiselType = UInt(2.W)
+            def genTable(op: InstPattern): BitPat = {
+                val gprWSel = op.instType match {
+                    case InstType. R => GPRWSel. EXU
+                    case InstType.IA => GPRWSel. EXU
+                    case InstType.IU => GPRWSel. EXU
+                    case InstType. L => GPRWSel. MEM
+                    case InstType.IJ => GPRWSel.SNPC
+                    case InstType. J => GPRWSel.SNPC
+                    case InstType.UL => GPRWSel. EXU
+                    case InstType.UA => GPRWSel. EXU
+                    case InstType.CR => GPRWSel. CSR
+                    case InstType.CI => GPRWSel. CSR
+                    case _ => GPRWSel.EXU
+                }
+                return BitPat(gprWSel.U(2.W))
+            }
+        }
+
+        object CSRWenField extends BoolDecodeField[InstPattern] {
+            def name = "CSRWen decode field"
+            def genTable(op: InstPattern): BitPat = {
+                val csrWen = Seq(
+                    InstType.CR, 
+                    InstType.CI
+                ).contains(op.instType)
+                return BitPat(csrWen.B)
+            }
+        }
+
+        object IsBrkField extends BoolDecodeField[InstPattern] {
+            def name = "IsBrk decode field"
+            def genTable(op: InstPattern): BitPat = {
+                val isBrk = op.instType == InstType.EB
+                return BitPat(isBrk.B)
+            }
+        }
+
+        object IsIvdField extends BoolDecodeField[InstPattern] {
+            def name = "IsIvd decode field"
+            def genTable(op: InstPattern): BitPat = {
+                return BitPat(false.B)
+            }
+            override def default: BitPat = BitPat(true.B)
+        }
+    }
+
+    object Bits {
+        val ADD     = BitPat("b0000000_?????_?????_000_?????_011_0011")
+        val SUB     = BitPat("b0100000_?????_?????_000_?????_011_0011")
+        val AND     = BitPat("b0000000_?????_?????_111_?????_011_0011")
+        val OR      = BitPat("b0000000_?????_?????_110_?????_011_0011")
+        val XOR     = BitPat("b0000000_?????_?????_100_?????_011_0011")
+        val SLL     = BitPat("b0000000_?????_?????_001_?????_011_0011")
+        val SRL     = BitPat("b0000000_?????_?????_101_?????_011_0011")
+        val SRA     = BitPat("b0100000_?????_?????_101_?????_011_0011")
+        val SLT     = BitPat("b0000000_?????_?????_010_?????_011_0011")
+        val SLTU    = BitPat("b0000000_?????_?????_011_?????_011_0011")
+
+        val ADDI    = BitPat("b????????????_?????_000_?????_001_0011")
+        val ANDI    = BitPat("b????????????_?????_111_?????_001_0011")
+        val ORI     = BitPat("b????????????_?????_110_?????_001_0011")
+        val XORI    = BitPat("b????????????_?????_100_?????_001_0011")
+        val SLLI    = BitPat("b????????????_?????_001_?????_001_0011")
+        val SRLI    = BitPat("b0000000_?????_?????_101_?????_001_0011")
+        val SRAI    = BitPat("b0100000_?????_?????_101_?????_001_0011")
+        val SLTI    = BitPat("b????????????_?????_010_?????_001_0011")
+        val SLTIU   = BitPat("b????????????_?????_011_?????_001_0011")
+
+        val JALR    = BitPat("b????????????_?????_000_?????_110_0111")
+
+        val LB      = BitPat("b????????????_?????_000_?????_000_0011")
+        val LH      = BitPat("b????????????_?????_001_?????_000_0011")
+        val LW      = BitPat("b????????????_?????_010_?????_000_0011")
+        val LBU     = BitPat("b????????????_?????_100_?????_000_0011")
+        val LHU     = BitPat("b????????????_?????_101_?????_000_0011")
+        val LOAD    = BitPat("b?????????????????_???_?????_000_0011")
+
+        val SB      = BitPat("b???????_?????_?????_000_?????_010_0011")
+        val SH      = BitPat("b???????_?????_?????_001_?????_010_0011")
+        val SW      = BitPat("b???????_?????_?????_010_?????_010_0011")
+        val SAVE    = BitPat("b?????????????????_???_?????_010_0011")
+
+        val JAL     = BitPat("b????????????????????_?????_110_1111")
+
+        val BEQ     = BitPat("b???????_?????_?????_000_?????_110_0011")
+        val BGE     = BitPat("b???????_?????_?????_101_?????_110_0011")
+        val BGEU    = BitPat("b???????_?????_?????_111_?????_110_0011")
+        val BLT     = BitPat("b???????_?????_?????_100_?????_110_0011")
+        val BLTU    = BitPat("b???????_?????_?????_110_?????_110_0011")
+        val BNE     = BitPat("b???????_?????_?????_001_?????_110_0011")
+        val BRANCH  = BitPat("b???????_?????_?????_???_?????_110_0011")
+
+        val AUIPC   = BitPat("b????????????????????_?????_001_0111")
+        val LUI     = BitPat("b????????????????????_?????_011_0111")
+
+        val FENCE_I = BitPat("b?????????????????_001_?????_000_1111")
+
+        val CSRRW   = BitPat("b????????????_?????_001_?????_111_0011")
+        val CSRRS   = BitPat("b????????????_?????_010_?????_111_0011")
+        val CSRRC   = BitPat("b????????????_?????_011_?????_111_0011")
+        val CSRRWI  = BitPat("b????????????_?????_101_?????_111_0011")
+        val CSRRSI  = BitPat("b????????????_?????_110_?????_111_0011")
+        val CSRRCI  = BitPat("b????????????_?????_111_?????_111_0011")
+        
+        val EBREAK  = BitPat("b00000000000100000000_00000_111_0011")
+        val ECALL   = BitPat("b00000000000000000000_00000_111_0011")
+        val MRET    = BitPat("b00110000001000000000_00000_111_0011")
+    }
+
+    val instTable = Seq(
+        InstPattern(Bits.ADD,  InstType. R, EXUTag.F),
+        InstPattern(Bits.SUB,  InstType. R, EXUTag.T),
+        InstPattern(Bits.AND,  InstType. R, EXUTag.F),
+        InstPattern(Bits.OR,   InstType. R, EXUTag.F),
+        InstPattern(Bits.XOR,  InstType. R, EXUTag.F),
+        InstPattern(Bits.SLL,  InstType. R, EXUTag.F),
+        InstPattern(Bits.SRL,  InstType. R, EXUTag.T),
+        InstPattern(Bits.SRA,  InstType. R, EXUTag.F),
+        InstPattern(Bits.SLT,  InstType. R, EXUTag.F),
+        InstPattern(Bits.SLTU, InstType. R, EXUTag.T),
+
+        InstPattern(Bits.ADDI, InstType.IA, EXUTag.F),
+        InstPattern(Bits.ANDI, InstType.IA, EXUTag.F),
+        InstPattern(Bits.ORI,  InstType.IA, EXUTag.F),
+        InstPattern(Bits.XORI, InstType.IA, EXUTag.F),
+        InstPattern(Bits.SLLI, InstType.IA, EXUTag.F),
+        InstPattern(Bits.SRLI, InstType.IA, EXUTag.T),
+        InstPattern(Bits.SRAI, InstType.IA, EXUTag.F),
+        InstPattern(Bits.SLTI, InstType.IA, EXUTag.F),
+        InstPattern(Bits.SLTIU,InstType.IU, EXUTag.T),
+
+        InstPattern(Bits.LB,   InstType. L, EXUTag.DontCare),
+        InstPattern(Bits.LH,   InstType. L, EXUTag.DontCare),
+        InstPattern(Bits.LW,   InstType. L, EXUTag.DontCare),
+        InstPattern(Bits.LBU,  InstType. L, EXUTag.DontCare),
+        InstPattern(Bits.LHU,  InstType. L, EXUTag.DontCare),
+
+        InstPattern(Bits.SB,   InstType. S, EXUTag.DontCare),
+        InstPattern(Bits.SH,   InstType. S, EXUTag.DontCare),
+        InstPattern(Bits.SW,   InstType. S, EXUTag.DontCare),
+
+        InstPattern(Bits.JALR, InstType.IJ, EXUTag.DontCare),
+        InstPattern(Bits.JAL,  InstType. J, EXUTag.DontCare),
+
+        InstPattern(Bits.BEQ,  InstType. B, EXUTag.DontCare),
+        InstPattern(Bits.BNE,  InstType. B, EXUTag.DontCare),
+        InstPattern(Bits.BGE,  InstType. B, EXUTag.DontCare),
+        InstPattern(Bits.BGEU, InstType. B, EXUTag.DontCare),
+        InstPattern(Bits.BLT,  InstType. B, EXUTag.DontCare),
+        InstPattern(Bits.BLTU, InstType. B, EXUTag.DontCare),
+        // InstPattern(BRANCH, InstType. B, EXUTag.DontCare),
+
+        InstPattern(Bits.CSRRW, InstType.CR, EXUTag.DontCare),
+        InstPattern(Bits.CSRRS, InstType.CR, EXUTag.DontCare),
+        InstPattern(Bits.CSRRC, InstType.CR, EXUTag.DontCare),
+        InstPattern(Bits.CSRRWI,InstType.CI, EXUTag.DontCare),
+        InstPattern(Bits.CSRRSI,InstType.CI, EXUTag.DontCare),
+        InstPattern(Bits.CSRRCI,InstType.CI, EXUTag.DontCare),
+        // InstPattern(CSRR, InstType.CR, EXUTag.DontCare),
+
+        InstPattern(Bits.AUIPC, InstType.UA, EXUTag.DontCare),
+        InstPattern(Bits.LUI,   InstType.UL, EXUTag.DontCare),
+
+        InstPattern(Bits.FENCE_I, InstType.FI, EXUTag.DontCare),
+
+        InstPattern(Bits.EBREAK, InstType.EB, EXUTag.DontCare),
+        InstPattern(Bits.ECALL,  InstType.EC, EXUTag.DontCare),
+        InstPattern(Bits.MRET,   InstType.MR, EXUTag.DontCare)
     )
 
-    def decode(inst: UInt) : OP = {
-        return new OP(decoder(inst, truthTable))
+    val decodeFieldSeq = Seq(
+        DecodeField.ImmTypeField,
+        DecodeField.ASelField,
+        DecodeField.BSelField,
+        DecodeField.CSelField,
+        DecodeField.DSelField,
+        DecodeField.GPRRen1Field,
+        DecodeField.GPRRen2Field,
+        DecodeField.CSRRenField,
+        DecodeField.CSRRAddrSelField,
+        DecodeField.FenceIField,
+        DecodeField.IsTrapField,
+        DecodeField.AluAddField,
+        DecodeField.EXUTagField,
+        DecodeField.DNPCSelField,
+        DecodeField.IsJmpField,
+        DecodeField.IsBranchField,
+        DecodeField.MemRenField,
+        DecodeField.MemWenField,
+        DecodeField.GPRWenField,
+        DecodeField.GPRWSelField,
+        DecodeField.CSRWenField,
+        DecodeField.IsBrkField,
+        DecodeField.IsIvdField
+    )
+
+    val decodeTable = new DecodeTable(instTable, decodeFieldSeq)
+    
+    def decode(inst: UInt, op: DecodeOPBundle): Unit = {
+        val decodeResult = decodeTable.decode(inst)
+        op.immType := decodeResult(DecodeField.ImmTypeField)
+        op.aSel    := decodeResult(DecodeField.ASelField)
+        op.bSel    := decodeResult(DecodeField.BSelField)
+        op.cSel    := decodeResult(DecodeField.CSelField)
+        op.dSel    := decodeResult(DecodeField.DSelField)
+        op.gprRen1 := decodeResult(DecodeField.GPRRen1Field)
+        op.gprRen2 := decodeResult(DecodeField.GPRRen2Field)
+        op.csrRAddrSel := decodeResult(DecodeField.CSRRAddrSelField)
+        op.csrRen  := decodeResult(DecodeField.CSRRenField)
+        op.fenceI  := decodeResult(DecodeField.FenceIField)
+        op.isTrap  := decodeResult(DecodeField.IsTrapField)
+        op.aluAdd  := decodeResult(DecodeField.AluAddField)
+        op.exuTag  := decodeResult(DecodeField.EXUTagField)
+        op.dnpcSel := decodeResult(DecodeField.DNPCSelField)
+        op.isJmp   := decodeResult(DecodeField.IsJmpField)
+        op.isBranch:= decodeResult(DecodeField.IsBranchField)
+        op.memRen  := decodeResult(DecodeField.MemRenField)
+        op.memWen  := decodeResult(DecodeField.MemWenField)
+        op.gprWen  := decodeResult(DecodeField.GPRWenField)
+        op.gprWSel := decodeResult(DecodeField.GPRWSelField)
+        op.csrWen  := decodeResult(DecodeField.CSRWenField)
+        op.isBrk   := decodeResult(DecodeField.IsBrkField)
+        op.isIvd   := decodeResult(DecodeField.IsIvdField)
     }
 }

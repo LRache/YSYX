@@ -4,7 +4,9 @@
 #include <iostream>
 #include <ostream>
 #include <iomanip>
+#include <unordered_set>
 
+#include "common.h"
 #include "memory.h"
 #include "debug.h"
 #include "hdb.h"
@@ -23,7 +25,9 @@ VTop top;
 static std::chrono::time_point<std::chrono::system_clock> timerStart;
 static uint64_t timer = 0;
 
-#define IMG_NAME test_img_btb
+static std::unordered_set<word_t> breakpointSet;
+
+#define IMG_NAME test_img_c_temp
 static uint32_t *img = IMG_NAME;
 static size_t img_size = sizeof(IMG_NAME);
 
@@ -70,6 +74,32 @@ void hdb::init() {
 
     cpu.mstatus = 0x1800;
     Log("Init finished.");
+
+    // breakpointSet.insert(0xa00000da);
+}
+
+void check_pc() {
+    if (!(in_flash(cpu.pc) || in_sdram(cpu.pc))) {
+        panic("Invalid PC = " FMT_WORD", lastPC = " FMT_WORD, cpu.pc, cpu.lastPC);
+    }
+    if (cpu.pc & 0x1) {
+        panic("Unaligned PC = " FMT_WORD", lastPC = " FMT_WORD, cpu.pc, cpu.lastPC);
+    }
+}
+
+void hdb::add_breakpoint(word_t pc) {
+    breakpointSet.insert(pc);
+}
+
+void hdb::delete_breakpoint(word_t pc) {
+    breakpointSet.erase(pc);
+}
+
+void check_breakpoint() {
+    if (breakpointSet.find(cpu.pc) != breakpointSet.end()) {
+        Log("Hit breakpoint at pc=" FMT_WORD, cpu.pc);
+        cpu.running = false;
+    }
 }
 
 void hdb::step() {
@@ -83,10 +113,9 @@ void hdb::step() {
         check_step_timeout();
     }
     if (cpu.running) difftest::step();
+    check_pc();
+    check_breakpoint();
     cpu.instCount++;
-    if (!(in_flash(cpu.pc) || in_sdram(cpu.pc))) {
-        panic("Invalid PC = " FMT_WORD", lastPC = " FMT_WORD, cpu.pc, cpu.lastPC);
-    }
 }
 
 void hdb_statistic() {
@@ -107,6 +136,7 @@ void hdb_statistic() {
 }
 
 void hdb::end() {
+    trace::close();
     difftest::end();
     perf::statistic(std::cout);
     if (config::statistic) perf::statistic(statisticFile);
@@ -121,13 +151,15 @@ int hdb::run(uint64_t n) {
         while (cpu.running && n--) step();
     }
     
-    int r = cpu.gpr[10];
-    if (r == 0) {
-        Log(ANSI_FG_GREEN "HIT GOOD TRAP" ANSI_FG_BLUE " at pc=" FMT_WORD, cpu.pc);
-    } else {
-        Log(ANSI_FG_RED "HIT BAD TRAP" ANSI_FG_BLUE " with code %d at pc=" FMT_WORD, r, cpu.pc);
+    int r = 0;
+    if (!cpu.running) {
+        r = cpu.gpr[10];
+        if (r == 0) {
+            Log(ANSI_FG_GREEN "HIT GOOD TRAP" ANSI_FG_BLUE " at pc=" FMT_WORD, cpu.pc);
+        } else {
+            Log(ANSI_FG_RED "HIT BAD TRAP" ANSI_FG_BLUE " with code %d at pc=" FMT_WORD, r, cpu.pc);
+        }
     }
-    trace::close();
     return r;
 }
 
@@ -144,8 +176,10 @@ void hdb::invalid_inst() {
 
 void hdb::set_gpr(uint32_t addr, word_t data) {
     if (addr == 0) return ;
-    // Log("Set gpr x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
     cpu.gpr[addr] = data;
+    #ifdef DEBUG_LOG
+    Log("Set gpr x%d = " FMT_WORD "(%d) at pc=" FMT_WORD "(inst=" FMT_WORD ")", addr, data, data, cpu.pc, cpu.inst);
+    #endif
 }
 
 const char *name = "unknown";
@@ -172,13 +206,17 @@ void hdb::set_pc(word_t pc) {
     itrace::trace(pc);
     lastUpdatePCClock = cpu.clockCount;
     pcOn = true;
-    // Log("Exec to pc=" FMT_WORD " at clock=%lu", pc, cpu.clockCount);
+    #ifdef DEBUG_LOG
+    Log("Exec to pc=" FMT_WORD " at clock=%lu", pc, cpu.clockCount);
+    #endif
 }
 
 void hdb::set_inst(word_t inst) {
     cpu.lastInst = cpu.inst;
     cpu.inst = inst;
-    // Log(FMT_WORD, inst);
+    #ifdef DEBUG_LOG
+    Log(FMT_WORD, inst);
+    #endif
 }
 
 void hdb::set_reset(bool reset) {

@@ -6,6 +6,7 @@ import chisel3._
 import chisel3.util._
 
 import bus.AXI4IO
+import cpu.Config.PCWidth
 import cpu.ICachePerfCounter
 
 class ICacheIO extends Bundle {
@@ -22,21 +23,23 @@ class ICache (e: Int, s: Int) extends Module {
         val perf  = new ICachePerfCounter()
         val fence = Input(Bool())
     })
+    val ADDR_OFFSET = 32 - 30
+
     val b = 4
     val S = 1 << s
     val B = (1 << b) << 3
     val t = 32 - s - b
     val E = 1 << e
 
-    val tag = io.io.raddr(31 - 2, s + b - 2)
+    val tag = io.io.raddr(31 - ADDR_OFFSET, s + b - ADDR_OFFSET)
     val groupIndex = Wire(UInt(s.W))
     if (s == 0) {
         groupIndex := 0.U(0.W)
     } else {
-        groupIndex := io.io.raddr(s + b - 1 - 2, b - 2)
+        groupIndex := io.io.raddr(s + b - 1 - ADDR_OFFSET, b - ADDR_OFFSET)
     }
-    val offset = io.io.raddr(b - 1, 2)
-    val memRAddr = Cat(io.io.raddr(31, b), 0.U(b.W))
+    val offset = io.io.raddr(b - 1 - ADDR_OFFSET, 2 - ADDR_OFFSET)
+    val memRAddr = Cat(io.io.raddr(31 - ADDR_OFFSET, b - ADDR_OFFSET), 0.U(b.W))
 
     val cache     = Reg(Vec(S, Vec(E, Vec(4, UInt(32.W)))))
     // val cache     = RegInit(VecInit(Seq.fill(S)(VecInit(Seq.fill(E)(VecInit(Seq.fill(4)(0.U(32.W))))))))
@@ -127,4 +130,4 @@ class ICache (e: Int, s: Int) extends Module {
     io.mem.awburst := DontCare
     io.mem.wlast   := DontCare
     io.mem.arid    := DontCare
-}   
+}
